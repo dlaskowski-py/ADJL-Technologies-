@@ -5,3 +5,6 @@ dist
 raw/
 artifacts/
 .netlify/
+
+# Scratch scripts used while driving the browser locally.
+*.tmp.mjs
