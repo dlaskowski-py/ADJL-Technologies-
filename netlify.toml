@@ -1,0 +1,69 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# The films and the font are versioned by content, not by filename, so they
+# are cached hard and busted by a redeploy renaming nothing. Vite's own
+# assets are hashed and can be cached forever.
+[[headers]]
+  for = "/media/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "DENY"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(), interest-cohort=()"
+
+    # Content-Security-Policy.
+    #
+    # This site is static, has no login, no form and no third-party script,
+    # which means the policy can be genuinely strict rather than a
+    # placeholder with 'unsafe-inline' everywhere. Each source is deliberate:
+    #
+    #   default-src 'self'   Nothing loads from anywhere else. There is no
+    #                        CDN, no font host, no analytics, no embed.
+    #   script-src 'self'    No 'unsafe-inline', no 'unsafe-eval', no hashes.
+    #                        Keep it that way: one inline script forces
+    #                        either 'unsafe-inline', which disables the
+    #                        protection for every page, or a hash that goes
+    #                        stale the moment the markup is edited. The
+    #                        console demo's transcript is a JSON <script>,
+    #                        which is DATA and is not executed, so it does
+    #                        not need a hash.
+    #   style-src            'unsafe-inline' is required and is not a hole
+    #                        worth closing: the markup uses style="--i:2" to
+    #                        stagger reveals, and style-src covers attributes
+    #                        as well as elements. There is no session token
+    #                        on this origin for style injection to reach.
+    #   frame-ancestors      No reason for this site to be framed by anyone.
+    #   form-action 'none'   There is no form. If one is ever added, this
+    #                        line has to change, which is the point.
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'self'; connect-src 'self'; frame-src 'none'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests"
+
+# Trailing-slash canonical: /work and /work/ must not both be live pages.
+[[redirects]]
+  from = "/work"
+  to = "/work/"
+  status = 301
+
+[[redirects]]
+  from = "/approach"
+  to = "/approach/"
+  status = 301

@@ -1,0 +1,369 @@
+/* ADJL Technologies — reset, typography primitives, shared motion classes. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--sans);
+  font-size: var(--t-body);
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--paper);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--signal);
+  color: #fff;
+}
+
+img,
+video,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--signal-deep);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  clip-path: inset(50%);
+  z-index: 999;
+  padding: 0.8rem 1.4rem;
+  background: var(--signal-deep);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 8px;
+}
+.skip-link:focus {
+  clip-path: none;
+}
+
+/* ── Layout primitives ───────────────────────────────────────────── */
+
+.wrap {
+  width: 100%;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: var(--gut);
+  position: relative;
+  z-index: 1;
+}
+
+.wrap--narrow {
+  max-width: 960px;
+}
+
+section {
+  position: relative;
+  padding-block: var(--sec-y);
+  scroll-margin-top: 5rem;
+}
+
+.sec-line {
+  border-top: 1px solid var(--line);
+}
+
+/* Alternating ground. On a white site the sections need a reason to read
+   as separate, and a hairline alone is not enough over a long page — so
+   every other band steps one value down onto --paper-3. */
+.sec-tint {
+  background: var(--paper-3);
+}
+
+/* ── Typography primitives ───────────────────────────────────────── */
+
+.eyebrow {
+  font-family: var(--sans);
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 1.5rem;
+}
+
+/* The rule before an eyebrow is the one place the three spectrum colours
+   appear together, and it is how the palette introduces itself. */
+.eyebrow::before {
+  content: '';
+  width: 2.2rem;
+  height: 2px;
+  border-radius: 2px;
+  flex: none;
+  background: linear-gradient(90deg, var(--signal) 0%, var(--teal) 55%, var(--violet) 100%);
+}
+
+.display,
+.h2 {
+  font-family: var(--sans);
+  font-weight: var(--w-display);
+  line-height: 1.03;
+  letter-spacing: var(--tr-display);
+  text-wrap: balance;
+  color: var(--ink);
+}
+
+/* Each authored line is its own block — otherwise adjacent array entries
+   run together with no space between them. */
+.display .hl-line,
+.h2 .hl-line {
+  display: block;
+}
+
+.display {
+  font-size: var(--t-display);
+}
+.h2 {
+  font-size: var(--t-h2);
+}
+
+/* Emphasis is weight and colour, never italic — Capital's rule, kept.
+   --signal at 3.8:1 is used here and only here: these glyphs are never
+   below 32px, which is the size at which 3:1 is the applicable floor.
+   Anything smaller takes --signal-deep. */
+.h2 em,
+.display em {
+  font-style: normal;
+  font-weight: 300;
+  color: var(--signal);
+}
+
+.h3 {
+  font-family: var(--sans);
+  font-size: var(--t-h3);
+  font-weight: var(--w-head);
+  letter-spacing: var(--tr-head);
+  line-height: 1.22;
+  color: var(--ink);
+}
+
+.lede {
+  color: var(--ink-2);
+  max-width: var(--measure);
+  font-size: clamp(1.05rem, 1.2vw, 1.24rem);
+  line-height: 1.58;
+}
+
+.h2 + .lede,
+.display + .lede {
+  margin-top: 1.7rem;
+}
+
+.label {
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.mono {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  letter-spacing: -0.01em;
+}
+
+/* Inline prose link. --signal-deep, not --signal: this text is body-sized,
+   so it needs 4.5:1 and gets 4.8. */
+.tlink {
+  color: var(--signal-deep);
+  font-weight: 500;
+  border-bottom: 1px solid rgba(194, 69, 28, 0.35);
+  transition: border-color 0.2s var(--ease), color 0.2s var(--ease);
+}
+.tlink:hover {
+  border-bottom-color: var(--signal-deep);
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.95rem 1.6rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  /* 44px minimum touch target, measured rather than assumed. */
+  min-height: 44px;
+  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease),
+    background-color 0.25s var(--ease), border-color 0.25s var(--ease), color 0.25s var(--ease);
+  will-change: transform;
+}
+
+/* White on --signal-deep is 5.0:1. White on --signal would be 4.0:1, which
+   is under the floor for text at this size — which is the entire reason
+   the copper ships in two values. */
+.btn--solid {
+  background: var(--signal-deep);
+  color: #fff;
+  box-shadow: var(--lift-1);
+}
+.btn--solid:hover {
+  background: #ab3c17;
+  box-shadow: var(--lift-2);
+}
+
+.btn--ghost {
+  background: var(--paper-2);
+  color: var(--ink);
+  border: 1px solid var(--line-2);
+  box-shadow: var(--lift-1);
+}
+.btn--ghost:hover {
+  border-color: var(--line-3);
+  box-shadow: var(--lift-2);
+}
+
+.btn .arw {
+  transition: transform 0.3s var(--ease);
+}
+.btn:hover .arw {
+  transform: translateX(4px);
+}
+
+/* ── Reveal on scroll ────────────────────────────────────────────── */
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+[data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* A headline whose lines wipe up from a clipped box rather than fading. */
+[data-reveal='mask'] {
+  opacity: 1;
+  transform: none;
+}
+[data-reveal='mask'] > span {
+  display: block;
+  overflow: hidden;
+}
+[data-reveal='mask'] > span > span {
+  display: block;
+  transform: translateY(105%);
+  transition: transform 0.9s var(--ease);
+  transition-delay: calc(var(--i, 0) * 90ms);
+}
+[data-reveal='mask'].is-in > span > span {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  [data-reveal],
+  [data-reveal='mask'] > span > span {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Film ────────────────────────────────────────────────────────── */
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.backdrop video,
+.backdrop .bd-poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--veil-hero);
+}
+/* Film shown inside a frame, with no text on top: barely veiled. */
+.backdrop--plate::after {
+  background: var(--veil-plate);
+}
+
+/* The point field, behind everything. */
+#field {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* Sections paint their own ground over the fixed canvas; the ones that
+   want it visible opt in. */
+body > .page > section {
+  background: var(--paper);
+}
+body > .page > section.sec-tint {
+  background: var(--paper-3);
+}
+body > .page > section.is-clear {
+  background: transparent;
+}

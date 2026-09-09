@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#FAFAFC" />
+
+    <!-- Slots only: scripts/prerender.mjs fills these from the page's own
+         content module, so the shell can never disagree with the copy. -->
+    <title>ADJL Technologies</title>
+    <meta name="description" content="ADJL Technologies." />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ADJL Technologies" />
+    <meta property="og:description" content="ADJL Technologies." />
+    <meta property="og:image" content="/media/lumen.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/manrope.woff2" crossorigin />
+
+  </head>
+  <body>
+    <a class="skip-link" href="#top">Skip to content</a>
+    <canvas id="field" aria-hidden="true"></canvas>
+    <div id="nav-root"></div>
+    <main class="page" id="page"></main>
+    <script type="module" src="/src/main-approach.ts"></script>
+  </body>
+</html>

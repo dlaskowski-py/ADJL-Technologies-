@@ -1,0 +1,25 @@
+{
+  "name": "adjl-technologies",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build && node scripts/prerender.mjs && node scripts/gen-sitemap.mjs && node scripts/check-css.mjs && node scripts/check-links.mjs && node scripts/check-claims.mjs && node scripts/check-contact.mjs && node scripts/check-media.mjs",
+    "preview": "vite preview --port 4173",
+    "verify": "node scripts/verify.mjs",
+    "check:css": "node scripts/check-css.mjs",
+    "check:links": "node scripts/check-links.mjs",
+    "check:claims": "node scripts/check-claims.mjs",
+    "check:contact": "node scripts/check-contact.mjs",
+    "check:media": "node scripts/check-media.mjs",
+    "check:contrast": "node scripts/check-contrast.mjs",
+    "check:motion": "node scripts/check-visible-motion.mjs",
+    "check:mobile": "node scripts/check-mobile.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  }
+}

@@ -1,0 +1,218 @@
+/* ADJL Technologies — design tokens.
+   =====================================================================
+   The Capital kit, daylit.
+
+   ADJL Capital is a black site: #0A0A0B ground, bone text, one copper
+   signal. That reads the way a fund should read — closed, quiet, serious.
+   A technology practice is selling the opposite posture, so this is the
+   same house on a white ground, and the single copper signal has grown
+   into a three-colour spectrum that the data and AI work is drawn in.
+
+   Two things carry over untouched, because they are what makes this
+   legible as an ADJL company: Manrope, and the copper.
+
+   EVERY COLOUR PAIRING BELOW IS MEASURED, NOT PICKED. The ratios in the
+   comments are computed against the actual grounds these colours are used
+   on, and `npm run check:contrast` re-measures them against the built
+   site. A light site is where contrast quietly fails — mid-tone brand
+   colours look fine on white to a designer and measure 3:1 — so each
+   accent ships in two versions: a bright one for large type and
+   decoration, and a deepened one that is safe for body text.
+   ===================================================================== */
+
+:root {
+  /* ── Ground ────────────────────────────────────────────────────────
+     Porcelain rather than pure white. #FFFFFF as a page ground makes
+     every raised card need a shadow to separate from it; starting one
+     step down means a card can simply be white and read as lifted. */
+  --paper: #fafafc;
+  --paper-2: #ffffff;
+  --paper-3: #f1f2f6;
+  --paper-4: #e8eaf1;
+
+  /* ── Type ──────────────────────────────────────────────────────────
+     Three tiers, all measured against --paper (L = 0.9571):
+
+       --ink    #0E1117   18.1:1   headlines, body
+       --ink-2  #3D4453    9.4:1   secondary copy, card body
+       --ink-3  #616978    5.3:1   labels, eyebrows, captions, meta
+
+     --ink-3 is the tier that decides whether a light site is readable,
+     because it carries every label and caption — the text that is small
+     AND quiet at the same time. 5.3:1 leaves real headroom over the 4.5
+     floor; a lighter grey would look more elegant in a mockup and fail
+     on a phone in daylight, which is where this site is actually read. */
+  --ink: #0e1117;
+  --ink-2: #3d4453;
+  --ink-3: #616978;
+
+  /* ── Signal — copper, from the Capital kit ────────────────────────
+     Capital's --signal is #D9663C on black. On white that same colour
+     measures 3.4:1, so the hue is kept and the value is re-cut for a
+     light ground.
+
+       --signal       #D9542A   3.8:1 on paper   large type, rules, art
+       --signal-deep  #C2451C   4.8:1 on paper   body links, small text
+                                5.0:1 under white — button backgrounds
+
+     The split is not fussiness. --signal at 3.8 is legal for a 40px
+     headline and illegal for a 14px link, and the same token being used
+     for both is exactly how a light site ends up with unreadable links.
+     Anything set below 24px, or any button that puts white on top, takes
+     --signal-deep. */
+  --signal: #d9542a;
+  --signal-deep: #c2451c;
+  --signal-soft: #fceee8;
+
+  /* ── Spectrum — the new half of the kit ───────────────────────────
+     Teal and violet are what Capital does not have, and they are how the
+     technology arm reads as its own company rather than a recoloured
+     fund. They are assigned, not decorative: teal is data and
+     measurement, violet is inference and models. That mapping holds
+     across the diagrams, the network canvas and the pipeline animation,
+     so a reader learns it without being told.
+
+       --teal        #0FA3A3   3.0:1   art, strokes, canvas only
+       --teal-deep   #0A7070   5.7:1   safe for any text
+       --violet      #6C4BF5   5.1:1   safe for text as-is
+       --viridian    #1F5E4E   7.3:1   carried from Capital, for prose
+
+     Note that teal is the one accent with NO text-safe bright version.
+     #0FA3A3 is 3.0:1 — under the floor for body copy and only barely at
+     the floor for a large heading. It is a stroke colour. Every teal
+     word on this site is --teal-deep. */
+  --teal: #0fa3a3;
+  --teal-deep: #0a7070;
+  --teal-soft: #e3f5f5;
+  --violet: #6c4bf5;
+  --violet-deep: #5333e0;
+  --violet-soft: #eeeaff;
+  --viridian: #1f5e4e;
+
+  /* Semantic */
+  --good: #1f7a5e;
+  --warn: #a86a12;
+  --bad: #b8402f;
+
+  /* ── Lines & surfaces ─────────────────────────────────────────────
+     Hairlines on a light ground come from the ink, not from a grey: a
+     grey line has its own hue and fights the accents sitting beside it.
+     --line is the resting rule, --line-2 is a border that has to be seen
+     (inputs, cards you can click, the current tab). */
+  --line: rgba(14, 17, 23, 0.09);
+  --line-2: rgba(14, 17, 23, 0.16);
+  --line-3: rgba(14, 17, 23, 0.26);
+
+  /* Elevation. Three steps and no more — a light UI degrades into
+     mush when every surface floats at a slightly different height.
+     Tinted toward the ink rather than pure black so shadows read as
+     shade rather than as grime. */
+  --lift-1: 0 1px 2px rgba(14, 17, 23, 0.04), 0 2px 8px rgba(14, 17, 23, 0.04);
+  --lift-2: 0 2px 4px rgba(14, 17, 23, 0.04), 0 12px 32px rgba(14, 17, 23, 0.07);
+  --lift-3: 0 4px 12px rgba(14, 17, 23, 0.06), 0 28px 64px rgba(14, 17, 23, 0.1);
+
+  /* ── Veils ────────────────────────────────────────────────────────
+     Capital scrims its films DOWN with black so bone text survives on
+     top. This site scrims UP with paper so ink text does.
+
+     Same trap, mirrored: every point of alpha here is film the reader
+     never sees, so the wash is spent where the words are and released
+     where they are not. --veil-hero holds the left half, where the
+     headline sits, and lets the right half of the frame play. */
+  --veil-hero: linear-gradient(
+      100deg,
+      rgba(250, 250, 252, 0.97) 0%,
+      rgba(250, 250, 252, 0.95) 34%,
+      rgba(250, 250, 252, 0.8) 52%,
+      rgba(250, 250, 252, 0.42) 68%,
+      rgba(250, 250, 252, 0.12) 84%,
+      rgba(250, 250, 252, 0) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(250, 250, 252, 0.55) 0%,
+      rgba(250, 250, 252, 0) 24%,
+      rgba(250, 250, 252, 0) 72%,
+      rgba(250, 250, 252, 0.6) 100%
+    );
+
+  /* Film shown as an object rather than as a ground — inside a framed
+     panel with no text on it — needs only enough wash to keep it from
+     vibrating against the page. */
+  --veil-plate: linear-gradient(
+    180deg,
+    rgba(250, 250, 252, 0.16) 0%,
+    rgba(250, 250, 252, 0) 30%,
+    rgba(250, 250, 252, 0) 70%,
+    rgba(250, 250, 252, 0.3) 100%
+  );
+
+  /* ── Type system ──────────────────────────────────────────────────
+     One family, same as Capital. Emphasis is weight and colour, never
+     italic — a rule inherited deliberately, because the italic in a
+     geometric sans is a slant rather than a cut and it shows. */
+  --sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Fira Code', Menlo, Consolas, monospace;
+
+  --w-display: 600;
+  --w-head: 600;
+  --w-body: 400;
+  --w-label: 600;
+  --tr-display: -0.035em;
+  --tr-head: -0.025em;
+  --tr-label: 0.16em;
+
+  /* Scale. Slightly tighter at the top than Capital: a black page can
+     carry a 7rem headline because the ground absorbs it, and the same
+     size on white shouts. */
+  --t-display: clamp(2.7rem, 7vw, 6rem);
+  --t-h2: clamp(2rem, 4.6vw, 3.9rem);
+  --t-h3: clamp(1.3rem, 2.3vw, 1.85rem);
+  --t-body: clamp(1rem, 1.05vw, 1.12rem);
+  --t-small: 0.86rem;
+
+  /* 12px floor, same reasoning as Capital: this token carries every
+     eyebrow, stat label and caption, and uppercase at 0.16em tracking
+     reads a size smaller than it is. Do not nudge it down. */
+  --t-label: 0.75rem;
+
+  /* Rhythm */
+  --gut: clamp(1.25rem, 4vw, 3.5rem);
+  --sec-y: clamp(5rem, 11vh, 9rem);
+  --maxw: 1280px;
+  --measure: 60ch;
+  --radius: 14px;
+  --radius-lg: 22px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur: 0.8s;
+}
+
+/* Phone rhythm — same argument Capital reached: --sec-y applied top and
+   bottom costs ~200px of empty space per section, and this site has
+   fourteen of them on the home page. Generous on a wide screen is
+   scrolling through nothing on a phone. */
+@media (max-width: 760px) {
+  :root {
+    --sec-y: clamp(2.9rem, 7vh, 4.75rem);
+  }
+}
+
+/* Phone veils. The hero veil is a diagonal holding the left half,
+   because desktop copy occupies the left half. Phone copy spans the
+   full width and runs straight off the end of that protection, so it
+   collapses to a full-width wash. Any veil added above needs a line
+   here — Capital shipped a bug that was exactly this omission. */
+@media (max-width: 900px) {
+  :root {
+    --veil-hero: linear-gradient(
+      180deg,
+      rgba(250, 250, 252, 0.86) 0%,
+      rgba(250, 250, 252, 0.95) 30%,
+      rgba(250, 250, 252, 0.96) 62%,
+      rgba(250, 250, 252, 0.9) 100%
+    );
+  }
+}
