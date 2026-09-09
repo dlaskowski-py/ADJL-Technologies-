@@ -229,7 +229,7 @@ export const method = {
   eyebrow: 'Working Together',
   headline: ['What it is like', 'to {em}hire us.{/em}'],
   intro:
-    'Four steps, and the first one is free. If at the end of it the honest answer is that you do not need what we build, that is what you will be told — an engagement that should not have started is worse for us than one we never won.',
+    'Four steps, and the first one is free. By the end of the second you have a written scope with a price on it, and by the end of the fourth your team owns a system that is running.',
   steps: [
     {
       num: '01',
@@ -246,8 +246,8 @@ export const method = {
     {
       num: '03',
       when: 'Written down',
-      title: 'A scope, or a no',
-      body: 'You get a written scope: the one step we would build, what it would cost, and what would have to be true for it to work. Sometimes the honest deliverable is that the problem is a process problem and no software will fix it.',
+      title: 'A scope, in writing',
+      body: 'You get the one step we would build, what it would cost, what it would take, and what has to be true for it to work. Priced and dated before anyone commits to it.',
     },
     {
       num: '04',
@@ -311,8 +311,8 @@ export const faq = {
       a: 'The model is one component and usually the least interesting one. The work is in getting your data to a state where a model can act on it, deciding where a human has to stay in the loop, and building the evaluation that tells you whether any of it is working. Swap the model out in a year and that scaffolding is what you keep.',
     },
     {
-      q: 'What do you refuse to take on?',
-      a: 'Anything where the goal is to replace a person’s judgment in a decision that materially affects someone — hiring, credit, anything medical. Also any project whose success criteria cannot be written down before it starts, because that is not a project, it is a subscription.',
+      q: 'We already have developers. Where do you fit?',
+      a: 'Usually alongside them rather than instead of them. An in-house team knows the business far better than we will in week one; what they often do not have is spare capacity or a reason to have built this particular thing before. We build the piece, work in your repository against your conventions, and hand it to your people to carry — they are the ones who will still be here in a year.'
     },
     {
       q: 'Who owns the code when we are done?',

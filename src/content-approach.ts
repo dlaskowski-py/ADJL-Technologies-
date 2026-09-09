@@ -76,7 +76,7 @@ export const content: ApproachContent = {
       "How the work runs,",
       "and where it {em}stops.{/em}"
     ],
-    body: "ADJL Technology is Daniel Laskowski and a small senior development team. Engagements are taken deliberately rather than continuously, so timing alone can be a reason one does not go ahead — and you will be told that rather than queued. What the shape buys is that the person who scopes the work is in the room for the whole of it. There is no handover between the sale and the build: the people who write the code were in the room when it was scoped, so nothing has to survive one.",
+    body: "ADJL Technology is Daniel Laskowski and a small senior development team. Engagements are taken deliberately rather than continuously, so the team on yours is not also carrying four others. What the shape buys is that the person who scopes the work is in the room for the whole of it. There is no handover between the sale and the build: the people who write the code were in the room when it was scoped, so nothing has to survive one.",
     back: {
       label: "Home",
       href: "/"
@@ -84,7 +84,7 @@ export const content: ApproachContent = {
   },
   meta: {
     title: "Approach — ADJL Technology",
-    description: "How ADJL Technology works: what it takes on, what it turns down, and who owns the code and the data at the end. Stated plainly, with the limits included.",
+    description: "How ADJL Technology works: the operating principles, the shapes an engagement takes, and who owns the code and the data at the end. Stated plainly.",
     ogTitle: "Approach — ADJL Technology",
     ogDescription: "Five operating positions, three shapes of engagement, and a plain answer on ownership: the client owns the code, the data and the right to leave."
   },
@@ -105,10 +105,10 @@ export const content: ApproachContent = {
   principles: {
     eyebrow: "Operating principles",
     headline: [
-      "Five positions, and",
-      "what each one {em}closes off.{/em}"
+      "Five positions we",
+      "actually {em}build to.{/em}"
     ],
-    intro: "None of these are values. Each one closes off something another firm would happily sell you, and the cost is written next to the position.",
+    intro: "None of these are values. Each one is a position you could disagree with, and each one shows up in the code rather than only in a conversation.",
     items: [
       {
         num: "01",

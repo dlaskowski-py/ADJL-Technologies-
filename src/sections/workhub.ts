@@ -1,6 +1,6 @@
 /** /work/ — a short index over the three case pages. */
 
-import { backdrop, esc, eyebrow, headline, rich } from './html';
+import { backdrop, esc, rich } from './html';
 import { renderCta, renderFooter } from './bottom';
 import { renderNav } from './nav';
 
@@ -17,7 +17,6 @@ export type WorkHubContent = {
     linkLabel: string;
     href: string;
   }[];
-  refuse: { eyebrow: string; headline: string[]; body: string; items: string[] };
   cta: {
     eyebrow: string;
     headline: string[];
@@ -37,7 +36,6 @@ export const CASE_MEDIA: Record<string, string> = {
 
 export function renderWorkHubPage(c: WorkHubContent): { navHtml: string; pageHtml: string } {
   const h = c.hero;
-  const r = c.refuse;
 
   const hero = `<section class="chero is-clear" id="top" data-scrub>
     ${backdrop('bloom')}
@@ -87,29 +85,8 @@ export function renderWorkHubPage(c: WorkHubContent): { navHtml: string; pageHtm
     </div>
   </section>`;
 
-  /* The refusals get the same treatment as a case page's limits: a full
-     section, not a footnote. It is the most trust-building block on the
-     page and it should look like it was meant. */
-  const refuse = `<section class="limits sec-line sec-tint" id="refuse">
-    <div class="wrap wrap--narrow">
-      ${eyebrow(r.eyebrow)}
-      ${headline(r.headline)}
-      <p class="lede" data-reveal style="--i:1">${rich(r.body)}</p>
-      <ul class="limit-list" data-stagger>
-        ${r.items
-          .map(
-            (it) =>
-              `<li class="limit" data-reveal><span class="limit-mark" aria-hidden="true"></span><span>${rich(
-                it,
-              )}</span></li>`,
-          )
-          .join('')}
-      </ul>
-    </div>
-  </section>`;
-
   return {
     navHtml: renderNav('/work/'),
-    pageHtml: [hero, list, refuse, renderCta(c.cta), renderFooter()].join(''),
+    pageHtml: [hero, list, renderCta(c.cta), renderFooter()].join(''),
   };
 }

@@ -17,7 +17,7 @@ export const content: WorkHubContent = {
       "Describe the {em}system,{/em}",
       "not the ambition."
     ],
-    body: "The useful first message is a paragraph on what currently happens, who does it, and what it costs when it goes wrong. Daniel reads and answers these himself. If it is not work for this firm, you will be told so in the first reply rather than in the third meeting.",
+    body: "The useful first message is a paragraph on what currently happens, who does it, and what it costs when it goes wrong. Daniel reads and answers these himself, and the first reply comes from him rather than from a form.",
     button: {
       label: "Start with the problem",
       href: "mailto:daniel@adjlcapital.com"
@@ -79,13 +79,13 @@ export const content: WorkHubContent = {
         "actually {em}pays.{/em}"
       ],
       sub: "Folding AI into a business that already runs, without breaking the part that runs.",
-      body: "The first job is subtraction. A lot of what gets scoped as an AI project turns out to be a query, a form, or a process that needs an afternoon of someone’s attention — and saying so early is cheaper than building it. What survives gets built and shipped into the working business: connected to real data, owned by a named person inside the company, and measured against what the process cost before. Sometimes the finding is that the current process is fine and a model adds risk without adding margin; that finding gets delivered as soon as it is reached rather than held until the scope is used up, and it ends the work.",
+      body: "The first job is finding the step that actually costs you something. We time and cost the process as it runs today, pick the point where a person is doing expensive repetitive judgment work, and build for that. What gets built is shipped into the working business: connected to real data, owned by a named person inside the company, and measured against what the process cost before.",
       points: [
         "The current process is timed and costed before any model is proposed",
         "Built and shipped into the running business, not piloted beside it",
         "Handed to an internal owner who can read and change the code"
       ],
-      linkLabel: "Read what gets cut first",
+      linkLabel: "Read the practice",
       href: "/work/ai-implementation/"
     }
   ],
@@ -94,20 +94,6 @@ export const content: WorkHubContent = {
     description: "Three practices: real estate underwriting, trading infrastructure, and AI implementation. Each one described by its mechanism, step by step.",
     ogTitle: "Work — ADJL Technology",
     ogDescription: "Three practices, each described by mechanism: the property underwriting scanner, trading infrastructure, and AI implementation inside businesses that already run."
-  },
-  refuse: {
-    eyebrow: "Scope",
-    headline: [
-      "The list of work",
-      "this firm {em}turns down.{/em}"
-    ],
-    body: "We are exact about what we will not take on, because the wrong engagement quietly consumes the capacity for the right one. Publishing the list is cheaper for both sides than discovering it in month three.",
-    items: [
-      "Strategy decks. There is no assessment, roadmap or maturity model for sale here — if an engagement cannot end with something running inside your business, it is not work this firm takes.",
-      "AI where a query would do. When the honest answer is a SQL statement, a spreadsheet rule or a rewritten process, that is the answer you get, including when a model is what the budget was written for.",
-      "Bodies by the month. There is no seat to fill and no retainer that bills for being available; work is scoped to a system with a defined edge, and when the system runs, the engagement stops.",
-      "Systems nobody will own. If no one inside your company will have their name on the code after handover, the work is declined — an unowned system stops being maintained, and shortly after that it stops being true."
-    ]
   }
 };
 
