@@ -1,5 +1,5 @@
 /**
- * ADJL Technologies — home page and site-wide copy.
+ * ADJL Technology — home page and site-wide copy.
  *
  * EVERY HUMAN-READABLE SENTENCE ON THIS SITE LIVES IN A content*.ts FILE.
  * Edit words here; markup, styling and motion live elsewhere and read from
@@ -17,18 +17,18 @@
  * And one rule that is not stylistic:
  *
  *   NOTHING ON THIS SITE MAY CLAIM SOMETHING THAT HAS NOT HAPPENED. No client
- *   names, no testimonials, no performance figures, no counts of anything.
- *   The firm is new and one person runs it; a site that pretends otherwise
- *   gets found out in the first conversation, and the honesty is a better
- *   pitch than the invention would have been. scripts/check-claims.mjs fails
- *   the build over the specific words that tend to smuggle a claim in.
+ *   names, no testimonials, no performance figures, no counts of anything —
+ *   including headcount. The firm is new; a site that pretends otherwise gets
+ *   found out in the first conversation, and the restraint is a better pitch
+ *   than the invention would have been. scripts/check-claims.mjs fails the
+ *   build over the specific words that tend to smuggle a claim in.
  */
 
 export const meta = {
-  title: 'ADJL Technologies — AI consulting and applied engineering',
+  title: 'ADJL Technology — AI consulting and applied engineering',
   description:
-    'An AI consulting and engineering practice: we find where AI actually belongs in a business that already runs, then build it, ship it, and hand over the code. Real estate underwriting, trading infrastructure, and AI implementation.',
-  ogTitle: 'ADJL Technologies — We build the system, not the slide deck',
+    'An AI consulting and engineering practice. We find where AI actually belongs in a business that already runs, build it, ship it, and hand over the code.',
+  ogTitle: 'ADJL Technology — We build the system, not the slide deck',
   ogDescription:
     'AI consulting and applied engineering from the team behind ADJL Capital’s underwriting software. Real estate intelligence, trading infrastructure, and AI built into the workflow you already run.',
 };
@@ -37,7 +37,7 @@ export const meta = {
 export const CONTACT = 'daniel@adjlcapital.com';
 
 export const nav = {
-  wordmark: { lead: 'ADJL', tail: 'Technologies' },
+  wordmark: { lead: 'ADJL', tail: 'Technology' },
   links: [
     { label: 'Work', href: '/work/' },
     { label: 'Approach', href: '/approach/' },
@@ -48,7 +48,7 @@ export const nav = {
 export const hero = {
   eyebrow: 'AI Consulting · Applied Engineering',
   headline: ['We build the system.', 'Not the {em}slide deck.{/em}'],
-  body: 'ADJL Technologies works out where AI actually belongs inside a business that already runs — and then builds that thing, puts it into production, and hands it over with the code. The first client was our own firm. The underwriting engine behind ADJL Capital’s property deals is ours, and it ran on our own capital before it ran on anyone else’s.',
+  body: 'ADJL Technology works out where AI actually belongs inside a business that already runs — and then builds that thing, puts it into production, and hands it over with the code. The first client was our own firm. The underwriting engine behind ADJL Capital’s property deals is ours, and it ran on our own capital before it ran on anyone else’s.',
   primary: { label: 'See the work', href: '/work/' },
   secondary: { label: 'How we work', href: '/approach/' },
   scrollHint: 'Scroll',
@@ -57,7 +57,7 @@ export const hero = {
 /** Four capability facts. Not metrics — there are no metrics to report yet,
  *  and inventing four would be the fastest way to lose the reader who checks. */
 export const strip = {
-  line: 'Three practices. One operator. Software that is already running on the firm’s own money.',
+  line: 'Three practices. One team. Software that is already running on the firm’s own money.',
   chips: [
     { k: 'Real estate', v: 'A listing URL in, a full underwriting out' },
     { k: 'Trading firms', v: 'Market data, execution and network work' },
@@ -76,7 +76,7 @@ export const practices = {
       num: '01',
       title: 'AI Implementation',
       sub: 'For businesses that already work',
-      body: 'We start at your workflow, not at a model. Somewhere in a business that already runs there are capable people spending their best hours reading, sorting, extracting and routing — work that is expensive precisely because it is repetitive and still needs judgement. We build the narrow thing that does one of those steps, put a human where being wrong is costly, and instrument it so you can tell whether it is helping.',
+      body: 'We start at your workflow, not at a model. Somewhere in a business that already runs there are capable people spending their best hours reading, sorting, extracting and routing — work that is expensive precisely because it is repetitive and still needs judgment. We build the narrow thing that does one of those steps, put a human where being wrong is costly, and instrument it so you can tell whether it is helping.',
       points: [
         '{k}Retrieval{/k} over the documents you already have',
         '{k}Extraction{/k} from records that were never structured',
@@ -100,9 +100,9 @@ export const practices = {
       num: '03',
       title: 'Trading Infrastructure',
       sub: 'Programming and network solutions',
-      body: 'The plumbing a trading firm runs on: market data ingestion and normalisation, order and execution pipelines, network and latency work, and backtesting harnesses that run the same code path as production so a backtest cannot quietly diverge from the thing it is supposed to predict. We describe what a system is for and how it behaves — never how to rebuild it.',
+      body: 'The plumbing a trading firm runs on: market data ingestion and normalization, order and execution pipelines, network and latency work, and backtesting harnesses that run the same code path as production so a backtest cannot quietly diverge from the thing it is supposed to predict. We describe what a system is for and how it behaves — never how to rebuild it.',
       points: [
-        '{k}Market data{/k} ingestion, normalisation and storage',
+        '{k}Market data{/k} ingestion, normalization and storage',
         '{k}Execution{/k} pipelines and order routing',
         'Backtests that share a {k}code path{/k} with live',
       ],
@@ -162,7 +162,7 @@ export const work = {
   eyebrow: 'Selected Work',
   headline: ['Systems that are', 'actually {em}running.{/em}'],
   intro:
-    'Three builds, described by mechanism rather than by outcome. Where a system has limits, they are written down on its page beside what it does well — a system described only by its wins is not being described.',
+    'Three builds, described by mechanism rather than by outcome. Each page walks the system stage by stage — what goes in, what each stage does with it, and the decisions inside it a buyer would otherwise have to ask about.',
   items: [
     {
       num: '01',
@@ -179,7 +179,7 @@ export const work = {
       kicker: 'Trading Infrastructure',
       title: ['From the feed', 'to the fill'],
       sub: 'Market data, execution, network and backtesting',
-      body: 'Programming and network solutions for trading firms: ingesting and normalising market data, moving orders, keeping latency honest, and building backtest harnesses that cannot silently diverge from production because they run the same code. Described by behaviour, never by parameter.',
+      body: 'Programming and network solutions for trading firms: ingesting and normalizing market data, moving orders, keeping latency honest, and building backtest harnesses that cannot silently diverge from production because they run the same code. Described by behavior, never by parameter.',
       linkLabel: 'Read the build',
       href: '/work/trading-infrastructure/',
       media: 'latency',
@@ -189,7 +189,7 @@ export const work = {
       kicker: 'AI Implementation',
       title: ['Into the workflow', 'you already run'],
       sub: 'Retrieval, extraction, routing, drafting — with a review gate',
-      body: 'The consulting-and-build practice. We find the step in your process where a person is doing expensive, repetitive judgement work, build the narrow system that does it, put a human decision point where the cost of being wrong is high, and instrument the whole thing before it goes live.',
+      body: 'The consulting-and-build practice. We find the step in your process where a person is doing expensive, repetitive judgment work, build the narrow system that does it, put a human decision point where the cost of being wrong is high, and instrument the whole thing before it goes live.',
       linkLabel: 'Read the practice',
       href: '/work/ai-implementation/',
       media: 'mesh',
@@ -221,7 +221,7 @@ export const demo = {
     { kind: 'kv', k: 'Tax, post-reassessment', v: '3.1× current', wait: 180 },
     { kind: 'kv', k: 'DSCR at 7.1%', v: '1.18', wait: 180 },
     { kind: 'kv', k: 'Figures with a source', v: '31 of 34', wait: 180 },
-    { kind: 'note', text: '3 figures unaudited and labelled as such', wait: 400 },
+    { kind: 'note', text: '3 figures unaudited and labeled as such', wait: 400 },
   ],
 };
 
@@ -235,7 +235,7 @@ export const method = {
       num: '01',
       when: 'A conversation',
       title: 'You describe the problem',
-      body: 'A call, and it is with the person who will do the work. No qualifying call before the real call.',
+      body: 'A call with Daniel and whoever will lead the build. No qualifying call before the real call, and no salesperson in the room.',
     },
     {
       num: '02',
@@ -283,17 +283,17 @@ export const stack = {
 
 export const founder = {
   eyebrow: 'Who You Get',
-  headline: ['One person,', 'and that is the {em}point.{/em}'],
+  headline: ['You talk to Daniel.', 'A team {em}builds it.{/em}'],
   name: 'Daniel Laskowski',
   role: 'Chief Executive Officer & Founder',
   body: [
-    'ADJL Technologies is run by one person. That is a real constraint and it is worth being straight about it: there is a ceiling on how much work can be in flight at once, and if you need forty engineers on Monday this is the wrong firm.',
-    'What you get in exchange is that the person who takes the call is the person who writes the code. Nothing is translated through an account manager, no junior inherits a brief they were not in the room for, and the estimate comes from whoever has to live with it.',
-    'The software behind ADJL Capital — the property underwriting engine and the rules-based system for liquid US equities — was built the same way, and it runs on the firm’s own capital. Where a build needs more hands than one, contractors are brought in and told to you by name.',
+    'ADJL Technology is Daniel Laskowski and a team of developers. He takes the first call, writes the scope, and reads every message that arrives at the address on this page — there is no account manager standing between you and the person accountable for the work.',
+    'The team is small and senior on purpose, and that is an engineering decision rather than a modest one. A brief loses something at every hand it passes through, and a system built by people who were all in the original conversation needs far less documentation to stay understood a year later.',
+    'The software behind ADJL Capital — the property underwriting engine and the rules-based system for liquid US equities — was built here, and it runs on the firm’s own capital before it runs on anyone else’s. That is the standard the client work is held to.',
   ],
   points: [
-    'The person who scopes it is the person who builds it',
-    'Contractors are disclosed, never presented as staff',
+    'The founder scopes the work and stays on it',
+    'A small senior team, not a rotating bench',
     'Work already running on the firm’s own money',
   ],
 };
@@ -303,8 +303,8 @@ export const faq = {
   headline: ['The things you', 'are actually {em}thinking.{/em}'],
   items: [
     {
-      q: 'Why would I hire a one-person firm?',
-      a: 'For a narrow, well-scoped build, one experienced person who stays on it start to finish is usually faster than a team that has to be coordinated. For a large programme with many parallel workstreams, it is not — and you should hire an agency. The honest test is whether the work fits in one head; if it does not, we will say so.',
+      q: 'How big is the team, and who actually does the work?',
+      a: 'Daniel founded the firm and leads every engagement — he scopes the work and stays on it through delivery. The build is done by a small senior development team, and you meet the people who are on yours. There is no bench of juniors a brief gets handed down to, and nobody translating between you and the engineers.'
     },
     {
       q: 'Is this just a wrapper around someone else’s model?',
@@ -312,19 +312,19 @@ export const faq = {
     },
     {
       q: 'What do you refuse to take on?',
-      a: 'Anything where the goal is to replace a person’s judgement in a decision that materially affects someone — hiring, credit, anything medical. Also any project whose success criteria cannot be written down before it starts, because that is not a project, it is a subscription.',
+      a: 'Anything where the goal is to replace a person’s judgment in a decision that materially affects someone — hiring, credit, anything medical. Also any project whose success criteria cannot be written down before it starts, because that is not a project, it is a subscription.',
     },
     {
       q: 'Who owns the code when we are done?',
-      a: 'You do. The code, the prompts, the evaluation set and the documentation, in your repository, with no licence back to us and no runtime dependency on anything we host. There is no version of this where you have to keep paying to keep using what you paid to have built.',
+      a: 'You do. The code, the prompts, the evaluation set and the documentation, in your repository, with no license back to us and no runtime dependency on anything we host. There is no version of this where you have to keep paying to keep using what you paid to have built.',
     },
     {
       q: 'What about our data?',
-      a: 'It stays in your environment wherever that is possible, and where it is not, you are told exactly what leaves, where it goes and how long it lives there — before anything is built, not in an appendix afterwards.',
+      a: 'It stays in your environment wherever that is possible, and where it is not, you are told exactly what leaves, where it goes and how long it lives there — before anything is built, not in an appendix afterward.',
     },
     {
       q: 'How is this related to ADJL Capital?',
-      a: 'ADJL Capital is a private investment firm with three partners; ADJL Technologies is its engineering arm and has one. The software the fund runs on was built here, which is why it can be described in detail — it is our own. They are separate companies and nothing on this site is an offer of any security.',
+      a: 'ADJL Capital is a private investment firm with three partners. ADJL Technology is its engineering arm, founded and led by Daniel Laskowski with its own development team. The software the fund runs on was built here, which is why it can be described in this much detail — it is our own. They are separate companies, and nothing on this site is an offer of any security.',
     },
   ],
 };
@@ -342,7 +342,7 @@ export const cta = {
 
 export const footer = {
   blurb:
-    'ADJL Technologies is the AI consulting and engineering practice behind ADJL Capital’s software. Built and run by Daniel Laskowski.',
+    'ADJL Technology is the AI consulting and engineering practice behind ADJL Capital’s software. Founded and led by Daniel Laskowski.',
   groups: [
     {
       name: 'Work',
@@ -369,5 +369,5 @@ export const footer = {
     },
   ],
   legal:
-    'ADJL Technologies. Nothing on this site is an offer to sell or a solicitation of any security, and nothing here is investment advice. Descriptions of internal systems are general by design and omit parameters and thresholds.',
+    'ADJL Technology. Nothing on this site is an offer to sell or a solicitation of any security, and nothing here is investment advice. Descriptions of internal systems are general by design and omit parameters and thresholds.',
 };

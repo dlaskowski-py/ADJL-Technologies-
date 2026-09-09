@@ -1,5 +1,5 @@
 /**
- * ADJL Technologies — /work/trading-infrastructure/ — programming and network work for trading firms.
+ * ADJL Technology — /work/trading-infrastructure/ — programming and network work for trading firms.
  *
  * One rule is carried from ADJL Capital and still binds here: describe what a system is FOR and how it BEHAVES, never how to rebuild it. No thresholds, no parameter values, no live positions.
  *
@@ -22,8 +22,8 @@ export const content: CaseContent = {
       {
         num: "01",
         tag: "ingest",
-        title: "Market data in, normalised once",
-        body: "Feeds arrive in whatever shape the venue or the vendor chose. They get {k}normalised{/k} into one internal representation, timestamped at capture rather than at parse, and recorded so the same bytes can be replayed later. Everything downstream reads that one representation, which means a fix to a feed handler is a fix everywhere rather than in three places you have to remember."
+        title: "Market data in, normalized once",
+        body: "Feeds arrive in whatever shape the venue or the vendor chose. They get {k}normalized{/k} into one internal representation, timestamped at capture rather than at parse, and recorded so the same bytes can be replayed later. Everything downstream reads that one representation, which means a fix to a feed handler is a fix everywhere rather than in three places you have to remember."
       },
       {
         num: "02",
@@ -35,7 +35,7 @@ export const content: CaseContent = {
         num: "03",
         tag: "execution",
         title: "Orders out, on a path you can name",
-        body: "Order construction, {k}risk checks{/k} before the wire, {k}order routing{/k}, and the state machine that keeps the system's idea of a position and the venue's idea of it in agreement. Every hop is timestamped, so when something is slow there is an answer rather than a theory. Reconciliation runs whether or not anyone is watching it."
+        body: "Order construction, {k}risk checks{/k} before the wire, {k}order routing{/k}, and the state machine that keeps the system’s idea of a position and the venue’s idea of it in agreement. Every hop is timestamped, so when something is slow there is an answer rather than a theory. Reconciliation runs whether or not anyone is watching it."
       },
       {
         num: "04",
@@ -57,7 +57,7 @@ export const content: CaseContent = {
       "Send the part that",
       "keeps {em}breaking.{/em}"
     ],
-    body: "A feed handler that drops messages once a week, a backtest nobody trusts, a rules set that still lives in someone's head. Describe what it is and what it is supposed to do, and you will get a straight answer about whether this is worth building — including when it is not.",
+    body: "A feed handler that drops messages once a week, a backtest nobody trusts, a rules set that still lives in someone’s head. Describe what it is and what it is supposed to do, and you will get a straight answer about whether this is worth building — including when it is not.",
     button: {
       label: "Email Daniel",
       href: "mailto:daniel@adjlcapital.com"
@@ -81,7 +81,7 @@ export const content: CaseContent = {
       },
       {
         title: "What does not get written down",
-        body: "We describe what a system is for and how it behaves, never how to rebuild it. No thresholds, no parameter values, no live positions — not on this site and not in a conversation before there is a contract. That restraint is carried over from ADJL Capital, where the property scanner and the rules-based equities work run on the firm's own capital, and it points the same way for client work: your rules set is not written up anywhere, for any audience. It is deliberate, and it means this page argues from method rather than from names."
+        body: "We describe what a system is for and how it behaves, never how to rebuild it. No thresholds, no parameter values, no live positions — not on this site and not in a conversation before there is a contract. That restraint is carried over from ADJL Capital, where the property scanner and the rules-based equities work run on the firm’s own capital, and it points the same way for client work: your rules set is not written up anywhere, for any audience. It is deliberate, and it means this page argues from method rather than from names."
       }
     ]
   },
@@ -116,36 +116,22 @@ export const content: CaseContent = {
       }
     ]
   },
-  limits: {
-    eyebrow: "Limits",
-    headline: [
-      "What this",
-      "does {em}badly.{/em}"
-    ],
-    body: "These four are properties of the work rather than gaps a later version closes. Two of them are constraints of the domain and two are constraints of how this practice is run. They are cheaper to read here than to discover in month four.",
-    items: [
-      "Latency work runs into physics. Past a certain point the remaining time is propagation delay and venue behaviour, and the next improvement is a location decision or a hardware contract rather than a change anyone can make in the code.",
-      "A backtest is a record of one path through history, not a promise. It cannot model the fill you would not have received, the queue position you would not have held, or the regime that has not happened yet — and a system that survives a replay can still be wrong about the future.",
-      "A system that removes discretion also removes the override. On the day the rules are wrong the code will follow them exactly, so somebody has to decide in advance who is permitted to halt it and on what grounds, before the morning that question gets asked under pressure.",
-      "This is a one-person practice — Daniel — not a vendor with a night desk and a support tier. Alerting can be routed to whoever is awake at your firm, but the rota that answers it has to be yours."
-    ]
-  },
   meta: {
-    title: "Trading Infrastructure — ADJL Technologies",
-    description: "Market data, execution pipelines, network and latency work, and backtesting that runs the live code path. Programming for trading firms, by ADJL Technologies.",
-    ogTitle: "Trading Infrastructure — ADJL Technologies",
+    title: "Trading Infrastructure — ADJL Technology",
+    description: "Market data, execution pipelines, network and latency work, and backtesting that runs the live code path. Programming for trading firms, by ADJL Technology.",
+    ogTitle: "Trading Infrastructure — ADJL Technology",
     ogDescription: "Market data ingestion, order and execution pipelines, latency and network work, backtesting on the live code path, and the monitoring around all of it."
   },
   problem: {
     eyebrow: "The situation",
     headline: [
-      "A rule in someone's head",
+      "A rule in someone’s head",
       "is not a {em}rule.{/em}"
     ],
-    body: "The signal is defensible and the feed handler drops a message once a week without mentioning it. The rules are clear in conversation and applied three different ways by three different people. The backtest is written in one language and the live system in another, so the two agree right up until the day they do not. None of that arrives labelled as a bad idea. It arrives as slippage nobody can account for and a review meeting where the explanation is a shrug.",
+    body: "The signal is defensible and the feed handler drops a message once a week without mentioning it. The rules are clear in conversation and applied three different ways by three different people. The backtest is written in one language and the live system in another, so the two agree right up until the day they do not. None of that arrives labeled as a bad idea. It arrives as slippage nobody can account for and a review meeting where the explanation is a shrug.",
     points: [
       "A backtest written separately from the live system, so nobody can say whether a discrepancy is a bug or a market.",
-      "Market data normalised one way in research and another way in production, with the difference discovered during a fast tape.",
+      "Market data normalized one way in research and another way in production, with the difference discovered during a fast tape.",
       "Rules that live in a head and a spreadsheet, applied one way in a quiet market and another way in a loud one.",
       "Failures found by reading the P&L at the end of the day rather than by an alert during it."
     ]

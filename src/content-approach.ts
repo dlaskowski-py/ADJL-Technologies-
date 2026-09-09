@@ -1,5 +1,5 @@
 /**
- * ADJL Technologies — /approach/ — principles, engagement shapes, and who owns what.
+ * ADJL Technology — /approach/ — principles, engagement shapes, and who owns what.
  *
  * The five principles are positions rather than platitudes — each is something a competitor could genuinely disagree with. The ownership section is deliberately plain: you own the code and the data, and saying so clearly is itself the differentiator.
  *
@@ -59,10 +59,10 @@ export const content: ApproachContent = {
       {
         tag: "Standing arrangement",
         title: "Kept running, and extended",
-        body: "A continuing arrangement for a system built here once it is in production: monitoring, vendor migrations, {k}latency work{/k}, and extensions as the business moves. Models get deprecated and repriced, data sources change shape without warning, and a system left alone for a year has drifted without telling anyone. This is availability rather than headcount — there is one person here, so few of these run at once. When your own team is ready to hold the system, the arrangement should end rather than renew.",
+        body: "A continuing arrangement for a system built here once it is in production: monitoring, vendor migrations, {k}latency work{/k}, and extensions as the business moves. Models get deprecated and repriced, data sources change shape without warning, and a system left alone for a year has drifted without telling anyone. This is a commitment to response time rather than to seats, and only a few of these run at once so that the response time stays a real number. When your own team is ready to hold the system, the arrangement should end rather than renew.",
         points: [
           "Monitoring and periodic re-runs against the original evaluation set",
-          "Migration work when a vendor deprecates, reprices, or changes behaviour",
+          "Migration work when a vendor deprecates, reprices, or changes behavior",
           "New modules on the existing system, quoted and scoped like a build, not absorbed into the retainer",
           "A stated intention to hand over to your team and stop"
         ],
@@ -76,16 +76,16 @@ export const content: ApproachContent = {
       "How the work runs,",
       "and where it {em}stops.{/em}"
     ],
-    body: "ADJL Technologies is one person, plus whatever tooling and outside help a specific engagement calls for. That has an obvious limit — there is a ceiling on how much can be in the air at once, so work is taken one engagement at a time, and timing alone can be a reason one does not go ahead. What it buys is that the person who scopes the work is the person who writes it. There is no handover, so nothing has to survive one.",
+    body: "ADJL Technology is Daniel Laskowski and a small senior development team. Engagements are taken deliberately rather than continuously, so timing alone can be a reason one does not go ahead — and you will be told that rather than queued. What the shape buys is that the person who scopes the work is in the room for the whole of it. There is no handover between the sale and the build: the people who write the code were in the room when it was scoped, so nothing has to survive one.",
     back: {
       label: "Home",
       href: "/"
     }
   },
   meta: {
-    title: "Approach — ADJL Technologies",
-    description: "How ADJL Technologies works: what it takes on, what it turns down, and who owns the code and the data at the end. Stated plainly, with the limits included.",
-    ogTitle: "Approach — ADJL Technologies",
+    title: "Approach — ADJL Technology",
+    description: "How ADJL Technology works: what it takes on, what it turns down, and who owns the code and the data at the end. Stated plainly, with the limits included.",
+    ogTitle: "Approach — ADJL Technology",
     ogDescription: "Five operating positions, three shapes of engagement, and a plain answer on ownership: the client owns the code, the data and the right to leave."
   },
   ownership: {
@@ -98,8 +98,8 @@ export const content: ApproachContent = {
     points: [
       "Source, prompts, evaluation sets and infrastructure code assigned to you in full",
       "Your data stays in your accounts, is not retained here, and is never reused for another client",
-      "No proprietary runtime, no licence to renew, no dependency that ends the system if the relationship ends",
-      "The one carve-out, stated plainly: any generic tooling not written for your project stays with ADJL, and you get it under a perpetual licence you never have to renew"
+      "No proprietary runtime, no license to renew, no dependency that ends the system if the relationship ends",
+      "The one carve-out, stated plainly: any generic tooling not written for your project stays with ADJL, and you get it under a perpetual license you never have to renew"
     ]
   },
   principles: {
@@ -118,7 +118,7 @@ export const content: ApproachContent = {
       {
         num: "02",
         title: "The model is the small part",
-        body: "Most of an AI project is plumbing: reaching the data, cleaning what comes back, deciding what a correct answer looks like, and building the {k}evaluation set{/k} that tells you when the thing has quietly got worse. The model itself is often a few lines and a choice between three vendors, and that choice is reversible. A firm that spends its pitch on model selection is describing the cheapest part of the job. That is the difference between a demo and a system: a demo is judged on one good answer, a system on the hundredth."
+        body: "Most of an AI project is plumbing: reaching the data, cleaning what comes back, deciding what a correct answer looks like, and building the {k}evaluation set{/k} that tells you when the thing has quietly gotten worse. The model itself is often a few lines and a choice between three vendors, and that choice is reversible. A firm that spends its pitch on model selection is describing the cheapest part of the job. That is the difference between a demo and a system: a demo is judged on one good answer, a system on the hundredth."
       },
       {
         num: "03",
@@ -128,7 +128,7 @@ export const content: ApproachContent = {
       {
         num: "04",
         title: "Deterministic first, model second",
-        body: "If a rule can be written down, it should be written down — code that behaves the same on Tuesday as it did on Monday is cheaper to run and easier to argue with. A language model earns its place where the input is genuinely unstructured or the judgement is genuinely fuzzy, and nowhere else. The cost is that some systems come back less exciting than the version a client imagined, with a {k}deterministic core{/k} doing most of the work."
+        body: "If a rule can be written down, it should be written down — code that behaves the same on Tuesday as it did on Monday is cheaper to run and easier to argue with. A language model earns its place where the input is genuinely unstructured or the judgment is genuinely fuzzy, and nowhere else. The cost is that some systems come back less exciting than the version a client imagined, with a {k}deterministic core{/k} doing most of the work."
       },
       {
         num: "05",

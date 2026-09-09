@@ -1,6 +1,6 @@
-# ADJL Technologies
+# ADJL Technology
 
-The site for ADJL Technologies — the AI consulting and applied engineering
+The site for ADJL Technology — the AI consulting and applied engineering
 practice that builds ADJL Capital's software. Static build, deploys to Netlify.
 
 It is a sibling of [ADJL Capital's site](https://adjlcapital.com), and reuses
@@ -66,9 +66,9 @@ exists because of a specific way a site like this goes wrong:
 | `check-motion` | A motion module whose markup contract appears on no page — dead JavaScript, the same argument `check-css` makes about dead rules |
 | `check-markers` | An authoring marker (`{em}`, `{k}`) reaching production as literal text, because a renderer reached for `esc()` instead of `rich()` |
 
-`check-claims` is the one to understand before editing copy. ADJL Technologies
-is new and one person runs it: there are no clients to name, no metrics to
-quote, no headcount, no awards. The guard fails the build on consulting-site
+`check-claims` is the one to understand before editing copy. ADJL Technology
+is new and small: there are no clients to name, no metrics to quote, no
+headcount, no awards. The guard fails the build on consulting-site
 filler, on the constructions that smuggle in a claim (`trusted by`,
 `years of experience`), and on any number attached to a performance verb —
 because if the site says "40% faster", that figure was invented.

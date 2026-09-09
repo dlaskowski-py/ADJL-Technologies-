@@ -7,10 +7,8 @@
  *
  * Every case page has the same spine, and the order is an argument: the
  * situation before the system existed, then what the system actually does,
- * then the decisions inside it, then WHAT IT DOES BADLY. That last section
- * is not a disclaimer at the bottom — it is a full section with the same
- * weight as the others, because a system described only by its wins is not
- * being described.
+ * then the decisions inside it that a buyer would otherwise have to ask
+ * about.
  */
 
 import { backdrop, esc, eyebrow, headline, rich } from './html';
@@ -30,7 +28,6 @@ export type CaseContent = {
   problem: { eyebrow: string; headline: string[]; body: string; points: string[] };
   build: { eyebrow: string; headline: string[]; intro: string; steps: Stage[] };
   detail: { eyebrow: string; headline: string[]; cards: { title: string; body: string }[] };
-  limits: { eyebrow: string; headline: string[]; body: string; items: string[] };
   cta: {
     eyebrow: string;
     headline: string[];
@@ -124,35 +121,6 @@ function renderDetail(c: CaseContent): string {
   </section>`;
 }
 
-/**
- * The limits section.
- *
- * Deliberately given the loudest treatment on the page — a tinted band, an
- * accent rule, and the same headline weight as everything else. A page that
- * buries its caveats in eight-point grey at the bottom has technically said
- * them; this one is trying to actually be read.
- */
-function renderLimits(c: CaseContent): string {
-  const l = c.limits;
-  return `<section class="limits sec-line" id="limits">
-    <div class="wrap wrap--narrow">
-      ${eyebrow(l.eyebrow)}
-      ${headline(l.headline)}
-      <p class="lede" data-reveal style="--i:1">${rich(l.body)}</p>
-      <ul class="limit-list" data-stagger>
-        ${l.items
-          .map(
-            (it) => `<li class="limit" data-reveal>
-          <span class="limit-mark" aria-hidden="true"></span>
-          <span>${rich(it)}</span>
-        </li>`,
-          )
-          .join('')}
-      </ul>
-    </div>
-  </section>`;
-}
-
 export function renderCasePage(
   c: CaseContent,
   route: string,
@@ -165,7 +133,6 @@ export function renderCasePage(
       renderProblem(c),
       renderBuild(c),
       renderDetail(c),
-      renderLimits(c),
       renderCta(c.cta),
       renderFooter(),
     ].join(''),

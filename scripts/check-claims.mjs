@@ -1,9 +1,9 @@
 /**
  * The anti-fabrication and anti-hype guard.
  *
- * ADJL Technologies is new and one person runs it. It has no published
- * clients, no metrics, no awards and no headcount, and a site that implies
- * otherwise gets found out in the first conversation. The copy was written
+ * ADJL Technology is new and small. It has no published clients, no metrics,
+ * no awards and no headcount to quote, and a site that implies otherwise gets
+ * found out in the first conversation. The copy was written
  * to that rule and audited against it; this is what keeps it true through
  * every future edit, including the well-meaning one that adds "trusted by
  * leading firms" to a hero because the page felt thin.

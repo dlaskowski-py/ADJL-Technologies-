@@ -26,7 +26,7 @@ export function renderDemo(): string {
           <span class="con-dot"></span><span class="con-dot"></span><span class="con-dot"></span>
           <span class="con-title mono">adjl · underwrite</span>
         </div>
-        <div class="con-out mono" role="img" aria-label="A recorded transcript of the underwriting engine analysing a property listing"></div>
+        <div class="con-out mono" role="img" aria-label="A recorded transcript of the underwriting engine analyzing a property listing"></div>
         <script type="application/json" class="con-script">${JSON.stringify(d.script).replace(
           /</g,
           '\\u003c',

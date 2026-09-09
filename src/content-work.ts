@@ -1,5 +1,5 @@
 /**
- * ADJL Technologies — /work/ — the index over the three case pages.
+ * ADJL Technology — /work/ — the index over the three case pages.
  *
  * Drafted against the house voice brief, then audited on two axes — fabricated claims, and hype or voice drift — and revised against both.
  *
@@ -28,9 +28,9 @@ export const content: WorkHubContent = {
     eyebrow: "Work",
     headline: [
       "Three practices.",
-      "And what each does {em}badly.{/em}"
+      "All of them {em}in production.{/em}"
     ],
-    body: "Work here means a system built to run in production rather than a document about one — code with an owner, a data path, and a failure mode. Two of the three practices below began as internal problems at ADJL Capital, and they run on the firm's own capital. The third exists because of one question worth answering inside a business that already works: where does AI actually pay, and where is it decoration. Each is described below by its mechanism, step by step, and by the conditions where it is the wrong answer.",
+    body: "Work here means a system built to run in production rather than a document about one — code with an owner, a data path, and someone whose job it is when it breaks. Two of the three practices below began as internal problems at ADJL Capital, and they run on the firm’s own capital. The third exists because of one question worth answering inside a business that already works: where does AI actually pay, and where is it decoration. Each is described below by its mechanism, step by step.",
     back: {
       label: "Home",
       href: "/"
@@ -44,11 +44,11 @@ export const content: WorkHubContent = {
         "Real estate",
         "{em}underwriting.{/em}"
       ],
-      sub: "Built in-house, because the off-the-shelf underwriters model someone else's assumptions.",
-      body: "Paste a listing URL and the scanner assembles the inputs an analyst would otherwise gather by hand: live market data, {k}rent history{/k} and {k}public records{/k} going back years, then taxes, insurance, hazard exposure and financing modelled rather than assumed. It was built for ADJL Capital and it underwrites against the firm's own capital, which is a narrower test than a long client list and a more honest one. Its confidence varies by property type, and it says which type it thinks it is looking at rather than returning one number for everything.",
+      sub: "Built in-house, because the off-the-shelf underwriters model someone else’s assumptions.",
+      body: "Paste a listing URL and the scanner assembles the inputs an analyst would otherwise gather by hand: live market data, {k}rent history{/k} and {k}public records{/k} going back years, then taxes, insurance, hazard exposure and financing modeled rather than assumed. It was built for ADJL Capital and it underwrites against the firm’s own capital, which is a narrower test than a long client list and a more honest one. Where the records will not support a match it says so rather than guessing, and anything it could not verify comes back labeled unaudited rather than averaged into the total.",
       points: [
         "Live market data, rent history and public records pulled per address",
-        "Taxes, insurance, hazard and financing modelled rather than assumed",
+        "Taxes, insurance, hazard and financing modeled rather than assumed",
         "Every assumption visible and editable, so the output can be checked instead of trusted"
       ],
       linkLabel: "Read how it underwrites",
@@ -62,9 +62,9 @@ export const content: WorkHubContent = {
         "that {em}holds.{/em}"
       ],
       sub: "Data in, orders out, and everything that can go wrong between them.",
-      body: "The work is plumbing: {k}market data{/k} feeds normalised and timestamped, execution and {k}order routing{/k} paths that fail in a way you can see, network and latency work that is measured rather than asserted, backtests that run the production code path instead of a parallel copy of it. A rules-based system is only worth having if it behaves the same on Tuesday as it did on Monday, and most of the effort goes there rather than into the strategy. No latency figure is quoted before your network is measured — that number belongs to your racks and your venue, not to a brochure.",
+      body: "The work is plumbing: {k}market data{/k} feeds normalized and timestamped, execution and {k}order routing{/k} paths that fail in a way you can see, network and latency work that is measured rather than asserted, backtests that run the production code path instead of a parallel copy of it. A rules-based system is only worth having if it behaves the same on Tuesday as it did on Monday, and most of the effort goes there rather than into the strategy. No latency figure is quoted before your network is measured — that number belongs to your racks and your venue, not to a brochure.",
       points: [
-        "Market data capture, normalisation and replay",
+        "Market data capture, normalization and replay",
         "Execution and order pipelines that surface failures instead of swallowing them",
         "Backtests that run the production code path, so test and trade cannot diverge in the code itself"
       ],
@@ -79,7 +79,7 @@ export const content: WorkHubContent = {
         "actually {em}pays.{/em}"
       ],
       sub: "Folding AI into a business that already runs, without breaking the part that runs.",
-      body: "The first job is subtraction. A lot of what gets scoped as an AI project turns out to be a query, a form, or a process that needs an afternoon of someone's attention — and saying so early is cheaper than building it. What survives gets built and shipped into the working business: connected to real data, owned by a named person inside the company, and measured against what the process cost before. Sometimes the finding is that the current process is fine and a model adds risk without adding margin; that finding gets delivered as soon as it is reached rather than held until the scope is used up, and it ends the work.",
+      body: "The first job is subtraction. A lot of what gets scoped as an AI project turns out to be a query, a form, or a process that needs an afternoon of someone’s attention — and saying so early is cheaper than building it. What survives gets built and shipped into the working business: connected to real data, owned by a named person inside the company, and measured against what the process cost before. Sometimes the finding is that the current process is fine and a model adds risk without adding margin; that finding gets delivered as soon as it is reached rather than held until the scope is used up, and it ends the work.",
       points: [
         "The current process is timed and costed before any model is proposed",
         "Built and shipped into the running business, not piloted beside it",
@@ -90,18 +90,18 @@ export const content: WorkHubContent = {
     }
   ],
   meta: {
-    title: "Work — ADJL Technologies",
-    description: "Three practices: real estate underwriting, trading infrastructure, and AI implementation. Each one described by its mechanism, and by what it does badly.",
-    ogTitle: "Work — ADJL Technologies",
+    title: "Work — ADJL Technology",
+    description: "Three practices: real estate underwriting, trading infrastructure, and AI implementation. Each one described by its mechanism, step by step.",
+    ogTitle: "Work — ADJL Technology",
     ogDescription: "Three practices, each described by mechanism: the property underwriting scanner, trading infrastructure, and AI implementation inside businesses that already run."
   },
   refuse: {
-    eyebrow: "What this firm refuses",
+    eyebrow: "Scope",
     headline: [
       "The list of work",
       "this firm {em}turns down.{/em}"
     ],
-    body: "A firm this small has to be exact about what it will not take, because the wrong engagement consumes the capacity for the right one. Publishing the list is cheaper than both sides discovering it in month three.",
+    body: "We are exact about what we will not take on, because the wrong engagement quietly consumes the capacity for the right one. Publishing the list is cheaper for both sides than discovering it in month three.",
     items: [
       "Strategy decks. There is no assessment, roadmap or maturity model for sale here — if an engagement cannot end with something running inside your business, it is not work this firm takes.",
       "AI where a query would do. When the honest answer is a SQL statement, a spreadsheet rule or a rewritten process, that is the answer you get, including when a model is what the budget was written for.",

@@ -1,7 +1,7 @@
 /**
- * ADJL Technologies — /work/ai-implementation/ — the consulting-and-build practice.
+ * ADJL Technology — /work/ai-implementation/ — the consulting-and-build practice.
  *
- * The limits section is the most valuable part of this page and is not decoration: models are confidently wrong, evaluation is harder than the build, and some problems are a spreadsheet and a clear owner rather than a model.
+ * The rule this page has to hold is scope: describe the workflow being changed and the mechanism that changes it, never a client, an outcome, or a figure that has not happened.
  *
  * Same conventions as src/content.ts: headlines are arrays of lines,
  * {em}…{/em} marks one emphasised phrase per headline, and {k}…{/k} marks a
@@ -12,9 +12,9 @@ import type { CaseContent } from './sections/case';
 
 export const content: CaseContent = {
   meta: {
-    title: "AI Implementation — ADJL Technologies",
+    title: "AI Implementation — ADJL Technology",
     description: "The consulting and build practice for businesses that already work. We start at the workflow, build the narrow thing that does one step, and instrument it.",
-    ogTitle: "AI Implementation — ADJL Technologies",
+    ogTitle: "AI Implementation — ADJL Technology",
     ogDescription: "Find the steps where a person is reading, sorting and routing. Build the narrow thing that does one of them. Put a human where being wrong is expensive, instrument it, hand it over running."
   },
   hero: {
@@ -43,7 +43,7 @@ export const content: CaseContent = {
       },
       {
         label: "Engagement",
-        value: "Direct with Daniel Laskowski, with specialist help sourced if a build needs it"
+        value: "Direct with Daniel Laskowski, who scopes the work, and the senior developers who build it"
       }
     ]
   },
@@ -58,7 +58,7 @@ export const content: CaseContent = {
       "A pilot that worked in the demo and was never wired into the system that holds the data.",
       "Staff quietly redoing the same extraction by hand, because the tool is right often enough to use and wrong often enough not to trust.",
       "Nobody can say whether the thing is working, because nothing was measured before it was installed.",
-      "A process that exists only in one person's head, which makes it impossible to automate and risky to leave alone."
+      "A process that exists only in one person’s head, which makes it impossible to automate and risky to leave alone."
     ]
   },
   build: {
@@ -79,7 +79,7 @@ export const content: CaseContent = {
         num: "02",
         tag: "shortlist",
         title: "Find the reading, sorting and routing",
-        body: "The candidates tend to be the same shape: a person is reading, extracting, classifying, routing or summarising. We rank them by how repetitive the step is and how tolerant it is of an error. High volume and cheap to correct goes first; rare and expensive to get wrong stays with a person and gets better tooling instead."
+        body: "The candidates tend to be the same shape: a person is reading, extracting, classifying, routing or summarizing. We rank them by how repetitive the step is and how tolerant it is of an error. High volume and cheap to correct goes first; rare and expensive to get wrong stays with a person and gets better tooling instead."
       },
       {
         num: "03",
@@ -91,7 +91,7 @@ export const content: CaseContent = {
         num: "04",
         tag: "gate",
         title: "Put the person where being wrong is expensive",
-        body: "Where an error is costly, the system's job changes: it prepares the decision instead of making it. The draft arrives with its sources attached, the extraction arrives with the field and the page it came from, and the reviewer approves or corrects in a single action. Those corrections are captured, because a correction is the cheapest label anyone will ever hand you."
+        body: "Where an error is costly, the system’s job changes: it prepares the decision instead of making it. The draft arrives with its sources attached, the extraction arrives with the field and the page it came from, and the reviewer approves or corrects in a single action. Those corrections are captured, because a correction is the cheapest label anyone will ever hand you."
       },
       {
         num: "05",
@@ -118,22 +118,8 @@ export const content: CaseContent = {
       },
       {
         title: "Buy it where buying works",
-        body: "Not everything should be built, and saying so early is part of the job. Where a product already does the step properly, we configure it and move on. The case for building appears when the workflow carries assumptions specific to you — your definitions, your exceptions, your record formats — because a tool that does not model those quietly imports someone else's. A purchase is faster and someone else maintains it. Build when those assumptions are the reason the step is hard in the first place."
+        body: "Not everything should be built, and saying so early is part of the job. Where a product already does the step properly, we configure it and move on. The case for building appears when the workflow carries assumptions specific to you — your definitions, your exceptions, your record formats — because a tool that does not model those quietly imports someone else’s. A purchase is faster and someone else maintains it. Build when those assumptions are the reason the step is hard in the first place."
       }
-    ]
-  },
-  limits: {
-    eyebrow: "Limits",
-    headline: [
-      "What this practice",
-      "does {em}badly.{/em}"
-    ],
-    body: "These are the failure modes of this kind of work, stated plainly. They decide whether a project is worth starting at all, so they are here rather than in a footnote.",
-    items: [
-      "Models are confidently wrong. A bad answer arrives in the same tone as a good one, which is why anything expensive to get wrong keeps a review gate, and why the checking gets built before the feature.",
-      "A process nobody can describe cannot be automated. If three people do the same job three ways and none of them can say why, the first stretch of work is writing the rules down, and that document may be worth more than anything built on top of it.",
-      "Evaluation is harder than the build. A first version that works is the easy part; knowing whether it is right often enough to trust takes labelled cases, an argument about what \"right\" means, and a willingness to be told the answer is no.",
-      "Some problems are a spreadsheet and a clear owner. A great deal of what looks like an AI problem is a missing field, an unenforced deadline, or nobody responsible for the queue. We will say so, and that is a short invoice."
     ]
   },
   cta: {
@@ -142,7 +128,7 @@ export const content: CaseContent = {
       "Name the step",
       "that is {em}eating hours.{/em}"
     ],
-    body: "That step is enough to start with — no plan required, no budget line. The first conversation is with Daniel Laskowski, who writes the code. Contractors come in on the build; the person you brief does not change. Send the workflow and what it costs you now.",
+    body: "That step is enough to start with — no plan required, no budget line. The first conversation is with Daniel Laskowski, who scopes the work and stays on it. The team builds it; the person you brief does not change. Send the workflow and what it costs you now.",
     button: {
       label: "Start a conversation",
       href: "mailto:daniel@adjlcapital.com"

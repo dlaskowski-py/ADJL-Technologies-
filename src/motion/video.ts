@@ -14,7 +14,67 @@
  */
 
 import { allowVideo, whileVisible } from './prefs';
-import { HAS_WEBM } from '../media-manifest';
+import { HAS_WEBM, HAS_WEBM_2K, SIZES, type Variant } from '../media-manifest';
+
+/**
+ * Which rendition a given backdrop actually needs.
+ *
+ * Measured against THE ELEMENT, not the viewport, and that distinction is
+ * most of the page weight. The films appear two ways: full-bleed behind a
+ * hero, where the box really is the whole window, and inside framed plates
+ * on the work cards, which are about 660 CSS px wide. Sizing everything to
+ * the viewport hands those plates the 2560 file to display at a quarter of
+ * its width — on the home page alone that is five clips at the top rung
+ * when only one of them is anywhere near full size.
+ *
+ * It is not a width threshold either. The manifest carries every rendition's
+ * real dimensions, so this asks what the box needs to COVER and takes the
+ * smallest file that does not have to be enlarged to do it. Height matters
+ * as much as width: these films are 2.33:1 and a hero is nearer 1.6:1, so
+ * `object-fit: cover` fills the height and crops the width, which means the
+ * row count decides whether a clip looks sharp.
+ *
+ * Decided ONCE per element, at attach time. Re-picking on resize would
+ * restart the clip mid-scroll, which is a worse experience than a slightly
+ * wrong rendition.
+ */
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+function metered(): boolean {
+  const conn = (navigator as unknown as { connection?: { saveData?: boolean; effectiveType?: string } })
+    .connection;
+  if (conn?.saveData) return true;
+  return !!conn?.effectiveType && /(^|-)(2g|slow-2g)$/.test(conn.effectiveType);
+}
+const METERED = metered();
+
+/**
+ * Smallest rendition that needs no meaningful enlargement, else the largest
+ * available. On a metered connection the top rung is skipped outright — a
+ * slightly soft backdrop is a far better trade than a 3 MB download on a
+ * connection that is telling you it cannot afford one.
+ */
+function pickVariant(name: string, host: HTMLElement): Variant {
+  const sizes = SIZES[name] ?? {};
+  const ladder: Variant[] = METERED ? ['sm'] : ['sm', '@2k'];
+  const available = ladder.filter((v) => sizes[v]);
+  if (!available.length) return 'sm';
+
+  const r = host.getBoundingClientRect();
+  // A box with no layout yet (display:none ancestor) falls back to the
+  // viewport rather than to zero, which would always pick the smallest file.
+  const needW = (r.width || window.innerWidth) * DPR;
+  const needH = (r.height || window.innerHeight) * DPR;
+  const coverScale = (size: [number, number] | undefined) =>
+    size ? Math.max(needW / size[0], needH / size[1]) : Infinity;
+
+  return (
+    available.find((v) => coverScale(sizes[v]) <= 1.05) ?? available[available.length - 1]
+  );
+}
+
+/** Variant to filename suffix. 'sm' is the unsuffixed file. */
+const suffixOf = (v: Variant): string => (v === 'sm' ? '' : v);
 
 /**
  * Which codec this engine decodes in HARDWARE.
@@ -32,10 +92,10 @@ const PREFERS_H264 =
 /** How long a clip may sit at readyState 0 before it counts as stuck. */
 const STALL_MS = 6000;
 
-function source(name: string, kind: 'webm' | 'mp4'): HTMLSourceElement {
+function source(name: string, kind: 'webm' | 'mp4', variant: string): HTMLSourceElement {
   const s = document.createElement('source');
   s.type = kind === 'webm' ? 'video/webm' : 'video/mp4';
-  s.src = `/media/${name}.${kind}`;
+  s.src = `/media/${name}${variant}.${kind}`;
   return s;
 }
 
@@ -57,9 +117,15 @@ function attach(host: HTMLElement, forceMp4 = false): HTMLVideoElement | null {
   v.setAttribute('tabindex', '-1');
   v.setAttribute('disablepictureinpicture', '');
 
-  const wantsWebm = !forceMp4 && !PREFERS_H264 && HAS_WEBM.has(name);
-  if (wantsWebm) v.append(source(name, 'webm'));
-  v.append(source(name, 'mp4'));
+  const variant = pickVariant(name, host);
+  const suffix = suffixOf(variant);
+  // The VP9 sets are per-size and deliberately not identical — see the
+  // manifest header.
+  const hasWebm = variant === 'sm' ? HAS_WEBM.has(name) : HAS_WEBM_2K.has(name);
+
+  const wantsWebm = !forceMp4 && !PREFERS_H264 && hasWebm;
+  if (wantsWebm) v.append(source(name, 'webm', suffix));
+  v.append(source(name, 'mp4', suffix));
 
   v.addEventListener(
     'playing',

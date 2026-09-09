@@ -40,7 +40,7 @@ export function renderNav(here: string): string {
 
   return `<header class="nav" id="nav">
     <div class="nav-inner">
-      <a class="wordmark" href="${home ? '#top' : '/'}" aria-label="ADJL Technologies, ${
+      <a class="wordmark" href="${home ? '#top' : '/'}" aria-label="ADJL Technology, ${
         home ? 'back to top' : 'home'
       }">
         ${markSvg()}

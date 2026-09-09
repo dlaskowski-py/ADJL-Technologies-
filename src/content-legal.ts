@@ -1,5 +1,5 @@
 /**
- * ADJL Technologies — the legal pages.
+ * ADJL Technology — the legal pages.
  *
  * These are short because the site is genuinely simple, and that is worth
  * stating rather than padding around. It is static HTML on a CDN. There is
@@ -21,10 +21,10 @@ const UPDATED = 'September 2026';
 
 export const privacy: LegalDoc = {
   meta: {
-    title: 'Privacy — ADJL Technologies',
+    title: 'Privacy — ADJL Technology',
     description:
       'What this site collects, which is almost nothing: no analytics, no cookies, no tracking. The only personal data involved is an email you choose to send.',
-    ogTitle: 'Privacy — ADJL Technologies',
+    ogTitle: 'Privacy — ADJL Technology',
     ogDescription: 'No analytics, no cookies, no tracking. What happens to an email you send.',
   },
   route: '/legal/privacy/',
@@ -62,7 +62,7 @@ export const privacy: LegalDoc = {
       heading: 'Client data during an engagement',
       paragraphs: [
         'Work with a client is a separate matter from this website, and it is governed by the written agreement for that engagement rather than by this page.',
-        'The standing position, which is written into those agreements: client data stays in the client’s own environment wherever that is technically possible. Where some part of it has to leave — a model provider’s API, for instance — the client is told before anything is built exactly what leaves, where it goes, and how long it is retained there. That disclosure happens during scoping, not in an appendix afterwards.',
+        'The standing position, which is written into those agreements: client data stays in the client’s own environment wherever that is technically possible. Where some part of it has to leave — a model provider’s API, for instance — the client is told before anything is built exactly what leaves, where it goes, and how long it is retained there. That disclosure happens during scoping, not in an appendix afterward.',
       ],
     },
     {
@@ -85,11 +85,11 @@ export const privacy: LegalDoc = {
 
 export const terms: LegalDoc = {
   meta: {
-    title: 'Terms — ADJL Technologies',
+    title: 'Terms — ADJL Technology',
     description:
       'The terms for using this website: what the content is, what it is not, and what governs an actual engagement.',
-    ogTitle: 'Terms — ADJL Technologies',
-    ogDescription: 'Terms of use for the ADJL Technologies website.',
+    ogTitle: 'Terms — ADJL Technology',
+    ogDescription: 'Terms of use for the ADJL Technology website.',
   },
   route: '/legal/terms/',
   eyebrow: 'Legal',
@@ -111,7 +111,7 @@ export const terms: LegalDoc = {
       heading: 'What it is not',
       paragraphs: ['Specifically, nothing on this site is any of the following.'],
       list: [
-        'An offer to sell, or a solicitation of an offer to buy, any security or interest in any fund. ADJL Technologies is an engineering practice and does not offer securities.',
+        'An offer to sell, or a solicitation of an offer to buy, any security or interest in any fund. ADJL Technology is an engineering practice and does not offer securities.',
         'Investment, legal, tax or accounting advice, and nothing here should be relied on to make a financial decision.',
         'A quotation, an estimate, or an offer of services on any particular terms. Scope and price come from a conversation and are set out in writing.',
         'A guarantee that any technique described will produce a particular result in your business.',
@@ -129,15 +129,15 @@ export const terms: LegalDoc = {
       id: 'ip',
       heading: 'Intellectual property',
       paragraphs: [
-        'The text, design, code and generated films on this site belong to ADJL Technologies. You are welcome to link to any page, quote it with attribution, and print it for your own use.',
-        'Work produced during a client engagement is a different question and is answered the other way round: the client owns the code, the prompts, the evaluation set and the documentation. That is set out in the engagement agreement, and the Approach page describes it in plain terms.',
+        'The text, design, code and generated films on this site belong to ADJL Technology. You are welcome to link to any page, quote it with attribution, and print it for your own use.',
+        'Work produced during a client engagement is a different question and is answered the other way around: the client owns the code, the prompts, the evaluation set and the documentation. That is set out in the engagement agreement, and the Approach page describes it in plain terms.',
       ],
     },
     {
       id: 'liability',
       heading: 'Liability',
       paragraphs: [
-        'To the extent the law allows, ADJL Technologies is not liable for loss arising from use of this website or reliance on its content. Liability arising from actual work is dealt with in the agreement covering that work, where it belongs.',
+        'To the extent the law allows, ADJL Technology is not liable for loss arising from use of this website or reliance on its content. Liability arising from actual work is dealt with in the agreement covering that work, where it belongs.',
         'Nothing here limits liability for fraud, or for anything else that cannot lawfully be limited.',
       ],
     },
@@ -145,7 +145,7 @@ export const terms: LegalDoc = {
       id: 'relationship',
       heading: 'Relationship to ADJL Capital',
       paragraphs: [
-        'ADJL Capital is a private investment firm. ADJL Technologies is the engineering practice that built and runs its software. They are separate companies with separate obligations, and this website speaks only for the latter.',
+        'ADJL Capital is a private investment firm. ADJL Technology is the engineering practice that built and runs its software. They are separate companies with separate obligations, and this website speaks only for the latter.',
         'The software described here can be described in detail precisely because it is our own — there is no client confidentiality to breach in explaining how our own underwriting engine works.',
       ],
     },

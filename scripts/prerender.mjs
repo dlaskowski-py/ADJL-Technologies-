@@ -87,7 +87,7 @@ for (const page of PAGES) {
 
   // A canonical URL, so the .netlify.app and the real domain do not compete
   // once the domain lands.
-  const canonical = `<link rel="canonical" href="${process.env.SITE_ORIGIN ?? 'https://adjl-technologies.netlify.app'}${page.route}" />`;
+  const canonical = `<link rel="canonical" href="${process.env.SITE_ORIGIN ?? 'https://adjl-technology.netlify.app'}${page.route}" />`;
   after = after.replace('</head>', `  ${canonical}\n  </head>`);
 
   writeFileSync(page.out, after);

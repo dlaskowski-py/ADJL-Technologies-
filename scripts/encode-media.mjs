@@ -21,14 +21,23 @@
  *      poster is exactly what a reduced-motion visitor sees instead of the
  *      film.
  *
- * ONE SIZE, deliberately. Capital ships a 1280/2560/3840 ladder because its
- * masters are 4K. These renders are 1470x630 native, so every tier above
- * native would be an upscale wearing a bigger filename, and the tier below
- * would save about a fifth of the pixels for a second file to keep in step.
- * The film is used two ways here — behind a 95%-opaque paper veil in the
- * hero, and inside framed plates about 1100px wide — and native is
- * comfortably sharp for both. If the masters are ever re-rendered larger,
- * this is the place a ladder goes back in.
+ * TWO SIZES, which is a change from the first version of this file.
+ *
+ * The original renders were 1470x630 and shipped as a single rendition,
+ * because every tier above native would have been an upscale wearing a
+ * bigger filename. The masters are now run through Seedance's upscaler to
+ * 2560 wide, so there is real detail to serve and the ladder is back:
+ *
+ *   sm    1280   phones, and the framed plates, which are never more than
+ *                about 660 CSS px wide — 1280 covers those at 2x DPR
+ *   @2k   2560   the full-bleed heroes on a desktop or retina display
+ *
+ * There is deliberately no 4K tier. Going higher means asking the upscaler
+ * for a 2.6x linear enlargement of a 0.93MP source, which invents detail
+ * rather than recovering it, and then shipping two to three times the bytes
+ * of it — for film that sits under a 93-98% opaque paper veil in the heroes
+ * and inside small framed plates everywhere else. 2560 is the widest any
+ * viewport actually asks these clips to cover.
  *
  * ffmpeg comes from `npm i --no-save ffmpeg-static`, deliberately not a
  * dependency: Netlify installs devDependencies, and the build has no use
@@ -45,8 +54,12 @@ const FFMPEG = (await import('ffmpeg-static')).default;
 const OUT = 'public/media';
 const TMP = '/tmp/adjl-tech-encode';
 
-const H264_CRF = 26;
-const VP9_CRF = 34;
+/* The 1280 rung is served to phones and to the framed plates, where the
+   film is small and close to the reader, so it gets the better quality. The
+   2560 rung only ever plays full-bleed under a 93-98% opaque paper veil,
+   where two more points of CRF are invisible and worth about a third of the
+   file. */
+const CRF = { '': { h264: 26, vp9: 34 }, '@2k': { h264: 29, vp9: 37 } };
 /** Where the poster frame is lifted from, as a fraction of the loop. */
 const POSTER_AT = 0.22;
 
@@ -123,28 +136,35 @@ for (const { name, url } of pairs) {
 
   // -an everywhere: these are silent backdrops. An empty audio track is bytes,
   // plus a reason for some browsers to demand a user gesture before playing.
-  run([
-    '-i', pp,
-    '-c:v', 'libx264', '-crf', String(H264_CRF), '-preset', 'slow',
-    '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-movflags', '+faststart',
-    '-an', join(OUT, `${name}.mp4`),
-  ]);
-  run([
-    '-i', pp,
-    '-c:v', 'libvpx-vp9', '-crf', String(VP9_CRF), '-b:v', '0',
-    '-row-mt', '1', '-deadline', 'good', '-cpu-used', '2',
-    '-an', join(OUT, `${name}.webm`),
-  ]);
+  // `min(w,iw)` never enlarges: a master smaller than a rung simply produces
+  // that rung at its own size rather than a blurry upscale.
+  for (const [suffix, width] of [['', 1280], ['@2k', 2560]]) {
+    const scale = `scale='min(${width},iw)':-2`;
+    const q = CRF[suffix];
+    run([
+      '-i', pp, '-vf', scale,
+      '-c:v', 'libx264', '-crf', String(q.h264), '-preset', 'slow',
+      '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-movflags', '+faststart',
+      '-an', join(OUT, `${name}${suffix}.mp4`),
+    ]);
+    run([
+      '-i', pp, '-vf', scale,
+      '-c:v', 'libvpx-vp9', '-crf', String(q.vp9), '-b:v', '0',
+      '-row-mt', '1', '-deadline', 'good', '-cpu-used', '2',
+      '-an', join(OUT, `${name}${suffix}.webm`),
+    ]);
+  }
 
   run([
     '-ss', (seconds(pp) * POSTER_AT).toFixed(2), '-i', pp,
     '-frames:v', '1', '-q:v', '4', join(OUT, `${name}.jpg`),
   ]);
 
-  const d = dims(join(OUT, `${name}.mp4`));
+  const d = dims(join(OUT, `${name}@2k.mp4`));
   console.log(
-    `${d ? `${d[0]}x${d[1]}` : '?'}  mp4 ${mb(join(OUT, `${name}.mp4`)).toFixed(2)}MB  ` +
-      `webm ${mb(join(OUT, `${name}.webm`)).toFixed(2)}MB  ` +
+    `${d ? `${String(d[0]).padStart(4)}x${d[1]}` : '?'}  ` +
+      `sm ${mb(join(OUT, `${name}.mp4`)).toFixed(2)}/${mb(join(OUT, `${name}.webm`)).toFixed(2)}MB  ` +
+      `2k ${mb(join(OUT, `${name}@2k.mp4`)).toFixed(2)}/${mb(join(OUT, `${name}@2k.webm`)).toFixed(2)}MB  ` +
       `poster ${mb(join(OUT, `${name}.jpg`)).toFixed(2)}MB`,
   );
 }
@@ -155,34 +175,52 @@ for (const { name, url } of pairs) {
    so the two sets are deliberately not the same. */
 
 const names = [
-  ...new Set(readdirSync(OUT).filter((f) => f.endsWith('.mp4')).map((f) => f.replace(/\.mp4$/, ''))),
+  ...new Set(
+    readdirSync(OUT)
+      .filter((f) => f.endsWith('.mp4'))
+      .map((f) => f.replace(/(@2k)?\.mp4$/, '')),
+  ),
 ].sort();
 
 const SIZES = {};
 const webm = [];
+const webm2k = [];
 for (const n of names) {
-  const d = dims(join(OUT, `${n}.mp4`));
-  if (d) SIZES[n] = d;
-  const w = join(OUT, `${n}.webm`);
-  // Keep the VP9 only where it is actually smaller — a bigger "efficient"
-  // file served to Chrome is a pure loss.
-  if (existsSync(w) && mb(w) < mb(join(OUT, `${n}.mp4`))) webm.push(n);
+  const entry = {};
+  for (const [key, suffix] of [['sm', ''], ['@2k', '@2k']]) {
+    const d = dims(join(OUT, `${n}${suffix}.mp4`));
+    if (d) entry[key] = d;
+  }
+  SIZES[n] = entry;
+
+  // Keep a VP9 only where it actually came out smaller than its H.264. A
+  // bigger "more efficient" file served to Chrome is a pure loss, and VP9
+  // loses on some of this footage.
+  for (const [suffix, list] of [['', webm], ['@2k', webm2k]]) {
+    const w = join(OUT, `${n}${suffix}.webm`);
+    if (existsSync(w) && mb(w) < mb(join(OUT, `${n}${suffix}.mp4`))) list.push(n);
+  }
 }
 
 writeFileSync(
   'src/media-manifest.ts',
   `/** Generated by scripts/encode-media.mjs — do not edit by hand.
  *
- *  SIZES carries each clip's real pixel dimensions so the player can decide
- *  whether a film is worth loading at all on a given viewport, rather than
- *  guessing from a width threshold.
+ *  SIZES carries every rendition's REAL pixel dimensions, so the player picks
+ *  one by comparing them against the viewport rather than guessing from a
+ *  width threshold. A new rendition is picked up automatically.
  *
- *  HAS_WEBM lists the clips whose VP9 came out SMALLER than their H.264.
- *  It is not every clip: VP9 loses on some of this footage, and shipping a
- *  larger "more efficient" file to Chrome is a pure loss. */
-export const SIZES: Record<string, [number, number]> = ${JSON.stringify(SIZES, null, 2)};
+ *  HAS_WEBM / HAS_WEBM_2K list the clips whose VP9 came out SMALLER than the
+ *  H.264 at that size. The two sets are deliberately not the same: VP9 loses
+ *  on some of this footage, and a larger "more efficient" file served to
+ *  Chrome is a pure loss. */
+export type Variant = 'sm' | '@2k';
+
+export const SIZES: Record<string, Partial<Record<Variant, [number, number]>>> =
+${JSON.stringify(SIZES, null, 2)};
 
 export const HAS_WEBM = new Set<string>(${JSON.stringify(webm)});
+export const HAS_WEBM_2K = new Set<string>(${JSON.stringify(webm2k)});
 
 /** Every clip the build knows about. scripts/check-media.mjs asserts that
  *  every name used in the markup appears here and on disk. */
@@ -190,4 +228,6 @@ export const CLIPS = ${JSON.stringify(names)} as const;
 `,
 );
 
-console.log(`\nmanifest: ${names.length} clips, ${webm.length} with a smaller VP9`);
+console.log(
+  `\nmanifest: ${names.length} clips, VP9 kept for ${webm.length} at 1280 and ${webm2k.length} at 2560`,
+);

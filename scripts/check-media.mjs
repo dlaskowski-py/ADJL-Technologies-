@@ -17,6 +17,9 @@ const CLIPS = JSON.parse(/export const CLIPS = (\[[\s\S]*?\]) as const;/.exec(ma
 const HAS_WEBM = new Set(
   JSON.parse(/export const HAS_WEBM = new Set<string>\((\[[\s\S]*?\])\);/.exec(manifest)[1]),
 );
+const HAS_WEBM_2K = new Set(
+  JSON.parse(/export const HAS_WEBM_2K = new Set<string>\((\[[\s\S]*?\])\);/.exec(manifest)[1]),
+);
 
 const used = new Set();
 for (const page of PAGES) {
@@ -33,7 +36,7 @@ for (const name of used) {
     bad++;
     continue;
   }
-  for (const f of [`${name}.mp4`, `${name}.jpg`]) {
+  for (const f of [`${name}.mp4`, `${name}@2k.mp4`, `${name}.jpg`]) {
     const p = `dist/media/${f}`;
     if (!existsSync(p)) {
       console.error(`check-media: ${p} is missing`);
@@ -42,9 +45,13 @@ for (const name of used) {
       bytes += statSync(p).size;
     }
   }
-  if (HAS_WEBM.has(name) && !existsSync(`dist/media/${name}.webm`)) {
-    console.error(`check-media: manifest says ${name} has a VP9, but dist/media/${name}.webm is missing`);
-    bad++;
+  for (const [set, suffix] of [[HAS_WEBM, ''], [HAS_WEBM_2K, '@2k']]) {
+    if (set.has(name) && !existsSync(`dist/media/${name}${suffix}.webm`)) {
+      console.error(
+        `check-media: manifest says ${name}${suffix} has a VP9, but dist/media/${name}${suffix}.webm is missing`,
+      );
+      bad++;
+    }
   }
 }
 
