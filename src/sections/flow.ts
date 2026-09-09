@@ -19,7 +19,7 @@
  * scales to illegibility or scrolls sideways, and neither is worth it.
  */
 
-import { esc, em, eyebrow, headline } from './html';
+import { esc, eyebrow, headline, rich } from './html';
 
 export type Stage = { num: string; tag: string; title: string; body: string };
 
@@ -76,7 +76,7 @@ export function renderFlowDiagram(stages: Stage[], title: string): string {
         <span class="flow-step-rail" aria-hidden="true"></span>
         <span class="flow-step-num label">${esc(s.num)}</span>
         <h3 class="flow-step-title">${esc(s.title)}</h3>
-        <p class="flow-step-body">${em(s.body)}</p>
+        <p class="flow-step-body">${rich(s.body)}</p>
       </li>`,
         )
         .join('')}
@@ -96,11 +96,11 @@ export function renderFlowSection(f: {
     <div class="wrap">
       ${eyebrow(f.eyebrow)}
       ${headline(f.headline)}
-      <p class="lede" data-reveal style="--i:1">${em(f.intro)}</p>
+      <p class="lede" data-reveal style="--i:1">${rich(f.intro)}</p>
     </div>
     <div class="wrap flow-wrap">
       ${renderFlowDiagram(f.stages, f.headline.join(' ').replace(/\{\/?em\}/g, ''))}
-      <p class="flow-foot" data-reveal>${em(f.foot)}</p>
+      <p class="flow-foot" data-reveal>${rich(f.foot)}</p>
     </div>
   </section>`;
 }

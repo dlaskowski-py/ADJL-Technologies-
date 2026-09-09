@@ -1,6 +1,6 @@
 /** The selected-work band, shared in spirit by / and /work/. */
 
-import { backdrop, em, esc, eyebrow, headline, kw } from './html';
+import { backdrop, esc, eyebrow, headline, rich } from './html';
 
 export type WorkItem = {
   num: string;
@@ -24,7 +24,7 @@ export function renderWorkBand(w: {
     <div class="wrap work-head">
       ${eyebrow(w.eyebrow)}
       ${headline(w.headline)}
-      <p class="lede" data-reveal style="--i:1">${em(w.intro)}</p>
+      <p class="lede" data-reveal style="--i:1">${rich(w.intro)}</p>
     </div>
     <div class="work-list">
       ${w.items
@@ -37,9 +37,9 @@ export function renderWorkBand(w: {
           </div>
           <div class="wcard-body">
             <span class="label wcard-kicker">${esc(it.kicker)}</span>
-            <h3 class="wcard-title">${it.title.map((t) => `<span>${esc(t)}</span>`).join('')}</h3>
+            <h3 class="wcard-title">${it.title.map((t) => `<span>${rich(t)}</span>`).join('')}</h3>
             <p class="wcard-sub">${esc(it.sub)}</p>
-            <p class="wcard-text">${kw(it.body)}</p>
+            <p class="wcard-text">${rich(it.body)}</p>
             <span class="wcard-cta"><span>${esc(it.linkLabel)}</span><span class="arw">&rarr;</span></span>
           </div>
         </a>

@@ -63,6 +63,8 @@ exists because of a specific way a site like this goes wrong:
 | `check-claims` | Fabricated claims and hype — see below |
 | `check-contact` | The contact address missing, unlinked, or half-migrated |
 | `check-media` | A film named in markup with no file on disk, or a film shipped that nothing uses |
+| `check-motion` | A motion module whose markup contract appears on no page — dead JavaScript, the same argument `check-css` makes about dead rules |
+| `check-markers` | An authoring marker (`{em}`, `{k}`) reaching production as literal text, because a renderer reached for `esc()` instead of `rich()` |
 
 `check-claims` is the one to understand before editing copy. ADJL Technologies
 is new and one person runs it: there are no clients to name, no metrics to
@@ -73,6 +75,23 @@ because if the site says "40% faster", that figure was invented.
 
 It also fails if an analytics or tag script appears while `/legal/privacy/`
 still says the site has none. **Change the policy first.**
+
+Two more guards need a browser, so they are **not** in `npm run build` — run
+them against `npm run preview`:
+
+```bash
+npm run preview &      # then, in another shell:
+npm run verify         # overflow, reveals, console errors, film, the diagram
+npm run check:contrast # every text element, measured
+```
+
+`npm run check:contrast` is the one to run after touching a colour. It
+measures what a reader actually sees rather than what the stylesheet asked
+for: it composites `opacity` into the foreground, and for text sitting over
+film it blanks every glyph on the page, screenshots the region behind the
+words across five frames of the loop, and takes a near-extreme percentile of
+the real pixels. Colours picked by eye on a light ground fail this
+constantly — that is the point of it.
 
 `npm run verify` drives a real browser and checks the things only a browser
 can: horizontal overflow at 390px, elements left unrevealed after a full

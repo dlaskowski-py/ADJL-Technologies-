@@ -1,6 +1,11 @@
 /**
  * Drives a real browser over the built site.
  *
+ * Point it at `npm run preview`, which serves the exact dist/ that deploys —
+ * BASE defaults to it. Aiming this at a public URL is possible but not the
+ * intended use, and in a sandboxed environment the browser may not have the
+ * same network path that curl does.
+ *
  * Screenshots at desktop and phone, plus the checks that only a running
  * browser can make: that nothing overflows horizontally, that every film is
  * actually playing rather than merely present, that no console error fired,
@@ -30,6 +35,9 @@ if (!CHROME) {
   process.exit(2);
 }
 
+/* Autoplay is forced on because the whole point of the film checks below is
+   to prove the clips are advancing; a browser that refuses to start them
+   would report a failure that no real visitor experiences. */
 const browser = await chromium.launch({
   executablePath: CHROME,
   args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required'],

@@ -2,7 +2,7 @@
 import { writeFileSync } from 'node:fs';
 import { PAGES } from './pages.mjs';
 
-const ORIGIN = process.env.SITE_ORIGIN ?? 'https://adjltechnologies.netlify.app';
+const ORIGIN = process.env.SITE_ORIGIN ?? 'https://adjl-technologies.netlify.app';
 const today = new Date().toISOString().slice(0, 10);
 
 const urls = PAGES.map(

@@ -63,6 +63,19 @@ export function initMenu(): void {
       burger.focus();
     }
   });
+
+  /* Widening past the breakpoint takes the burger out of the layout, and
+     with it the only control that could close the menu. The overlay stops
+     being displayed at the same moment, so the page looks completely normal
+     while body overflow is still hidden — a page that cannot be scrolled
+     with nothing on screen to explain why. Closing on the media query
+     restores the lock, the hidden attribute and aria-expanded together. */
+  const wide = window.matchMedia('(min-width: 901px)');
+  const onWide = (e: MediaQueryList | MediaQueryListEvent) => {
+    if (e.matches && burger.getAttribute('aria-expanded') === 'true') setOpen(false);
+  };
+  if (wide.addEventListener) wide.addEventListener('change', onWide);
+  else wide.addListener(onWide);
 }
 
 /** One question open at a time. */

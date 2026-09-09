@@ -1,7 +1,7 @@
 /** Hero, the capability strip, and the three practices. */
 
 import * as C from '../content';
-import { backdrop, checklist, displayHeadline, em, esc, eyebrow, headline, kw } from './html';
+import { backdrop, checklist, displayHeadline, esc, eyebrow, headline, rich } from './html';
 
 export function renderHero(): string {
   const h = C.hero;
@@ -10,7 +10,7 @@ export function renderHero(): string {
     <div class="wrap hero-inner">
       <p class="eyebrow" data-reveal>${esc(h.eyebrow)}</p>
       ${displayHeadline(h.headline)}
-      <p class="hero-body" data-reveal style="--i:3">${kw(h.body)}</p>
+      <p class="hero-body" data-reveal style="--i:3">${rich(h.body)}</p>
       <div class="hero-actions" data-reveal style="--i:4">
         <a class="btn btn--solid" href="${h.primary.href}"><span>${esc(h.primary.label)}</span><span class="arw">&rarr;</span></a>
         <a class="btn btn--ghost" href="${h.secondary.href}"><span>${esc(h.secondary.label)}</span></a>
@@ -25,7 +25,7 @@ export function renderStrip(): string {
   const s = C.strip;
   return `<section class="strip" aria-label="What we do, in short">
     <div class="wrap strip-inner">
-      <p class="strip-line" data-reveal>${em(s.line)}</p>
+      <p class="strip-line" data-reveal>${rich(s.line)}</p>
       <ul class="chips" data-stagger>
         ${s.chips
           .map(
@@ -46,7 +46,7 @@ export function renderPractices(): string {
     <div class="wrap">
       ${eyebrow(p.eyebrow)}
       ${headline(p.headline)}
-      <p class="lede" data-reveal style="--i:1">${em(p.intro)}</p>
+      <p class="lede" data-reveal style="--i:1">${rich(p.intro)}</p>
       <div class="practice-grid">
         ${p.items
           .map(
@@ -54,7 +54,7 @@ export function renderPractices(): string {
           <span class="practice-num num">${esc(it.num)}</span>
           <h3 class="practice-title h3">${esc(it.title)}</h3>
           <p class="practice-sub label">${esc(it.sub)}</p>
-          <p class="practice-body">${kw(it.body)}</p>
+          <p class="practice-body">${rich(it.body)}</p>
           ${checklist(it.points)}
           <a class="tlink practice-link" href="${esc(it.link.href)}">
             <span>${esc(it.link.label)}</span><span class="arw">&rarr;</span>

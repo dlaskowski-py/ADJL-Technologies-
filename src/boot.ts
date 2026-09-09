@@ -18,7 +18,6 @@ import './styles/sections.css';
 import { initReveal } from './motion/reveal';
 import { initScrub } from './motion/scrub';
 import { initField } from './motion/field';
-import { initCounters } from './motion/counters';
 import { initVideo } from './motion/video';
 import { initFlow } from './motion/flow';
 import { initMarquee } from './motion/marquee';
@@ -54,7 +53,6 @@ export function boot(): void {
 
   initReveal();
   initScrub();
-  initCounters();
   initVideo();
   initFlow();
   initMarquee();

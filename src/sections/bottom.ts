@@ -1,7 +1,7 @@
 /** The console demo, the method, the stack, the founder, the FAQ, the close. */
 
 import * as C from '../content';
-import { backdrop, em, esc, eyebrow, headline, kw } from './html';
+import { backdrop, esc, eyebrow, headline, rich } from './html';
 
 /**
  * The recorded console.
@@ -19,7 +19,7 @@ export function renderDemo(): string {
       <div class="demo-copy">
         ${eyebrow(d.eyebrow)}
         ${headline(d.headline)}
-        <p class="lede" data-reveal style="--i:1">${em(d.body)}</p>
+        <p class="lede" data-reveal style="--i:1">${rich(d.body)}</p>
       </div>
       <figure class="console" data-console data-reveal>
         <div class="con-chrome" aria-hidden="true">
@@ -46,7 +46,7 @@ export function renderMethod(): string {
     <div class="wrap">
       ${eyebrow(m.eyebrow)}
       ${headline(m.headline)}
-      <p class="lede" data-reveal style="--i:1">${em(m.intro)}</p>
+      <p class="lede" data-reveal style="--i:1">${rich(m.intro)}</p>
       <ol class="steps" data-stagger>
         ${m.steps
           .map(
@@ -54,7 +54,7 @@ export function renderMethod(): string {
           <span class="step-when label">${esc(s.when)}</span>
           <span class="step-num num">${esc(s.num)}</span>
           <h3 class="step-title h3">${esc(s.title)}</h3>
-          <p class="step-body">${em(s.body)}</p>
+          <p class="step-body">${rich(s.body)}</p>
         </li>`,
           )
           .join('')}
@@ -70,7 +70,7 @@ export function renderStack(): string {
   return `<section class="stack sec-line sec-tint" id="stack">
     <div class="wrap">
       ${eyebrow(s.eyebrow)}
-      <p class="stack-label lede" data-reveal>${em(s.label)}</p>
+      <p class="stack-label lede" data-reveal>${rich(s.label)}</p>
     </div>
     <div class="mq-rows">
       ${s.groups
@@ -99,7 +99,7 @@ export function renderFounder(): string {
         ${f.body
           .map(
             (p, i) =>
-              `<p class="founder-p${i === 0 ? ' lede' : ''}" data-reveal style="--i:${i + 1}">${em(p)}</p>`,
+              `<p class="founder-p${i === 0 ? ' lede' : ''}" data-reveal style="--i:${i + 1}">${rich(p)}</p>`,
           )
           .join('')}
       </div>
@@ -110,7 +110,7 @@ export function renderFounder(): string {
         <p class="founder-name h3">${esc(f.name)}</p>
         <p class="founder-role label">${esc(f.role)}</p>
         <ul class="founder-points">
-          ${f.points.map((p) => `<li>${em(p)}</li>`).join('')}
+          ${f.points.map((p) => `<li>${rich(p)}</li>`).join('')}
         </ul>
         <a class="tlink founder-mail" href="mailto:${esc(C.CONTACT)}">${esc(C.CONTACT)}</a>
       </aside>
@@ -131,7 +131,7 @@ export function renderFaq(): string {
           .map(
             (it) => `<details class="faq-item" data-reveal>
           <summary class="faq-q"><span>${esc(it.q)}</span><i aria-hidden="true"></i></summary>
-          <div class="faq-a"><p>${kw(it.a)}</p></div>
+          <div class="faq-a"><p>${rich(it.a)}</p></div>
         </details>`,
           )
           .join('')}
@@ -155,7 +155,7 @@ export function renderCta(c: {
     <div class="wrap wrap--narrow cta-inner">
       ${eyebrow(c.eyebrow)}
       ${headline(c.headline)}
-      <p class="lede cta-body" data-reveal style="--i:1">${em(c.body)}</p>
+      <p class="lede cta-body" data-reveal style="--i:1">${rich(c.body)}</p>
       <div class="cta-actions" data-reveal style="--i:2">
         <a class="btn btn--solid" href="${esc(c.button.href)}"><span>${esc(c.button.label)}</span><span class="arw">&rarr;</span></a>
         <a class="mail" href="mailto:${esc(c.email)}">${esc(c.email)}</a>
@@ -163,7 +163,7 @@ export function renderCta(c: {
           <span class="copy-idle">${esc(C.cta.copy)}</span><span class="copy-done">${esc(C.cta.copied)}</span>
         </button>
       </div>
-      ${c.note ? `<p class="cta-note" data-reveal style="--i:3">${em(c.note)}</p>` : ''}
+      ${c.note ? `<p class="cta-note" data-reveal style="--i:3">${rich(c.note)}</p>` : ''}
     </div>
   </section>`;
 }
@@ -176,7 +176,7 @@ export function renderFooter(): string {
         <span class="wm-mark" aria-hidden="true">
           <i class="wm-bar"></i><i class="wm-bar wm-bar--signal"></i><i class="wm-bar"></i>
         </span>
-        <p class="foot-blurb">${em(f.blurb)}</p>
+        <p class="foot-blurb">${rich(f.blurb)}</p>
       </div>
       <nav class="foot-nav" aria-label="Footer">
         ${f.groups
@@ -190,7 +190,7 @@ export function renderFooter(): string {
       </nav>
     </div>
     <div class="wrap foot-legal">
-      <p>${em(f.legal)}</p>
+      <p>${rich(f.legal)}</p>
       <p class="foot-mail"><a class="tlink" href="mailto:${esc(C.CONTACT)}">${esc(C.CONTACT)}</a></p>
     </div>
   </footer>`;

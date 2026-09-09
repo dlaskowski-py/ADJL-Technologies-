@@ -15,6 +15,10 @@
  * Markup contract: [data-console] wrapping .con-out, with the script carried
  * in a <script type="application/json" class="con-script"> so the lines live
  * in the content module with the rest of the copy.
+ *
+ * The replay control exists because the demo runs once, and the one time it
+ * runs is while the reader is still arriving at the section — look away for
+ * four seconds and there is otherwise no way back to it.
  */
 
 import { tier } from './prefs';
@@ -122,6 +126,20 @@ export function initConsole(): void {
       continue;
     }
 
+    /* Registered BEFORE the tier branch. It used to sit after it, so in the
+       reduced tier the button was rendered, made visible by .is-done, and
+       wired to nothing — a control that looks live and does nothing when
+       pressed is worse than one that is not there. In this tier it re-lays
+       the finished transcript, which is the honest equivalent of a replay. */
+    root.querySelector('[data-console-replay]')?.addEventListener('click', () => {
+      if (tier === 'reduced') {
+        showAll(root, lines);
+        return;
+      }
+      root.classList.remove('is-done');
+      void play(root, lines);
+    });
+
     if (tier === 'reduced') {
       showAll(root, lines);
       continue;
@@ -140,13 +158,5 @@ export function initConsole(): void {
       { threshold: 0.4 },
     );
     io.observe(root);
-
-    /* A replay control, because the demo runs once and the one time it runs
-       is while the reader is still arriving at the section. Without this,
-       anyone who looks away for four seconds has no way back to it. */
-    root.querySelector('[data-console-replay]')?.addEventListener('click', () => {
-      root.classList.remove('is-done');
-      void play(root, lines);
-    });
   }
 }

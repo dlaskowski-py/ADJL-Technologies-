@@ -1,6 +1,6 @@
 /** /approach/ — the principles, the engagement shapes, and who owns what. */
 
-import { backdrop, em, esc, eyebrow, headline, kw } from './html';
+import { backdrop, esc, eyebrow, headline, rich } from './html';
 import { renderCta, renderFooter } from './bottom';
 import { renderNav } from './nav';
 
@@ -43,9 +43,9 @@ export function renderApproachPage(c: ApproachContent): { navHtml: string; pageH
       )}</span></a>
       <p class="eyebrow" data-reveal>${esc(h.eyebrow)}</p>
       <h1 class="display" data-reveal="mask">${h.headline
-        .map((l, i) => `<span style="--i:${i}"><span>${em(l)}</span></span>`)
+        .map((l, i) => `<span style="--i:${i}"><span>${rich(l)}</span></span>`)
         .join('')}</h1>
-      <p class="chero-body" data-reveal style="--i:3">${kw(h.body)}</p>
+      <p class="chero-body" data-reveal style="--i:3">${rich(h.body)}</p>
     </div>
   </section>`;
 
@@ -56,7 +56,7 @@ export function renderApproachPage(c: ApproachContent): { navHtml: string; pageH
     <div class="wrap">
       ${eyebrow(p.eyebrow)}
       ${headline(p.headline)}
-      <p class="lede" data-reveal style="--i:1">${em(p.intro)}</p>
+      <p class="lede" data-reveal style="--i:1">${rich(p.intro)}</p>
       <ol class="prin-list" data-stagger>
         ${p.items
           .map(
@@ -64,7 +64,7 @@ export function renderApproachPage(c: ApproachContent): { navHtml: string; pageH
           <span class="prin-num num">${esc(it.num)}</span>
           <div class="prin-body">
             <h3 class="prin-title h3">${esc(it.title)}</h3>
-            <p>${kw(it.body)}</p>
+            <p>${rich(it.body)}</p>
           </div>
         </li>`,
           )
@@ -77,16 +77,16 @@ export function renderApproachPage(c: ApproachContent): { navHtml: string; pageH
     <div class="wrap">
       ${eyebrow(e.eyebrow)}
       ${headline(e.headline)}
-      <p class="lede" data-reveal style="--i:1">${em(e.intro)}</p>
+      <p class="lede" data-reveal style="--i:1">${rich(e.intro)}</p>
       <div class="engage-grid" data-stagger>
         ${e.items
           .map(
             (it) => `<article class="engage-card" data-reveal data-spotlight>
           <span class="engage-tag label">${esc(it.tag)}</span>
           <h3 class="engage-title h3">${esc(it.title)}</h3>
-          <p class="engage-body">${kw(it.body)}</p>
+          <p class="engage-body">${rich(it.body)}</p>
           <ul class="engage-points">
-            ${it.points.map((pt) => `<li>${kw(pt)}</li>`).join('')}
+            ${it.points.map((pt) => `<li>${rich(pt)}</li>`).join('')}
           </ul>
           <p class="engage-best"><span class="label">Suits</span>${esc(it.best)}</p>
         </article>`,
@@ -100,12 +100,12 @@ export function renderApproachPage(c: ApproachContent): { navHtml: string; pageH
     <div class="wrap wrap--narrow">
       ${eyebrow(o.eyebrow)}
       ${headline(o.headline)}
-      <p class="lede" data-reveal style="--i:1">${kw(o.body)}</p>
+      <p class="lede" data-reveal style="--i:1">${rich(o.body)}</p>
       <ul class="own-list" data-stagger>
         ${o.points
           .map(
             (pt) => `<li class="own" data-reveal>
-          <span class="check" aria-hidden="true"></span><span>${kw(pt)}</span>
+          <span class="check" aria-hidden="true"></span><span>${rich(pt)}</span>
         </li>`,
           )
           .join('')}

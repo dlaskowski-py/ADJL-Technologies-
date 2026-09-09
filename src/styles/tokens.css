@@ -46,6 +46,14 @@
   --ink-2: #3d4453;
   --ink-3: #616978;
 
+  /* The decorative numeral tier — the big step numbers and principle indices.
+     It was --paper-4, which measured 1.15:1 and was, in practice, invisible:
+     the numbers are the only thing marking the sequence, so "decorative" was
+     not a defence. #858CA0 is close to the lightest value that still clears
+     3:1 for text this size (3.22:1 on --paper, 3.36:1 on white). Do not
+     lighten it back toward the surface colour. */
+  --ink-faint: #858ca0;
+
   /* ── Signal — copper, from the Capital kit ────────────────────────
      Capital's --signal is #D9663C on black. On white that same colour
      measures 3.4:1, so the hue is kept and the value is re-cut for a
@@ -63,6 +71,16 @@
   --signal: #d9542a;
   --signal-deep: #c2451c;
   --signal-soft: #fceee8;
+
+  /* Copper that has to survive over film, and nowhere else.
+     Emphasis in a hero headline sits on a moving picture, and --signal at
+     3.8:1 against paper measured 2.44–2.93:1 against the actual frames — the
+     veil cannot be closed far enough to fix that without putting the film
+     out entirely. #B33F19 clears 3:1 across every sampled frame of all six
+     clips with room for a re-render. Measured by scripts/check-contrast.mjs,
+     which samples the real pixels behind the real glyphs; do not adjust it
+     by eye. */
+  --signal-film: #b33f19;
 
   /* ── Spectrum — the new half of the kit ───────────────────────────
      Teal and violet are what Capital does not have, and they are how the
@@ -119,21 +137,31 @@
      never sees, so the wash is spent where the words are and released
      where they are not. --veil-hero holds the left half, where the
      headline sits, and lets the right half of the frame play. */
+  /* These numbers are load-bearing in BOTH directions and were arrived at by
+     measurement, not by eye. Weaken the hold and check-contrast fails;
+     strengthen it much further and the film stops being visible at all,
+     which is the only reason it is there.
+
+     The tilt matters more than it looks. At 100deg the gradient axis runs
+     down as well as across, so copy lower in the hero — the second headline
+     line, the body — met the falloff EARLIER than the first line did and sat
+     on open film. 96deg is nearly upright, and the hold now runs to 56%
+     rather than 34%, which is where the copy column actually ends. */
   --veil-hero: linear-gradient(
-      100deg,
-      rgba(250, 250, 252, 0.97) 0%,
-      rgba(250, 250, 252, 0.95) 34%,
-      rgba(250, 250, 252, 0.8) 52%,
-      rgba(250, 250, 252, 0.42) 68%,
-      rgba(250, 250, 252, 0.12) 84%,
+      96deg,
+      rgba(250, 250, 252, 0.985) 0%,
+      rgba(250, 250, 252, 0.975) 40%,
+      rgba(250, 250, 252, 0.93) 56%,
+      rgba(250, 250, 252, 0.66) 70%,
+      rgba(250, 250, 252, 0.28) 84%,
       rgba(250, 250, 252, 0) 100%
     ),
     linear-gradient(
       180deg,
-      rgba(250, 250, 252, 0.55) 0%,
-      rgba(250, 250, 252, 0) 24%,
-      rgba(250, 250, 252, 0) 72%,
-      rgba(250, 250, 252, 0.6) 100%
+      rgba(250, 250, 252, 0.5) 0%,
+      rgba(250, 250, 252, 0) 26%,
+      rgba(250, 250, 252, 0) 70%,
+      rgba(250, 250, 252, 0.55) 100%
     );
 
   /* Film shown as an object rather than as a ground — inside a framed

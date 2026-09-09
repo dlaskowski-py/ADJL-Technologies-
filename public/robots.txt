@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://adjltechnologies.netlify.app/sitemap.xml
+Sitemap: https://adjl-technologies.netlify.app/sitemap.xml

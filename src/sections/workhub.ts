@@ -1,6 +1,6 @@
 /** /work/ — a short index over the three case pages. */
 
-import { backdrop, em, esc, eyebrow, headline, kw } from './html';
+import { backdrop, esc, eyebrow, headline, rich } from './html';
 import { renderCta, renderFooter } from './bottom';
 import { renderNav } from './nav';
 
@@ -47,9 +47,9 @@ export function renderWorkHubPage(c: WorkHubContent): { navHtml: string; pageHtm
       )}</span></a>
       <p class="eyebrow" data-reveal>${esc(h.eyebrow)}</p>
       <h1 class="display" data-reveal="mask">${h.headline
-        .map((l, i) => `<span style="--i:${i}"><span>${em(l)}</span></span>`)
+        .map((l, i) => `<span style="--i:${i}"><span>${rich(l)}</span></span>`)
         .join('')}</h1>
-      <p class="chero-body" data-reveal style="--i:3">${kw(h.body)}</p>
+      <p class="chero-body" data-reveal style="--i:3">${rich(h.body)}</p>
     </div>
   </section>`;
 
@@ -67,14 +67,14 @@ export function renderWorkHubPage(c: WorkHubContent): { navHtml: string; pageHtm
               <span class="hcard-num num">${esc(it.num)}</span>
               <span class="label hcard-kicker">${esc(it.kicker)}</span>
             </div>
-            <h2 class="hcard-title">${it.title.map((t) => `<span>${esc(t)}</span>`).join('')}</h2>
+            <h2 class="hcard-title">${it.title.map((t) => `<span>${rich(t)}</span>`).join('')}</h2>
             <p class="hcard-sub">${esc(it.sub)}</p>
-            <p class="hcard-text">${kw(it.body)}</p>
+            <p class="hcard-text">${rich(it.body)}</p>
             <ul class="checks">
               ${it.points
                 .map(
                   (p) =>
-                    `<li><span class="check" aria-hidden="true"></span><span>${kw(p)}</span></li>`,
+                    `<li><span class="check" aria-hidden="true"></span><span>${rich(p)}</span></li>`,
                 )
                 .join('')}
             </ul>
@@ -94,12 +94,12 @@ export function renderWorkHubPage(c: WorkHubContent): { navHtml: string; pageHtm
     <div class="wrap wrap--narrow">
       ${eyebrow(r.eyebrow)}
       ${headline(r.headline)}
-      <p class="lede" data-reveal style="--i:1">${em(r.body)}</p>
+      <p class="lede" data-reveal style="--i:1">${rich(r.body)}</p>
       <ul class="limit-list" data-stagger>
         ${r.items
           .map(
             (it) =>
-              `<li class="limit" data-reveal><span class="limit-mark" aria-hidden="true"></span><span>${kw(
+              `<li class="limit" data-reveal><span class="limit-mark" aria-hidden="true"></span><span>${rich(
                 it,
               )}</span></li>`,
           )

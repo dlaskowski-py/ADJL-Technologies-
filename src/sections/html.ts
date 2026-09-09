@@ -20,24 +20,40 @@ export function esc(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
-/** House headline device: {em}word{/em} becomes the copper emphasis span. */
-export function em(s: string): string {
-  return esc(s).replace(/\{em\}(.+?)\{\/em\}/g, '<em>$1</em>');
-}
-
-/** Inline code/keyword device for body copy: {k}word{/k}. */
-export function kw(s: string): string {
-  return em(s).replace(/\{k\}(.+?)\{\/k\}/g, '<span class="kwd">$1</span>');
+/**
+ * Escape, then render BOTH authoring markers: {em}…{/em} to the copper
+ * emphasis span, {k}…{/k} to the keyword span.
+ *
+ * ONE function on purpose. This was two — em() for headlines and kw() for
+ * body copy — and the split was a trap rather than a distinction: every
+ * renderer had to remember which of two nearly identical helpers its field
+ * needed, and getting it wrong produced no error, no broken markup and no
+ * failing guard. It simply shipped the braces as visible text.
+ *
+ * It fired twice. Once in workhub.ts, which reached for esc() and printed
+ * "{em}underwriting.{/em}" inside the main heading of /work/. Once in
+ * flow.ts, which used em() on step bodies that contain {k} and printed those
+ * braces on two case pages. Both files used the right helper immediately
+ * above and below the wrong one.
+ *
+ * So there is now one call for all human-readable text, esc() is for
+ * attributes, and scripts/check-markers.mjs fails the build if a marker ever
+ * reaches dist/ again.
+ */
+export function rich(s: string): string {
+  return esc(s)
+    .replace(/\{em\}(.+?)\{\/em\}/g, '<em>$1</em>')
+    .replace(/\{k\}(.+?)\{\/k\}/g, '<span class="kwd">$1</span>');
 }
 
 /** Multi-line headline — each entry is its own line. */
 export function headline(lines: string[], cls = 'h2'): string {
-  return `<h2 class="${cls}">${lines.map((l) => `<span class="hl-line">${em(l)}</span>`).join('')}</h2>`;
+  return `<h2 class="${cls}">${lines.map((l) => `<span class="hl-line">${rich(l)}</span>`).join('')}</h2>`;
 }
 
 export function displayHeadline(lines: string[]): string {
   return `<h1 class="display" data-reveal="mask">${lines
-    .map((l, i) => `<span style="--i:${i}"><span>${em(l)}</span></span>`)
+    .map((l, i) => `<span style="--i:${i}"><span>${rich(l)}</span></span>`)
     .join('')}</h1>`;
 }
 
@@ -50,7 +66,7 @@ export function checklist(points: string[]): string {
   return `<ul class="checks" data-stagger>${points
     .map(
       (p) =>
-        `<li data-reveal><span class="check" aria-hidden="true"></span><span>${kw(p)}</span></li>`,
+        `<li data-reveal><span class="check" aria-hidden="true"></span><span>${rich(p)}</span></li>`,
     )
     .join('')}</ul>`;
 }

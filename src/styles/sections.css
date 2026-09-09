@@ -563,13 +563,17 @@
 .flow-node.is-lit .flow-tag {
   fill: var(--ink);
 }
+/* No opacity on this. --ink-3 has 4.94:1 against --paper-3 and nothing to
+   spare, so 0.55 composited it to 2.16:1 — an 11px numeral at half the
+   contrast of the label beside it. Quietness here comes from the size and
+   the tracking, which cost nothing, rather than from opacity, which spends
+   the entire margin. */
 .flow-idx {
   font-family: var(--sans);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.16em;
   fill: var(--ink-3);
-  opacity: 0.55;
 }
 .flow-packet {
   fill: var(--signal);
@@ -585,14 +589,25 @@
   grid-template-columns: repeat(5, 1fr);
   gap: 1.5rem;
 }
+/* NO OPACITY ON THE TEXT, in any state.
+
+   This started at 0.44, which put --ink-2 body copy at about 2.2:1: the
+   "not yet reached" state was being signalled by making the prose nearly
+   unreadable, on a page whose entire argument is that sequence — and the
+   stages you have not scrolled to yet are exactly the ones a reader skims
+   ahead to.
+
+   The first fix was 0.82 with the numeral dimmed further, and measuring it
+   showed why that whole approach is a dead end: --ink-3 at 12px has 5.3:1
+   at full strength, so ANY alpha below about 0.93 puts it under the floor.
+   There is no dimming worth having inside that margin.
+
+   So the state moved entirely onto things that carry no words — the rail
+   fills, the dot lights, and the current step's title takes the copper.
+   Decoration can afford to disappear. Prose cannot. */
 .flow-step {
   position: relative;
   padding-top: 1.2rem;
-  opacity: 0.44;
-  transition: opacity 0.5s var(--ease);
-}
-.flow-step.is-lit {
-  opacity: 1;
 }
 .flow-step-rail {
   position: absolute;
@@ -838,10 +853,14 @@
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.16);
 }
+/* A solid value rather than white at 42%, which composited to 4.00:1 against
+   this chrome — under the floor for 12px, and the kind of miss that a
+   translucent colour makes easy: the stylesheet says "white", so it reads as
+   obviously safe. #8E9BB3 is the same value .con-note uses; 5.88:1 here. */
 .con-title {
   margin-left: 0.5rem;
   font-size: 0.76rem;
-  color: rgba(255, 255, 255, 0.42);
+  color: #8e9bb3;
   letter-spacing: 0.02em;
 }
 .con-out {
@@ -932,6 +951,11 @@
      being a lie, so it is not allowed to be decorative grey. */
   color: #8e9bb3;
 }
+/* visibility, not opacity alone. At opacity 0 the button is invisible and
+   still in the tab order, so a keyboard user tabbing through the page lands
+   on a control they cannot see and cannot identify. visibility:hidden takes
+   it out of the tab order and still transitions, because visibility is an
+   animatable property that flips at the end of its timing function. */
 .con-replay {
   flex: none;
   font-size: 0.78rem;
@@ -941,10 +965,14 @@
   border-radius: 999px;
   padding: 0.35rem 0.8rem;
   opacity: 0;
-  transition: opacity 0.3s var(--ease), border-color 0.2s var(--ease);
+  visibility: hidden;
+  transition: opacity 0.3s var(--ease), visibility 0s linear 0.3s,
+    border-color 0.2s var(--ease);
 }
 .console.is-done .con-replay {
   opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s var(--ease), visibility 0s, border-color 0.2s var(--ease);
 }
 .con-replay:hover {
   border-color: rgba(255, 255, 255, 0.4);
@@ -988,7 +1016,7 @@
   font-size: 2.1rem;
   font-weight: 700;
   line-height: 1;
-  color: var(--paper-4);
+  color: var(--ink-faint);
 }
 .step-title {
   margin-top: 0.8rem;
@@ -1812,7 +1840,7 @@
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.04em;
-  color: var(--paper-4);
+  color: var(--ink-faint);
   transition: color 0.35s var(--ease);
 }
 .prin:hover .prin-num {

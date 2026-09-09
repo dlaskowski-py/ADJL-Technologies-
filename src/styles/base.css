@@ -164,6 +164,33 @@ section {
   color: var(--signal);
 }
 
+/* Emphasis sitting ON FILM takes the deeper copper. Measured, not assumed:
+   --signal against the actual frames of these six clips came back at
+   2.44–2.93:1 against a 3:1 floor, and no veil that leaves the film visible
+   closes that gap.
+
+   Selected by the sibling combinator rather than :has(), deliberately. Every
+   filmed section renders .backdrop immediately before the .wrap holding its
+   copy, so this says exactly "emphasis over film" with no list of section
+   classes to fall out of date. :has() would read better, is nowhere else in
+   this stylesheet, and a selector that fails to parse drops the rule and
+   silently returns the text to the value that measured 2.44. */
+.backdrop ~ .wrap .h2 em,
+.backdrop ~ .wrap .display em {
+  color: var(--signal-film);
+}
+
+/* The quiet tiers over film take one step darker for the same reason. The
+   veil holds the copy column at about 0.93, which puts --ink-3 at 4.51:1 —
+   inside the floor by a hundredth, which is not a margin. --ink-2 has real
+   room and the hierarchy still reads, because it is the tier immediately
+   above and the surrounding text over film is heading-sized anyway. */
+.backdrop ~ .wrap .eyebrow,
+.backdrop ~ .wrap .cta-note,
+.backdrop ~ .wrap .copy-btn {
+  color: var(--ink-2);
+}
+
 .h3 {
   font-family: var(--sans);
   font-size: var(--t-h3);

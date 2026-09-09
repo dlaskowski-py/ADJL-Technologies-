@@ -13,7 +13,7 @@
  * being described.
  */
 
-import { backdrop, em, esc, eyebrow, headline, kw } from './html';
+import { backdrop, esc, eyebrow, headline, rich } from './html';
 import { renderFlowDiagram, type Stage } from './flow';
 import { renderCta, renderFooter } from './bottom';
 import { renderNav } from './nav';
@@ -50,9 +50,9 @@ function renderHero(c: CaseContent, media: string): string {
       )}</span></a>
       <p class="eyebrow" data-reveal>${esc(h.eyebrow)}</p>
       <h1 class="display" data-reveal="mask">${h.headline
-        .map((l, i) => `<span style="--i:${i}"><span>${em(l)}</span></span>`)
+        .map((l, i) => `<span style="--i:${i}"><span>${rich(l)}</span></span>`)
         .join('')}</h1>
-      <p class="chero-body" data-reveal style="--i:3">${kw(h.body)}</p>
+      <p class="chero-body" data-reveal style="--i:3">${rich(h.body)}</p>
       <dl class="specs" data-stagger>
         ${h.specs
           .map(
@@ -74,14 +74,14 @@ function renderProblem(c: CaseContent): string {
       <div class="problem-copy">
         ${eyebrow(p.eyebrow)}
         ${headline(p.headline)}
-        <p class="lede" data-reveal style="--i:1">${kw(p.body)}</p>
+        <p class="lede" data-reveal style="--i:1">${rich(p.body)}</p>
       </div>
       <ul class="symptoms" data-stagger>
         ${p.points
           .map(
             (pt) => `<li class="symptom" data-reveal>
           <span class="symptom-bar" aria-hidden="true"></span>
-          <span>${kw(pt)}</span>
+          <span>${rich(pt)}</span>
         </li>`,
           )
           .join('')}
@@ -96,7 +96,7 @@ function renderBuild(c: CaseContent): string {
     <div class="wrap">
       ${eyebrow(b.eyebrow)}
       ${headline(b.headline)}
-      <p class="lede" data-reveal style="--i:1">${kw(b.intro)}</p>
+      <p class="lede" data-reveal style="--i:1">${rich(b.intro)}</p>
     </div>
     <div class="wrap flow-wrap">
       ${renderFlowDiagram(b.steps, b.headline.join(' ').replace(/\{\/?em\}/g, ''))}
@@ -115,7 +115,7 @@ function renderDetail(c: CaseContent): string {
           .map(
             (card) => `<article class="detail-card" data-reveal data-spotlight>
           <h3 class="h3">${esc(card.title)}</h3>
-          <p>${kw(card.body)}</p>
+          <p>${rich(card.body)}</p>
         </article>`,
           )
           .join('')}
@@ -138,13 +138,13 @@ function renderLimits(c: CaseContent): string {
     <div class="wrap wrap--narrow">
       ${eyebrow(l.eyebrow)}
       ${headline(l.headline)}
-      <p class="lede" data-reveal style="--i:1">${em(l.body)}</p>
+      <p class="lede" data-reveal style="--i:1">${rich(l.body)}</p>
       <ul class="limit-list" data-stagger>
         ${l.items
           .map(
             (it) => `<li class="limit" data-reveal>
           <span class="limit-mark" aria-hidden="true"></span>
-          <span>${kw(it)}</span>
+          <span>${rich(it)}</span>
         </li>`,
           )
           .join('')}

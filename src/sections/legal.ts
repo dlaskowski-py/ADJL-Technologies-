@@ -1,6 +1,6 @@
 /** The legal pages. One renderer, one entry per document. */
 
-import { em, esc, eyebrow } from './html';
+import { esc, eyebrow, rich } from './html';
 import { renderFooter } from './bottom';
 import { renderNav } from './nav';
 
@@ -20,7 +20,7 @@ export function renderLegalPage(doc: LegalDoc): { navHtml: string; pageHtml: str
       ${eyebrow(doc.eyebrow)}
       <h1 class="h2 legal-title">${esc(doc.title)}</h1>
       <p class="legal-updated label">Last updated ${esc(doc.updated)}</p>
-      <p class="lede legal-intro">${em(doc.intro)}</p>
+      <p class="lede legal-intro">${rich(doc.intro)}</p>
 
       <nav class="legal-toc" aria-label="On this page">
         <p class="label">On this page</p>
@@ -35,8 +35,8 @@ export function renderLegalPage(doc: LegalDoc): { navHtml: string; pageHtml: str
         .map(
           (s) => `<section class="legal-sec" id="${esc(s.id)}">
         <h2 class="h3">${esc(s.heading)}</h2>
-        ${s.paragraphs.map((p) => `<p>${em(p)}</p>`).join('')}
-        ${s.list ? `<ul class="legal-list">${s.list.map((l) => `<li>${em(l)}</li>`).join('')}</ul>` : ''}
+        ${s.paragraphs.map((p) => `<p>${rich(p)}</p>`).join('')}
+        ${s.list ? `<ul class="legal-list">${s.list.map((l) => `<li>${rich(l)}</li>`).join('')}</ul>` : ''}
       </section>`,
         )
         .join('')}
