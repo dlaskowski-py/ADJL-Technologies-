@@ -65,6 +65,24 @@ exists because of a specific way a site like this goes wrong:
 | `check-media` | A film named in markup with no file on disk, or a film shipped that nothing uses |
 | `check-motion` | A motion module whose markup contract appears on no page — dead JavaScript, the same argument `check-css` makes about dead rules |
 | `check-markers` | An authoring marker (`{em}`, `{k}`) reaching production as literal text, because a renderer reached for `esc()` instead of `rich()` |
+| `check-usage` | A British spelling, the old plural name, or a meta description over 160 characters |
+| `check-voice` | The copy drifting back into the AI-essay register — see below |
+
+`check-voice` is the unusual one. Every other guard tests a fact; this one
+tests a habit, and it exists because the habit was invisible from the inside.
+The first version of this site read, in the client's words, "too AI-ish". He
+was right, and counting said exactly why: **53 em-dashes in 8,866 words**
+(published prose runs about one per thousand), 31 `rather than`, uncontracted
+forms outnumbering contractions more than two to one, and only 5% of sentences
+under eight words. Every sentence was a polished aphorism carrying a reversal.
+No single sentence was wrong — the density was.
+
+So it measures density, not vocabulary, and the thresholds sit just above where
+the copy currently lands. If one trips, vary the writing; don't raise the
+number. One threshold is there because of a mistake worth remembering: after
+the em-dashes came out, the same reflex reappeared as seventeen paragraphs
+ending on a short "That's the X". Removing a verbal tic and installing another
+is not an improvement.
 
 `check-claims` is the one to understand before editing copy. ADJL Technology
 is new and small: there are no clients to name, no metrics to quote, no

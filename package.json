@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build && node scripts/prerender.mjs && node scripts/gen-sitemap.mjs && node scripts/check-css.mjs && node scripts/check-links.mjs && node scripts/check-claims.mjs && node scripts/check-contact.mjs && node scripts/check-media.mjs && node scripts/check-motion.mjs && node scripts/check-markers.mjs && node scripts/check-usage.mjs",
+    "build": "tsc --noEmit && vite build && node scripts/prerender.mjs && node scripts/gen-sitemap.mjs && node scripts/check-css.mjs && node scripts/check-links.mjs && node scripts/check-claims.mjs && node scripts/check-contact.mjs && node scripts/check-media.mjs && node scripts/check-motion.mjs && node scripts/check-markers.mjs && node scripts/check-usage.mjs && node scripts/check-voice.mjs",
     "preview": "vite preview --port 4173",
     "verify": "node scripts/verify.mjs",
     "check:css": "node scripts/check-css.mjs",
@@ -17,7 +17,8 @@
     "media": "node scripts/encode-media.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
     "check:markers": "node scripts/check-markers.mjs",
-    "check:usage": "node scripts/check-usage.mjs"
+    "check:usage": "node scripts/check-usage.mjs",
+    "check:voice": "node scripts/check-voice.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.24.0",

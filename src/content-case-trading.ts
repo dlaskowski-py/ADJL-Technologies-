@@ -17,7 +17,7 @@ export const content: CaseContent = {
       "From the feed",
       "to the {em}fill.{/em}"
     ],
-    intro: "This is the shape of the work, in the order it is usually done. Not every firm needs all five, and sometimes only one piece needs work.",
+    intro: "This is the shape of the work, in the order it’s usually done. Not every firm needs all five. Sometimes only one piece needs work.",
     steps: [
       {
         num: "01",
@@ -29,25 +29,25 @@ export const content: CaseContent = {
         num: "02",
         tag: "rules",
         title: "The rules set, written down as code",
-        body: "A discretionary rules set gets read back to you as a list of conditions and actions, in plain language, until you agree the list is the thing you actually do. Then it becomes code, with the ambiguities resolved on paper instead of at three in the afternoon. The gap between what a trader says the rule is and what the rule turns out to be is the part of this step worth spending time on."
+        body: "A discretionary rules set gets read back to you as a list of conditions and actions, in plain language, until you agree the list is the thing you actually do. Then it becomes code, with the ambiguities resolved on paper instead of at three in the afternoon. What a trader says the rule is and what the rule turns out to be are two different things. That gap is the part worth spending time on."
       },
       {
         num: "03",
         tag: "execution",
         title: "Orders out, on a path you can name",
-        body: "Order construction, {k}risk checks{/k} before the wire, {k}order routing{/k}, and the state machine that keeps the system’s idea of a position and the venue’s idea of it in agreement. Every hop is timestamped, so when something is slow there is an answer rather than a theory. Reconciliation runs whether or not anyone is watching it."
+        body: "Order construction, {k}risk checks{/k} before the wire, {k}order routing{/k}, and the state machine that keeps the system’s idea of a position and the venue’s idea of it in agreement. Every hop is timestamped. When something is slow, you get an answer instead of a theory. Reconciliation runs whether or not anyone is watching it."
       },
       {
         num: "04",
         tag: "backtest",
         title: "One code path, two clocks",
-        body: "The backtester feeds recorded data into the same strategy and execution code that runs live. The only things that change are where the clock comes from and where fills come from, which removes the usual source of a whole class of bug: with no second implementation, there is nothing for the backtest to diverge from. It is slower to build and less pleasant to experiment in, and that is the trade."
+        body: "The backtester feeds recorded data into the same strategy and execution code that runs live. Only two things change: where the clock comes from and where fills come from. That removes the usual source of a whole class of bug. With no second implementation, there’s nothing for the backtest to diverge from. It’s slower to build and less pleasant to experiment in, and worth it."
       },
       {
         num: "05",
         tag: "monitoring",
         title: "Alerting on the conditions that precede a P&L surprise",
-        body: "Gaps in sequence numbers, a feed going stale, an order that never got an ack, position drift against the broker, a process that stopped and told nobody. Each condition raises an alert carrying enough context to act on, routed to a person rather than to a dashboard nobody has open. A system nobody is watching is a system that fails silently, and silent failure is expensive long before it is visible."
+        body: "Gaps in sequence numbers, a feed going stale, an order that never got an ack, position drift against the broker, a process that stopped and told nobody. Each condition raises an alert with enough context to act on, and it goes to a person, not to a dashboard nobody has open. A system nobody watches fails silently. Silent failure gets expensive long before it’s visible."
       }
     ]
   },
@@ -57,7 +57,7 @@ export const content: CaseContent = {
       "Send the part that",
       "keeps {em}breaking.{/em}"
     ],
-    body: "A feed handler that drops messages once a week, a backtest nobody trusts, a rules set that still lives in someone’s head. Describe what it is and what it is supposed to do, and you will get a straight answer about whether this is worth building — including when it is not.",
+    body: "A feed handler that drops messages once a week, a backtest nobody trusts, a rules set that still lives in someone’s head. Describe what it is and what it’s supposed to do. You’ll get a straight answer about whether this is worth building, including when it isn’t.",
     button: {
       label: "Email Daniel",
       href: "mailto:daniel@adjlcapital.com"
@@ -73,15 +73,15 @@ export const content: CaseContent = {
     cards: [
       {
         title: "Latency work starts with measurement",
-        body: "Before anything is made faster, the path is instrumented end to end: capture, decode, decision, encode, wire. The bottleneck is often somewhere nobody instrumented — a lock, a log line, a collection pause, a switch hop taken twice — which is the argument for measuring before buying hardware. The work follows what the timestamps show, and it stops when the remaining cost is the distance itself."
+        body: "Before anything is made faster, the path is instrumented end to end: capture, decode, decision, encode, wire. The bottleneck is often somewhere nobody instrumented. A lock, a log line, a collection pause, a switch hop taken twice. Measure before you buy hardware. The work follows what the timestamps show, and it stops when the remaining cost is the distance itself."
       },
       {
         title: "The backtest shares the live path on purpose",
-        body: "A firm running one or two strategies gains more from certainty than from throughput, and that is the trade this design makes. Research code has to be production code, so fewer ideas get tested in a given week. What is bought with that is the absence of a second implementation: the backtest and the live system have nowhere to drift apart, because there is only one of them. A shop testing twenty ideas a week should probably choose the other way, knowing that when the two versions do disagree, the disagreement is found late."
+        body: "A firm running one or two strategies gains more from certainty than from throughput, so that is what this design buys. Research code has to be production code, so fewer ideas get tested in a given week. What you buy is the absence of a second implementation. The backtest and the live system have nowhere to drift apart, because there’s only one of them. A shop testing twenty ideas a week should probably choose the other way. Just know that when the two versions do disagree, the disagreement gets found late."
       },
       {
         title: "What does not get written down",
-        body: "We describe what a system is for and how it behaves, never how to rebuild it. No thresholds, no parameter values, no live positions — not on this site and not in a conversation before there is a contract. That restraint is carried over from ADJL Capital, where the property scanner and the rules-based equities work run on the firm’s own capital, and it points the same way for client work: your rules set is not written up anywhere, for any audience. It is deliberate, and it means this page argues from method rather than from names."
+        body: "We describe what a system is for and how it behaves, never how to rebuild it. No thresholds, no parameter values, no live positions. Not on this site, and not in a conversation before there’s a contract. That restraint is carried over from ADJL Capital, where the property scanner and the rules-based equities work run on the firm’s own capital. It points the same way for client work. Your rules set doesn’t get written up anywhere, for any audience. That’s deliberate, and it’s why this page argues from method instead of from names."
       }
     ]
   },
@@ -92,7 +92,7 @@ export const content: CaseContent = {
       "on Tuesday as it did",
       "on {em}Monday.{/em}"
     ],
-    body: "Programming and network work for trading firms: {k}market data{/k} coming in, orders going out, and the {k}monitoring{/k} that tells you when either one has stopped. It is unglamorous work and it is where the expensive failures start. A correct signal and a late one produce the same result, and only one of them shows up in the research.",
+    body: "Programming and network work for trading firms: {k}market data{/k} coming in, orders going out, and the {k}monitoring{/k} that tells you when either one has stopped. It’s unglamorous work. It’s also where the expensive failures start. A correct signal and a late one produce the same result, and only one of them shows up in the research.",
     back: {
       label: "All work",
       href: "/work/"
@@ -128,12 +128,12 @@ export const content: CaseContent = {
       "A rule in someone’s head",
       "is not a {em}rule.{/em}"
     ],
-    body: "The signal is defensible and the feed handler drops a message once a week without mentioning it. The rules are clear in conversation and applied three different ways by three different people. The backtest is written in one language and the live system in another, so the two agree right up until the day they do not. None of that arrives labeled as a bad idea. It arrives as slippage nobody can account for and a review meeting where the explanation is a shrug.",
+    body: "The signal is defensible and the feed handler drops a message once a week without mentioning it. The rules are clear in conversation and applied three different ways by three different people. The backtest is written in one language and the live system in another, so the two agree right up until the day they don’t. None of that arrives labeled as a bad idea. It arrives as slippage nobody can account for, and a review meeting where the explanation is a shrug.",
     points: [
       "A backtest written separately from the live system, so nobody can say whether a discrepancy is a bug or a market.",
-      "Market data normalized one way in research and another way in production, with the difference discovered during a fast tape.",
+      "Market data normalized one way in research and another way in production. You find out during a fast tape.",
       "Rules that live in a head and a spreadsheet, applied one way in a quiet market and another way in a loud one.",
-      "Failures found by reading the P&L at the end of the day rather than by an alert during it."
+      "Failures found by reading the P&L at the end of the day instead of from an alert during it."
     ]
   }
 };
