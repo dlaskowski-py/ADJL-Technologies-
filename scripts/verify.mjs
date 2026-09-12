@@ -99,6 +99,36 @@ for (const vp of VIEWPORTS) {
   await ctx.close();
 }
 
+/* WITHOUT SCRIPTING, the page must still be a page.
+ *
+ * The reveal styles hid [data-reveal] by default and waited for
+ * IntersectionObserver to bring it back, so with scripting off 58 of 59
+ * elements on the home page sat at opacity 0. Every word was in the DOM and
+ * none of it was on the screen — the exact opposite of what prerendering is
+ * for, and invisible to every other check here because they all run with
+ * scripting on. */
+{
+  const ctx = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    javaScriptEnabled: false,
+  });
+  for (const page of PAGES) {
+    const p = await ctx.newPage();
+    await p.goto(BASE + page.route, { waitUntil: 'domcontentloaded' });
+    await p.waitForTimeout(250);
+    const hidden = await p.evaluate(
+      () =>
+        [...document.querySelectorAll('[data-reveal]')].filter(
+          (e) => parseFloat(getComputedStyle(e).opacity) < 0.05,
+        ).length,
+    );
+    if (hidden > 0) fail(`${page.route} hides ${hidden} element(s) when scripting is off`);
+    await p.close();
+  }
+  note(`no-JS: all ${PAGES.length} pages render their content with scripting disabled`);
+  await ctx.close();
+}
+
 /* Films: present is not the same as playing. Capital shipped a hero clip
    that played correctly and measured zero movement — it looked like a
    photograph, and nothing in its suite caught it. This checks currentTime

@@ -6,7 +6,7 @@ import { backdrop, checklist, displayHeadline, esc, eyebrow, headline, rich } fr
 export function renderHero(): string {
   const h = C.hero;
   return `<section class="hero is-clear" id="top" data-scrub>
-    ${backdrop('lumen')}
+    ${backdrop('lumen', '', true)}
     <div class="wrap hero-inner">
       <p class="eyebrow" data-reveal>${esc(h.eyebrow)}</p>
       ${displayHeadline(h.headline)}

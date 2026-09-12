@@ -49,6 +49,11 @@ export function buildHead({ origin, page, pages, meta, faq }) {
 
   /* ── Meta tags ──────────────────────────────────────────────────── */
   const tags = [
+    /* The LCP element on every page is its hero poster, and the shell cannot
+       name it because the shell is shared. pages.mjs already knows which
+       clip each page uses, so the preload is emitted here alongside the
+       canonical and can never point at another page's film. */
+    `<link rel="preload" as="image" href="/media/${page.film}.jpg" fetchpriority="high" />`,
     `<link rel="canonical" href="${url}" />`,
     `<meta property="og:url" content="${url}" />`,
     `<meta property="og:site_name" content="ADJL Technology" />`,
@@ -74,8 +79,19 @@ export function buildHead({ origin, page, pages, meta, faq }) {
     email: 'daniel@adjlcapital.com',
     description:
       'An AI consulting and software engineering practice. Finds where AI belongs in a business that already runs, builds it, and hands over the code.',
-    logo: { '@type': 'ImageObject', url: abs(origin, '/favicon.svg') },
-    image,
+    /* A raster logo on a plain ground. Google's Organization logo wants
+       real pixel dimensions, and the favicon is a 32-unit SVG with no
+       intrinsic size — technically a URL, practically unusable. */
+    logo: {
+      '@type': 'ImageObject',
+      url: abs(origin, '/og/logo-512.png'),
+      width: 512,
+      height: 512,
+    },
+    /* Pinned, NOT the page's own card. The Organization node has one @id
+       across all eight pages; giving it the current page's image described
+       one entity eight different ways. */
+    image: abs(origin, '/og/home.jpg'),
     founder: {
       '@type': 'Person',
       name: 'Daniel Laskowski',
@@ -142,6 +158,10 @@ export function buildHead({ origin, page, pages, meta, faq }) {
     primaryImageOfPage: { '@type': 'ImageObject', url: image },
     inLanguage: 'en-US',
     ...(page.parent !== undefined ? { breadcrumb: { '@id': `${url}#breadcrumb` } } : {}),
+    /* Point at the page's subject. Without this the Service node sat in the
+       graph with nothing referencing it, which is a node a parser is free to
+       ignore. */
+    ...(page.service ? { mainEntity: { '@id': `${url}#service` } } : {}),
   });
 
   if (page.service) {
@@ -151,22 +171,25 @@ export function buildHead({ origin, page, pages, meta, faq }) {
       name: page.service.name,
       serviceType: page.service.serviceType,
       description: meta.description,
+      url,
       provider: { '@id': orgId },
       areaServed: { '@type': 'Country', name: 'United States' },
       mainEntityOfPage: { '@id': pageId },
     });
   }
 
+  /* Folded INTO the WebPage rather than added beside it. The first version
+     emitted a separate FAQPage node at #faq with no url, no name and nothing
+     in the graph referencing it — an orphan. A page carrying an FAQ is a
+     FAQPage, so it takes both types and keeps the one @id. */
   if (page.faq && faq?.items?.length) {
-    graph.push({
-      '@type': 'FAQPage',
-      '@id': `${url}#faq`,
-      mainEntity: faq.items.map((it) => ({
-        '@type': 'Question',
-        name: it.q,
-        acceptedAnswer: { '@type': 'Answer', text: it.a },
-      })),
-    });
+    const webpage = graph.find((n) => n['@id'] === pageId);
+    webpage['@type'] = ['WebPage', 'FAQPage'];
+    webpage.mainEntity = faq.items.map((it) => ({
+      '@type': 'Question',
+      name: it.q,
+      acceptedAnswer: { '@type': 'Answer', text: it.a },
+    }));
   }
 
   tags.push(jsonld({ '@context': 'https://schema.org', '@graph': graph }));

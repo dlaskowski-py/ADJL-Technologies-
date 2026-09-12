@@ -78,11 +78,21 @@ export function checklist(points: string[]): string {
  * copy on top takes the hero veil; film inside a frame with no text on it
  * takes the plate veil and keeps almost all of its light.
  */
-export function backdrop(name: string, variant = ''): string {
+export function backdrop(name: string, variant = '', eager = false): string {
+  /* THE FIRST BACKDROP ON A PAGE IS THE LCP ELEMENT. It used to be emitted
+     `loading="lazy"` like every other one, which defers the single image the
+     score is measured on — and on the home page it silently cancelled the
+     `<link rel=preload fetchpriority=high>` in the shell, because the
+     browser preloaded the file at high priority and then the lazy attribute
+     made the element wait for layout anyway. Heroes pass eager; the plates
+     below the fold stay lazy, which is what lazy is for. */
+  const loading = eager
+    ? 'loading="eager" fetchpriority="high"'
+    : 'loading="lazy" decoding="async"';
   return `<div class="backdrop ${variant}" data-video="${esc(name)}"${
     HAS_WEBM.has(name) ? ' data-webm="true"' : ''
   } aria-hidden="true">
-      <img class="bd-poster" src="/media/${esc(name)}.jpg" alt="" loading="lazy" decoding="async" />
+      <img class="bd-poster" src="/media/${esc(name)}.jpg" alt="" ${loading} />
     </div>`;
 }
 

@@ -295,13 +295,17 @@ section {
 
 /* ── Reveal on scroll ────────────────────────────────────────────── */
 
-[data-reveal] {
+/* GATED ON .js, and that gate is the whole point. Hiding used to be the
+   default, so without scripting the prerendered page was in the DOM and
+   invisible — 58 of 59 elements on the home page at opacity 0. Nothing is
+   hidden unless something is running that can bring it back. */
+.js [data-reveal] {
   opacity: 0;
   transform: translateY(18px);
   transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
   transition-delay: calc(var(--i, 0) * 70ms);
 }
-[data-reveal].is-in {
+.js [data-reveal].is-in {
   opacity: 1;
   transform: none;
 }
@@ -315,13 +319,13 @@ section {
   display: block;
   overflow: hidden;
 }
-[data-reveal='mask'] > span > span {
+.js [data-reveal='mask'] > span > span {
   display: block;
   transform: translateY(105%);
   transition: transform 0.9s var(--ease);
   transition-delay: calc(var(--i, 0) * 90ms);
 }
-[data-reveal='mask'].is-in > span > span {
+.js [data-reveal='mask'].is-in > span > span {
   transform: none;
 }
 
@@ -329,8 +333,8 @@ section {
   html {
     scroll-behavior: auto;
   }
-  [data-reveal],
-  [data-reveal='mask'] > span > span {
+  .js [data-reveal],
+  .js [data-reveal='mask'] > span > span {
     opacity: 1;
     transform: none;
     transition: none;

@@ -40,7 +40,7 @@ export type CaseContent = {
 function renderHero(c: CaseContent, media: string): string {
   const h = c.hero;
   return `<section class="chero is-clear" id="top" data-scrub>
-    ${backdrop(media)}
+    ${backdrop(media, '', true)}
     <div class="wrap chero-inner">
       <a class="backlink" href="${esc(h.back.href)}"><span class="arw">&larr;</span><span>${esc(
         h.back.label,

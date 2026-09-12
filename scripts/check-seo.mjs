@@ -83,7 +83,12 @@ for (const page of PAGES) {
       fail(`${page.route} JSON-LD does not parse: ${e.message}`);
     }
     if (parsed) {
-      const types = (parsed['@graph'] ?? []).map((n) => n['@type']);
+      /* @type may be a string or an array — the home page's WebPage node is
+         ['WebPage','FAQPage'], because a page carrying an FAQ IS a FAQPage
+         rather than sitting next to one. Flatten before looking. */
+      const types = (parsed['@graph'] ?? []).flatMap((n) =>
+        Array.isArray(n['@type']) ? n['@type'] : [n['@type']],
+      );
       for (const required of ['Organization', 'WebSite', 'WebPage']) {
         if (!types.includes(required)) fail(`${page.route} JSON-LD has no ${required} node`);
       }
@@ -92,6 +97,9 @@ for (const page of PAGES) {
       }
       if (page.parent !== undefined && !types.includes('BreadcrumbList')) {
         fail(`${page.route} has a parent but no BreadcrumbList`);
+      }
+      if (page.faq && !types.includes('FAQPage')) {
+        fail(`${page.route} carries the site FAQ but its JSON-LD has no FAQPage type`);
       }
     }
   }
@@ -107,6 +115,9 @@ else {
   for (const page of PAGES) {
     if (!xml.includes(`${ORIGIN}${page.route}`)) fail(`sitemap is missing ${page.route}`);
   }
+}
+if (!existsSync('dist/og/logo-512.png')) {
+  fail('no dist/og/logo-512.png — the Organization logo in the JSON-LD points at it');
 }
 if (!existsSync('dist/robots.txt')) fail('no dist/robots.txt');
 else if (!readFileSync('dist/robots.txt', 'utf8').includes(`${ORIGIN}/sitemap.xml`)) {

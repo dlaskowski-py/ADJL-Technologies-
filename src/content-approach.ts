@@ -25,7 +25,7 @@ export const content: ApproachContent = {
     email: "daniel@adjlcapital.com"
   },
   engage: {
-    eyebrow: "Engagements",
+    eyebrow: "Scope, Pricing & Delivery",
     headline: [
       "Three shapes of work,",
       "each with a {em}defined end.{/em}"
@@ -71,25 +71,25 @@ export const content: ApproachContent = {
     ]
   },
   hero: {
-    eyebrow: "Approach",
+    eyebrow: "Engagement & Code Ownership",
     headline: [
       "How the work runs,",
       "and where it {em}stops.{/em}"
     ],
-    body: "ADJL Technology is Daniel Laskowski and a small senior development team. We take engagements deliberately, not continuously, so the team on yours isn’t also carrying four others. That shape buys you one thing. The person who scopes the work is in the room for the whole of it. There’s no handover between the sale and the build, because the people who write the code were there when it was scoped. Nothing has to survive one.",
+    body: "ADJL Technology is an AI consulting and software engineering practice — Daniel Laskowski and a small senior development team. We take engagements deliberately, not continuously, so the team on yours isn’t also carrying four others. That shape buys you one thing. The person who scopes the work is in the room for the whole of it. There’s no handover between the sale and the build, because the people who write the code were there when it was scoped. Nothing has to survive one.",
     back: {
       label: "Home",
       href: "/"
     }
   },
   meta: {
-    title: "How We Build AI Systems — ADJL Technology",
-    description: "How ADJL Technology works: the operating principles, the shapes an engagement takes, and who owns the code and the data at the end. Stated plainly.",
+    title: "Engagement Model & Code Ownership — ADJL Technology",
+    description: "How an ADJL Technology engagement is scoped, priced and delivered, and who owns the code, the data and the models when it ends. You do, in full.",
     ogTitle: "Approach — ADJL Technology",
     ogDescription: "Five operating positions, three shapes of engagement, and a plain answer on ownership. The client owns the code, the data and the right to leave."
   },
   ownership: {
-    eyebrow: "Ownership",
+    eyebrow: "Who Owns The Code",
     headline: [
       "You own the code,",
       "the data, and the {em}right to leave.{/em}"
@@ -103,7 +103,7 @@ export const content: ApproachContent = {
     ]
   },
   principles: {
-    eyebrow: "Operating principles",
+    eyebrow: "How We Build AI",
     headline: [
       "Five positions we",
       "actually {em}build to.{/em}"

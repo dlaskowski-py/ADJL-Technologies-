@@ -12,7 +12,7 @@ import type { CaseContent } from './sections/case';
 
 export const content: CaseContent = {
   build: {
-    eyebrow: "The work",
+    eyebrow: "Ingestion, Execution & Backtesting",
     headline: [
       "From the feed",
       "to the {em}fill.{/em}"
@@ -65,7 +65,7 @@ export const content: CaseContent = {
     email: "daniel@adjlcapital.com"
   },
   detail: {
-    eyebrow: "Decisions",
+    eyebrow: "Latency & Backtest Design",
     headline: [
       "Three choices",
       "and what each {em}costs.{/em}"
@@ -86,7 +86,7 @@ export const content: CaseContent = {
     ]
   },
   hero: {
-    eyebrow: "Trading infrastructure",
+    eyebrow: "Market Data & Execution Systems",
     headline: [
       "Code that behaves the same",
       "on Tuesday as it did",
@@ -123,7 +123,7 @@ export const content: CaseContent = {
     ogDescription: "Market data ingestion, order and execution pipelines, latency and network work, backtesting on the live code path, and the monitoring around all of it."
   },
   problem: {
-    eyebrow: "The situation",
+    eyebrow: "Where Trading Systems Fail",
     headline: [
       "A rule in someone’s head",
       "is not a {em}rule.{/em}"

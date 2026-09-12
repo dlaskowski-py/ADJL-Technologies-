@@ -155,9 +155,15 @@ for (const { name, url } of pairs) {
     ]);
   }
 
+  /* Scaled, which it was not. The poster is the LCP image on every filmed
+     page and was being written at the master's full 3362px for a slot that
+     never exceeds 2560 — the noisiest clip came out at 343 kB. 1600 is past
+     the point where a still under a paper veil shows any more detail, and
+     q:v 5 is a better trade on grainy footage than q:v 4 on a huge frame. */
   run([
     '-ss', (seconds(pp) * POSTER_AT).toFixed(2), '-i', pp,
-    '-frames:v', '1', '-q:v', '4', join(OUT, `${name}.jpg`),
+    '-frames:v', '1', '-vf', "scale='min(1600,iw)':-2",
+    '-q:v', '5', join(OUT, `${name}.jpg`),
   ]);
 
   const d = dims(join(OUT, `${name}@2k.mp4`));

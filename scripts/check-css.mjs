@@ -15,6 +15,10 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const JS_APPLIED = new Set([
+  /* Set on <html> by public/js-on.js. It is the gate the reveal styles hang
+     off, so that hiding content is opt-in and a page without scripting shows
+     everything instead of nothing. */
+  'js',
   'is-in', 'is-stuck', 'is-playing', 'is-lit', 'is-current', 'is-typing', 'is-done',
   'is-running', 'is-paused', 'is-static', 'is-copied', 'is-pulsing', 'con-line',
   'con-in', 'con-note', 'con-result', 'con-kv', 'con-k', 'con-v', 'con-dots',

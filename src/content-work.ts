@@ -25,7 +25,7 @@ export const content: WorkHubContent = {
     email: "daniel@adjlcapital.com"
   },
   hero: {
-    eyebrow: "Work",
+    eyebrow: "AI, Property & Trading Systems",
     headline: [
       "Three practices.",
       "All of them {em}in production.{/em}"

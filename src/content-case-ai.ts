@@ -13,17 +13,17 @@ import type { CaseContent } from './sections/case';
 export const content: CaseContent = {
   meta: {
     title: "AI Implementation Consulting — ADJL Technology",
-    description: "The consulting and build practice for businesses that already work. We start at the workflow, build the narrow thing that does one step, and instrument it.",
+    description: "AI implementation for businesses that already run: retrieval over your documents, extraction from unstructured records, classification and routing.",
     ogTitle: "AI Implementation — ADJL Technology",
     ogDescription: "Find the steps where a person is reading, sorting and routing. Build the narrow thing that does one of them. Put a human where being wrong is expensive, instrument it, hand it over running."
   },
   hero: {
-    eyebrow: "AI Implementation",
+    eyebrow: "AI Implementation Consulting",
     headline: [
       "We start at the workflow,",
       "not the {em}model.{/em}"
     ],
-    body: "This is the practice for a business that already works. The revenue exists. The process exists. Somewhere inside it, competent people spend their best hours reading documents and moving them along. We find those steps. Then we build the narrow thing that does one of them and put it into production with a way to tell whether it’s helping.",
+    body: "This is the AI implementation practice: folding AI into a business that already works, starting at the workflow instead of the model. The revenue exists. The process exists. Somewhere inside it, competent people spend their best hours reading documents and moving them along. We find those steps. Then we build the narrow thing that does one of them and put it into production with a way to tell whether it’s helping.",
     back: {
       label: "All work",
       href: "/work/"
@@ -48,7 +48,7 @@ export const content: CaseContent = {
     ]
   },
   problem: {
-    eyebrow: "The problem",
+    eyebrow: "Why AI Pilots Never Ship",
     headline: [
       "The pilot worked.",
       "Nothing {em}shipped.{/em}"
@@ -62,7 +62,7 @@ export const content: CaseContent = {
     ]
   },
   build: {
-    eyebrow: "The mechanism",
+    eyebrow: "How An AI Rollout Runs",
     headline: [
       "One step, built narrow,",
       "handed over {em}running.{/em}"
@@ -102,7 +102,7 @@ export const content: CaseContent = {
     ]
   },
   detail: {
-    eyebrow: "Decisions",
+    eyebrow: "Evaluation, Retrieval & Build vs Buy",
     headline: [
       "Three choices made",
       "before {em}anything is built.{/em}"

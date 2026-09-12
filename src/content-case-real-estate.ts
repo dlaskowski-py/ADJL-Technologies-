@@ -12,7 +12,7 @@ import type { CaseContent } from './sections/case';
 
 export const content: CaseContent = {
   build: {
-    eyebrow: "How it works",
+    eyebrow: "How The Scanner Underwrites",
     headline: [
       "Five stages between a URL",
       "and a {em}decision.{/em}"
@@ -65,7 +65,7 @@ export const content: CaseContent = {
     email: "daniel@adjlcapital.com"
   },
   detail: {
-    eyebrow: "Detail",
+    eyebrow: "Tax, Reassessment & Provenance",
     headline: [
       "Three decisions",
       "behind the {em}output file.{/em}"
@@ -86,7 +86,7 @@ export const content: CaseContent = {
     ]
   },
   hero: {
-    eyebrow: "Property underwriting scanner",
+    eyebrow: "Real Estate Underwriting Software",
     headline: [
       "Paste a listing.",
       "Get the {em}underwriting.{/em}"
@@ -122,7 +122,7 @@ export const content: CaseContent = {
     ogDescription: "Paste a listing URL. The scanner resolves the parcel, pulls live rents and comparables, reads years of public record, and models tax, insurance, hazard and financing into a sourced underwriting file."
   },
   problem: {
-    eyebrow: "The problem",
+    eyebrow: "Manual Property Underwriting",
     headline: [
       "Underwriting is slow, and",
       "the slowness is {em}the cost.{/em}"

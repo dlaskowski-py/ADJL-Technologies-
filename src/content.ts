@@ -27,7 +27,7 @@
 export const meta = {
   title: 'AI Consulting & Software Engineering — ADJL Technology',
   description:
-    'An AI consulting and engineering practice. We find where AI actually belongs in a business that already runs, build it, ship it, and hand over the code.',
+    'AI consulting and software engineering: real estate underwriting automation, trading infrastructure, and AI built into the workflow you already run.',
   ogTitle: 'ADJL Technology — We build the system, not the slide deck',
   ogDescription:
     'AI consulting and applied engineering from the team behind ADJL Capital’s underwriting software. Real estate intelligence, trading infrastructure, and AI built into the workflow you already run.',
@@ -67,7 +67,7 @@ export const strip = {
 };
 
 export const practices = {
-  eyebrow: 'What We Do',
+  eyebrow: 'AI Consulting & Engineering',
   headline: ['Three practices,', 'one {em}discipline.{/em}'],
   intro:
     'The three look unrelated until you notice they’re the same job. Somebody is making a decision slowly, by hand, out of incomplete information. We build the thing that makes it faster, repeatable and checkable. The domain changes. The work doesn’t.',
@@ -119,7 +119,7 @@ export const practices = {
  * chosen for that as much as for the prose.
  */
 export const flow = {
-  eyebrow: 'The Process',
+  eyebrow: 'How An AI Build Runs',
   headline: ['How a problem becomes', 'something that {em}runs.{/em}'],
   intro:
     'Most AI projects die between the demo and the Tuesday after it. This is the sequence that avoids that. It works because nothing gets built until the thing it’s replacing has been watched in the wild.',
@@ -206,7 +206,7 @@ export const work = {
  * one section a reader is most likely to take at face value.
  */
 export const demo = {
-  eyebrow: 'The Scanner',
+  eyebrow: 'Underwriting Automation',
   headline: ['Watch it', 'do the {em}work.{/em}'],
   body: 'A sentence like “it underwrites the property” is easy to disbelieve. This is the same claim with its working shown. You watch the address resolve, the records come back, and the numbers land.',
   caption: 'A recorded transcript of the underwriting engine, not a live tool.',
@@ -226,7 +226,7 @@ export const demo = {
 };
 
 export const method = {
-  eyebrow: 'Working Together',
+  eyebrow: 'Engagement Process',
   headline: ['What it is like', 'to {em}hire us.{/em}'],
   intro:
     'Four steps, and the first one is free. By the end of the second you have a written scope with a price on it. By the end of the fourth your team owns a system that’s running.',
@@ -259,7 +259,7 @@ export const method = {
 };
 
 export const stack = {
-  eyebrow: 'The Stack',
+  eyebrow: 'Languages, Models & Infrastructure',
   label: 'What the work is actually built out of. No preference here is a religion. The constraint picks the tool.',
   groups: [
     {
@@ -282,7 +282,7 @@ export const stack = {
 };
 
 export const founder = {
-  eyebrow: 'Who You Get',
+  eyebrow: 'The Team',
   headline: ['You talk to Daniel.', 'A team {em}builds it.{/em}'],
   name: 'Daniel Laskowski',
   role: 'Chief Executive Officer & Founder',

@@ -36,7 +36,7 @@ export function renderApproachPage(c: ApproachContent): { navHtml: string; pageH
   const o = c.ownership;
 
   const hero = `<section class="chero is-clear" id="top" data-scrub>
-    ${backdrop('weave')}
+    ${backdrop('weave', '', true)}
     <div class="wrap chero-inner">
       <a class="backlink" href="${esc(h.back.href)}"><span class="arw">&larr;</span><span>${esc(
         h.back.label,

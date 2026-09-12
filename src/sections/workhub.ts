@@ -38,7 +38,7 @@ export function renderWorkHubPage(c: WorkHubContent): { navHtml: string; pageHtm
   const h = c.hero;
 
   const hero = `<section class="chero is-clear" id="top" data-scrub>
-    ${backdrop('bloom')}
+    ${backdrop('bloom', '', true)}
     <div class="wrap chero-inner">
       <a class="backlink" href="${esc(h.back.href)}"><span class="arw">&larr;</span><span>${esc(
         h.back.label,

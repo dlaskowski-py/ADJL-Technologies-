@@ -108,5 +108,27 @@ for (const p of PAGES) {
   console.log(`  ${slug.padEnd(32)} ${(statSync(`${OUT}/${slug}.jpg`).size / 1024).toFixed(0)} kB`);
 }
 
+/* The Organization logo. Square, on a plain ground, at a real pixel size —
+   Google's structured-data logo requirement is a raster image it can measure,
+   which the favicon SVG is not. */
+await page.setViewportSize({ width: 512, height: 512 });
+await page.setContent(
+  `<!doctype html><html><head><meta charset="utf-8"><style>
+    @font-face { font-family:'Manrope'; font-weight:200 800; font-display:block;
+      src:url(data:font/woff2;base64,${font}) format('woff2'); }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{width:512px;height:512px;background:#fafafc;display:grid;place-items:center}
+    .mark{display:flex;align-items:flex-end;gap:14px;height:250px}
+    .mark i{display:block;width:64px;height:250px;border-radius:14px;background:#0e1117}
+    .mark i:nth-child(2){width:35px;background:#d9542a}
+  </style></head><body>
+    <span class="mark"><i></i><i></i><i></i></span>
+  </body></html>`,
+  { waitUntil: 'load' },
+);
+await page.evaluate(() => document.fonts.ready);
+await page.screenshot({ path: `${OUT}/logo-512.png`, type: 'png' });
+console.log(`  ${'logo-512.png'.padEnd(32)} ${(statSync(`${OUT}/logo-512.png`).size / 1024).toFixed(0)} kB`);
+
 await browser.close();
-console.log(`\ngen-og: ${PAGES.length} share cards -> ${OUT}/`);
+console.log(`\ngen-og: ${PAGES.length} share cards + logo -> ${OUT}/`);
