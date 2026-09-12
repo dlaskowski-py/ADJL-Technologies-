@@ -12,7 +12,7 @@ import type { CaseContent } from './sections/case';
 
 export const content: CaseContent = {
   meta: {
-    title: "AI Implementation — ADJL Technology",
+    title: "AI Implementation Consulting — ADJL Technology",
     description: "The consulting and build practice for businesses that already work. We start at the workflow, build the narrow thing that does one step, and instrument it.",
     ogTitle: "AI Implementation — ADJL Technology",
     ogDescription: "Find the steps where a person is reading, sorting and routing. Build the narrow thing that does one of them. Put a human where being wrong is expensive, instrument it, hand it over running."

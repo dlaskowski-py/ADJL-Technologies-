@@ -116,7 +116,7 @@ export const content: CaseContent = {
     ]
   },
   meta: {
-    title: "Property underwriting scanner — ADJL Technology",
+    title: "Real Estate Underwriting Software — ADJL Technology",
     description: "A property underwriting scanner. Paste a listing URL and it resolves the parcel, pulls live market data, reads public records and models the full carry.",
     ogTitle: "Property underwriting scanner — ADJL Technology",
     ogDescription: "Paste a listing URL. The scanner resolves the parcel, pulls live rents and comparables, reads years of public record, and models tax, insurance, hazard and financing into a sourced underwriting file."

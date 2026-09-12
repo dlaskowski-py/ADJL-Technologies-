@@ -117,7 +117,7 @@ export const content: CaseContent = {
     ]
   },
   meta: {
-    title: "Trading Infrastructure — ADJL Technology",
+    title: "Trading Infrastructure Engineering — ADJL Technology",
     description: "Market data, execution pipelines, network and latency work, and backtesting that runs the live code path. Programming for trading firms, by ADJL Technology.",
     ogTitle: "Trading Infrastructure — ADJL Technology",
     ogDescription: "Market data ingestion, order and execution pipelines, latency and network work, backtesting on the live code path, and the monitoring around all of it."

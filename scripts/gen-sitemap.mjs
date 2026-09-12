@@ -1,15 +1,14 @@
 /** A sitemap from the one page list, so it cannot omit a page that exists. */
 import { writeFileSync } from 'node:fs';
-import { PAGES } from './pages.mjs';
+import { ORIGIN, PAGES } from './pages.mjs';
 
-const ORIGIN = process.env.SITE_ORIGIN ?? 'https://adjl-technology.netlify.app';
 const today = new Date().toISOString().slice(0, 10);
 
 const urls = PAGES.map(
   (p) => `  <url>
     <loc>${ORIGIN}${p.route}</loc>
     <lastmod>${today}</lastmod>
-    <priority>${p.route === '/' ? '1.0' : p.route.startsWith('/legal/') ? '0.3' : '0.8'}</priority>
+    <priority>${p.priority}</priority>
   </url>`,
 ).join('\n');
 

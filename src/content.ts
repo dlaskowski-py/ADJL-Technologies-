@@ -25,7 +25,7 @@
  */
 
 export const meta = {
-  title: 'ADJL Technology — AI consulting and applied engineering',
+  title: 'AI Consulting & Software Engineering — ADJL Technology',
   description:
     'An AI consulting and engineering practice. We find where AI actually belongs in a business that already runs, build it, ship it, and hand over the code.',
   ogTitle: 'ADJL Technology — We build the system, not the slide deck',

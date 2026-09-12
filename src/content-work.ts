@@ -90,7 +90,7 @@ export const content: WorkHubContent = {
     }
   ],
   meta: {
-    title: "Work — ADJL Technology",
+    title: "AI, Real Estate & Trading Systems — ADJL Technology",
     description: "Three practices: real estate underwriting, trading infrastructure, and AI implementation. Each one described by its mechanism, step by step.",
     ogTitle: "Work — ADJL Technology",
     ogDescription: "Three practices, each described by mechanism: the property underwriting scanner, trading infrastructure, and AI implementation inside businesses that already run."

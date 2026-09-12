@@ -15,7 +15,8 @@
  */
 import { build } from 'esbuild';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { PAGES } from './pages.mjs';
+import { ORIGIN, PAGES } from './pages.mjs';
+import { buildHead } from './seo.mjs';
 
 let bytes = 0;
 
@@ -85,10 +86,16 @@ for (const page of PAGES) {
     )}" />`,
   );
 
-  // A canonical URL, so the .netlify.app and the real domain do not compete
-  // once the domain lands.
-  const canonical = `<link rel="canonical" href="${process.env.SITE_ORIGIN ?? 'https://adjl-technology.netlify.app'}${page.route}" />`;
-  after = after.replace('</head>', `  ${canonical}\n  </head>`);
+  /* The canonical URL, the share card, and the structured data. All of it
+     derives from the page's own content module and its entry in pages.mjs,
+     so none of it can disagree with what the page actually says. */
+  const head = buildHead({ origin: ORIGIN, page, pages: PAGES, meta: mod.meta, faq: mod.faq });
+  after = after.replace('</head>', `${head}\n  </head>`);
+
+  /* The og:image placeholder in the shell is a relative path and would be
+     ignored by every scraper. buildHead emits the absolute one; this removes
+     the decoy so there is exactly one og:image on the page. */
+  after = after.replace(/\n?\s*<meta property="og:image" content="\/media\/[^"]*" \/>/, '');
 
   writeFileSync(page.out, after);
   bytes += after.length;

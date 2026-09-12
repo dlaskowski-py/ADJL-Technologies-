@@ -1,2 +1,2 @@
 export { renderPage as render } from '../src/sections/home';
-export { meta } from '../src/content';
+export { meta, faq } from '../src/content';

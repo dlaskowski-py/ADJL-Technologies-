@@ -83,7 +83,7 @@ export const content: ApproachContent = {
     }
   },
   meta: {
-    title: "Approach — ADJL Technology",
+    title: "How We Build AI Systems — ADJL Technology",
     description: "How ADJL Technology works: the operating principles, the shapes an engagement takes, and who owns the code and the data at the end. Stated plainly.",
     ogTitle: "Approach — ADJL Technology",
     ogDescription: "Five operating positions, three shapes of engagement, and a plain answer on ownership. The client owns the code, the data and the right to leave."
