@@ -16,7 +16,7 @@
  */
 import { chromium } from 'playwright-core';
 import { mkdirSync, globSync, readFileSync, writeFileSync, statSync } from 'node:fs';
-import { PAGES } from './pages.mjs';
+import { ORIGIN, PAGES } from './pages.mjs';
 import { slugOf } from './seo.mjs';
 
 const OUT = 'public/og';
@@ -82,7 +82,7 @@ function html(slug, film, card) {
       <div class="body">
         <p class="kicker">${card.kicker}</p>
         <h1>${card.line.map((l, i) => (i === card.line.length - 1 && card.line.length > 1 ? `<em>${l}</em>` : l)).join('<br>')}</h1>
-        <p class="foot">adjl-technology.netlify.app</p>
+        <p class="foot">${ORIGIN.replace(/^https?:\/\//, '')}</p>
       </div>
     </div>
   </body></html>`;

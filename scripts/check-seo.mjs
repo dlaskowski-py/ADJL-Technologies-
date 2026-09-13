@@ -128,6 +128,24 @@ else if (!readFileSync('dist/404.html', 'utf8').includes('noindex')) {
   fail('dist/404.html is indexable — a 404 that gets indexed competes with real pages');
 }
 
+/* Nothing in the build may name a host other than ORIGIN. A canonical, a
+   sitemap entry or an og:image left on the old domain is invisible on the
+   page and hands every link that reaches it to a redirect. */
+const STALE = /https?:\/\/[a-z0-9-]+\.netlify\.app/gi;
+for (const page of PAGES) {
+  const hits = readFileSync(page.out, 'utf8').match(STALE);
+  if (hits && !ORIGIN.includes('netlify.app')) {
+    fail(`${page.route} still names ${[...new Set(hits)].join(', ')} — the origin is ${ORIGIN}`);
+  }
+}
+for (const f of ['dist/robots.txt', 'dist/sitemap.xml', 'dist/.well-known/security.txt']) {
+  if (!existsSync(f)) continue;
+  const hits = readFileSync(f, 'utf8').match(STALE);
+  if (hits && !ORIGIN.includes('netlify.app')) {
+    fail(`${f} still names ${[...new Set(hits)].join(', ')}`);
+  }
+}
+
 if (bad) {
   console.error(`\ncheck-seo: ${bad} problem(s)`);
   process.exit(1);

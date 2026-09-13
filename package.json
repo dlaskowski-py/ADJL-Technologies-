@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build && node scripts/prerender.mjs && node scripts/gen-sitemap.mjs && node scripts/gen-404.mjs && node scripts/check-css.mjs && node scripts/check-links.mjs && node scripts/check-claims.mjs && node scripts/check-contact.mjs && node scripts/check-media.mjs && node scripts/check-motion.mjs && node scripts/check-markers.mjs && node scripts/check-usage.mjs && node scripts/check-voice.mjs && node scripts/check-seo.mjs",
+    "build": "tsc --noEmit && vite build && node scripts/prerender.mjs && node scripts/gen-sitemap.mjs && node scripts/gen-404.mjs && node scripts/gen-wellknown.mjs && node scripts/check-css.mjs && node scripts/check-links.mjs && node scripts/check-claims.mjs && node scripts/check-contact.mjs && node scripts/check-media.mjs && node scripts/check-motion.mjs && node scripts/check-markers.mjs && node scripts/check-usage.mjs && node scripts/check-voice.mjs && node scripts/check-seo.mjs",
     "preview": "vite preview --port 4173",
     "verify": "node scripts/verify.mjs",
     "check:css": "node scripts/check-css.mjs",

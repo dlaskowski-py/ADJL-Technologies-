@@ -17,9 +17,15 @@
  *              with the pages that sell.
  */
 
-/** Where the site lives. Set SITE_ORIGIN when the real domain lands and
- *  every canonical, share card and sitemap entry follows it. */
-export const ORIGIN = (process.env.SITE_ORIGIN ?? 'https://adjl-technology.netlify.app').replace(/\/$/, '');
+/** Where the site lives. ONE definition — the canonicals, the share cards,
+ *  the sitemap, robots.txt and security.txt all read it, so moving the site
+ *  is this line (or the SITE_ORIGIN env var for a preview build).
+ *
+ *  Apex, not www, because that is what Netlify has set as the primary
+ *  domain; it 301s www and the .netlify.app subdomain here. Picking the
+ *  other one means changing it in Netlify too, or the canonical points at a
+ *  URL that redirects, which wastes every link that reaches it. */
+export const ORIGIN = (process.env.SITE_ORIGIN ?? 'https://adjltechnology.com').replace(/\/$/, '');
 export const PAGES = [
   {
     out: 'dist/index.html',

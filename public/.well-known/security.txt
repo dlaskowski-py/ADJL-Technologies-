@@ -1,3 +1,0 @@
-Contact: mailto:daniel@adjlcapital.com
-Preferred-Languages: en
-Canonical: https://adjl-technology.netlify.app/.well-known/security.txt
