@@ -324,7 +324,7 @@ export const faq = {
     },
     {
       q: 'How is this related to ADJL Capital?',
-      a: 'ADJL Capital is a private investment firm with three partners. ADJL Technology is its engineering arm, founded and led by Daniel Laskowski with its own development team. The software the fund runs on was built here, which is why we can describe it in this much detail. It’s our own. They’re separate companies, and nothing on this site is an offer of any security.',
+      a: 'ADJL Capital is a private investment firm with three partners. ADJL Technology is a separate company, founded and led by Daniel Laskowski with its own development team. The software the fund runs on was built here, which is why we can describe it in this much detail. It’s our own. Neither firm owns the other, and nothing on this site is an offer of any security.',
     },
   ],
 };

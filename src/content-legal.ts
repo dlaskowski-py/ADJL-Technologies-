@@ -115,6 +115,7 @@ export const terms: LegalDoc = {
         'Investment, legal, tax or accounting advice. Nothing here should be relied on to make a financial decision.',
         'A quotation, an estimate, or an offer of services on any particular terms. Scope and price come out of a conversation, and they’re set out in writing.',
         'A guarantee that any technique described will produce a particular result in your business.',
+        'An endorsement of anything on a site this one links to. Where this site links out, the link is a reference. What’s at the other end belongs to whoever published it.',
       ],
     },
     {
@@ -147,7 +148,15 @@ export const terms: LegalDoc = {
       paragraphs: [
         'ADJL Capital is a private investment firm. ADJL Technology is the engineering practice that built and runs its software. They’re separate companies with separate obligations, and this website speaks only for ADJL Technology.',
         'The software described here can be described in detail because it’s our own. There’s no client confidentiality to breach in explaining how our own underwriting engine works.',
+        'ADJL Capital publishes its own site, linked below. That site speaks for that firm. Nothing on it forms part of this site, and nothing here is an offer of anything the firm sells.',
       ],
+      /* The site's only outbound link, and the only place one belongs: this
+         section exists to describe the relationship, so the link is the
+         citation for a claim the paragraphs already make. A bare domain as
+         the label, because a domain cannot read as an invitation the way
+         "Invest with ADJL Capital" would. scripts/check-links.mjs holds
+         both rules. */
+      link: { label: 'adjlcapital.com', href: 'https://adjlcapital.com/' },
     },
     {
       id: 'contact',

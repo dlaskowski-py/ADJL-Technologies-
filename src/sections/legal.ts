@@ -11,7 +11,18 @@ export type LegalDoc = {
   title: string;
   updated: string;
   intro: string;
-  sections: { id: string; heading: string; paragraphs: string[]; list?: string[] }[];
+  sections: {
+    id: string;
+    heading: string;
+    paragraphs: string[];
+    list?: string[];
+    /* An outbound reference. A typed field rather than a rich() marker on
+       purpose: `tsc --noEmit` runs first in the build, so a malformed link
+       is a compile error, where a malformed marker ships as braces on the
+       page — which this repo has done twice. scripts/check-links.mjs holds
+       the host allowlist and the rules about what the label may say. */
+    link?: { label: string; href: string };
+  }[];
 };
 
 export function renderLegalPage(doc: LegalDoc): { navHtml: string; pageHtml: string } {
@@ -37,6 +48,15 @@ export function renderLegalPage(doc: LegalDoc): { navHtml: string; pageHtml: str
         <h2 class="h3">${esc(s.heading)}</h2>
         ${s.paragraphs.map((p) => `<p>${rich(p)}</p>`).join('')}
         ${s.list ? `<ul class="legal-list">${s.list.map((l) => `<li>${rich(l)}</li>`).join('')}</ul>` : ''}
+        ${
+          /* No target="_blank". A new tab would be a decision made on the
+             reader's behalf, and rel="noopener" only means anything with
+             one — shipping it here would be a no-op attribute. The guard
+             enforces the pairing if a target is ever added. */
+          s.link
+            ? `<p><a class="tlink" href="${esc(s.link.href)}">${esc(s.link.label)}</a></p>`
+            : ''
+        }
       </section>`,
         )
         .join('')}

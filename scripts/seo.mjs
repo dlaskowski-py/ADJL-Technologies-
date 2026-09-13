@@ -92,12 +92,31 @@ export function buildHead({ origin, page, pages, meta, faq }) {
        across all eight pages; giving it the current page's image described
        one entity eight different ways. */
     image: abs(origin, '/og/home.jpg'),
+    /* The two firms are siblings, not parent and subsidiary, so the join
+       runs through the person who founded one and holds an interest in the
+       other. `parentOrganization` used to sit here with a bare name, and it
+       was wrong twice over: it asserted corporate control that does not
+       exist, and a bare name is a blank node no crawler can tell from any
+       other firm sharing the word. schema.org has no property for a sibling
+       company, and inventing a shape to imply one would be worse than this.
+
+       The @id on the affiliation is the one ADJL Capital publishes in its
+       own @graph, so the two graphs resolve to a single entity rather than
+       to two strings that happen to match. Its legalName is deliberately
+       not copied across: that is Capital's assertion to make on Capital's
+       domain, and repeating it here buys nothing the @id does not. */
     founder: {
       '@type': 'Person',
+      '@id': `${origin}/#daniel`,
       name: 'Daniel Laskowski',
       jobTitle: 'Chief Executive Officer & Founder',
+      affiliation: {
+        '@type': 'Organization',
+        '@id': 'https://adjlcapital.com/#organization',
+        name: 'ADJL Capital',
+        url: 'https://adjlcapital.com/',
+      },
     },
-    parentOrganization: { '@type': 'Organization', name: 'ADJL Capital' },
     knowsAbout: [
       'AI implementation',
       'AI consulting',
