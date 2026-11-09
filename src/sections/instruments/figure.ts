@@ -22,7 +22,7 @@ export function renderHeroFigure(): string {
     <div class="hero-fig-art" aria-hidden="true"><!--poster--></div>
     <button class="pause-btn hero-pause" type="button" data-pause data-js-only aria-pressed="false">${esc(status.pause)}</button>
     <figcaption class="hero-fig-cap">
-      <p class="hero-fig-caption" data-graph-caption>${esc(f.captionBuild)}</p>
+      <p class="hero-fig-caption" data-graph-caption data-chrome>${esc(f.captionBuild)}</p>
       <p class="hero-fig-layers">${esc(f.layers)}</p>
       <p class="hero-fig-counts" data-chrome data-graph-counts><!--counts--></p>
       ${chip('build')}

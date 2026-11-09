@@ -86,7 +86,7 @@ html[data-motion='reduced'] [data-palette-dialog][open] {
   font-size: var(--t-label);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--fg-3);
+  color: var(--fg-2);
 }
 [data-palette-dialog] [role='option'] {
   display: flex;
@@ -107,7 +107,7 @@ html[data-motion='reduced'] [data-palette-dialog][open] {
 [data-palette-dialog] [data-p-hint] {
   font-family: var(--font-mono);
   font-size: var(--t-label);
-  color: var(--fg-3);
+  color: var(--fg-2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -138,7 +138,7 @@ html[data-motion='reduced'] [data-palette-dialog][open] {
   border-top: 1px solid var(--rule);
   font-family: var(--font-mono);
   font-size: var(--t-label);
-  color: var(--fg-3);
+  color: var(--fg-2);
 }
 [data-palette-dialog] [data-p-live] {
   position: absolute;

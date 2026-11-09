@@ -52,7 +52,12 @@ const composite = (fg, bg, a) => fg.map((c, i) => a * c + (1 - a) * bg[i]);
 
 const chromium = await chromiumLauncher();
 const browser = await chromium.launch(launchOptions);
-const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+/* Measured under reduced motion. Colour doesn't change by tier, but in
+   the full tier the measurement races the reveals, the decode noise and
+   the palette's fade-in, and a glyph caught at 37% opacity mid-transition
+   is a false failure. Reduced motion shows every element at its final
+   state immediately, which is the state a reader actually reads. */
+const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
 
 let failures = 0;
 let checked = 0;

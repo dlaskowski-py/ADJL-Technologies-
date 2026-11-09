@@ -481,12 +481,18 @@ html:not(.js) .nav-burger {
   }
   .status-meter {
     flex: 1;
+  }
+  /* Only the readouts fade at the edge when the bar runs short. The chip
+     beside them says whether they're Build or Live and must stay whole. */
+  .status-readouts {
+    flex: 1;
+    flex-wrap: nowrap;
     overflow: hidden;
     -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent);
     mask-image: linear-gradient(90deg, #000 85%, transparent);
   }
-  .status-readouts {
-    flex-wrap: nowrap;
+  .status-meter .prov {
+    flex: none;
   }
   .status .views-legend {
     display: none;

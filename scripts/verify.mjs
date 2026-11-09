@@ -351,6 +351,11 @@ console.log('instruments');
     if (missing) skip(`ask: skipped (not present: ${missing})`);
     else if (!input) skip('ask: skipped (not present: no input in [data-ask])');
     else {
+      /* Ask's module loads lazily, when the panel nears the viewport, the
+         way a visitor reaches it. Typing into it from the top of the page
+         tests a panel whose script was never asked for. */
+      await p.evaluate(() => document.querySelector('[data-ask]')?.scrollIntoView({ block: 'center', behavior: 'instant' }));
+      await p.waitForTimeout(1200);
       const ask = (q) =>
         p.evaluate(async (question) => {
           const root = document.querySelector('[data-ask]');
@@ -375,7 +380,10 @@ console.log('instruments');
             const h = a.getAttribute('href');
             return !a.closest('[data-ask-pre]') && !h.startsWith('#ask-q') && /#./.test(h) && !h.startsWith('mailto:');
           }).length;
-          const abstained = /no answer/i.test(said) || /Nothing on this site answers that/.test(root.textContent.replace(root.querySelector('[data-ask-pre]')?.textContent ?? '', ''));
+          /* The abstain sentence is prerendered and shown by CSS, so it's
+             always in the panel's text; the outcome is the announcement and
+             the panel's own data-outcome. */
+          const abstained = /no answer/i.test(said) || root.dataset.outcome === 'abstain';
           const n = /(\d+)\s+passages?\s+cited/i.exec(said);
           return { question: q2, said, cites: n ? Number(n[1]) : cites, abstained };
         }, q);
@@ -420,7 +428,7 @@ console.log('instruments');
     const flow = await p.evaluate(async () => {
       const el = document.querySelector('[data-flow] .flow-live');
       if (!el) return null;
-      el.closest('[data-flow]').scrollIntoView({ block: 'start' });
+      el.closest('[data-flow]').scrollIntoView({ block: 'start', behavior: 'instant' });
       await new Promise((r) => setTimeout(r, 500));
       const a = parseFloat(getComputedStyle(el).strokeDashoffset);
       window.scrollBy({ top: 500, behavior: 'instant' });
