@@ -12,27 +12,11 @@
  * OWNER: WS2 (machine and views). Markup contract: [data-views].
  */
 import { cta, machineView as MV, status } from '../../content';
+import { viewsUi } from '../../content-instruments';
 import { esc } from '../html';
 
-/* Not in src/content.ts yet (listed in WS2's report to move into `status`):
-   the drawer's and the sheets' own labels. */
-const L = {
-  drawer: 'Machine readout',
-  hide: 'Hide',
-  show: 'Show',
-  copyJson: 'Copy as JSON',
-  headings: 'headings',
-  words: 'words',
-  entities: 'entities',
-  hidden: 'decorative · hidden from machines',
-  sheet: 'Source: {id}',
-  content: 'content',
-  renderer: 'renderer',
-  motion: 'motion',
-  bytes: 'bytes',
-  none: 'none',
-  notBuilt: 'Source map not built yet. The content and renderer above are read from the page itself.',
-};
+/* The drawer's and the sheets' own labels. */
+const L = viewsUi;
 
 function drawerTemplate(): string {
   const row = (k: string, label: string) => `<div><dt>${esc(label)}</dt><dd data-d="${k}"></dd></div>`;

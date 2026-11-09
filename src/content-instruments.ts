@@ -357,3 +357,69 @@ export const readersUi = {
     'Both trust a page more when its markup and its copy say the same thing.',
   ],
 };
+
+/* ── WS2: Machine View, telemetry, the view switch and the headers panel ──
+   Read by src/sections/instruments/{machine,telemetry,views,headers,
+   weights}.ts. Short instrument labels, rendered inside data-chrome or
+   data-machine; the `says` sentences are generated from each page's
+   JSON-LD and read like prose, so they keep to the house voice too. */
+
+/** Machine View's readout (the frame's labels are content.ts `machineView`). */
+export const machineUi = {
+  title: { full: 'Machine view', parity: 'Parity' },
+  bytes: 'bytes',
+  robotsDefault: 'index, follow (default)',
+  raw: 'raw HTML',
+  dom: 'rendered',
+  over: 'over',
+  far: 'described on another page',
+  graphLabel: 'JSON-LD graph: {n} entities, {e} references',
+  ldFacts: '{n} entities · {e} references · {b} block',
+  parses: 'parses',
+  broken: 'doesn’t parse',
+  file: 'file',
+  status: 'status',
+  size: 'size',
+  firstLines: 'first {n} lines',
+  links: '{n} · {u} unique',
+  other: 'mailto {m} · external {e}',
+  headings: 'headings',
+  missing: 'not found',
+  twinMissing: 'Fetched from {url} when JavaScript runs.',
+  llmsMissing: 'Read from /llms.txt when JavaScript runs.',
+  says: 'This page says it’s a {types} on the website of {org}, an Organization founded by {founder}.',
+  saysNoFounder: 'This page says it’s a {types} on the website of {org}.',
+  about: 'It’s about {x}.',
+  also: 'It also describes a {type}: {name}.',
+  questions: 'It lists {n} questions, each with its answer.',
+  elsewhere: 'It points to {n} things described on other pages.',
+};
+
+/** Machine view's drawer and Source view's sheets (the switch itself is
+ *  content.ts `status.views`). */
+export const viewsUi = {
+  drawer: 'Machine readout',
+  hide: 'Hide',
+  show: 'Show',
+  copyJson: 'Copy as JSON',
+  headings: 'headings',
+  words: 'words',
+  entities: 'entities',
+  hidden: 'decorative · hidden from machines',
+  sheet: 'Source: {id}',
+  content: 'content',
+  renderer: 'renderer',
+  motion: 'motion',
+  bytes: 'bytes',
+  none: 'none',
+  notBuilt: 'Source map not built yet. The content and renderer above are read from the page itself.',
+};
+
+/** Telemetry, the curl -I panel and the module weights. */
+export const telemetryUi = {
+  none: 'none yet',
+  noneTitle: 'No interaction yet. Click, tap or type and it’s measured.',
+  headersMissing: 'This preview server doesn’t send it. Production does.',
+  weightsTitle: 'module weights · gz',
+  overBudget: '▲ over budget',
+};

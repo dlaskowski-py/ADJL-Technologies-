@@ -168,6 +168,11 @@
 [data-machine] [data-file]:hover {
   text-decoration-color: var(--data);
 }
+/* A path is case-sensitive: never uppercased with the label around it. */
+[data-machine] [data-l] [data-file] {
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
 
 /* "needs JS": a value only a live fetch can supply. */
 [data-machine] [data-nojs] {

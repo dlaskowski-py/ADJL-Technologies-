@@ -14,6 +14,7 @@
  * OWNER: WS2. Markup contract: [data-headers].
  */
 import { status } from '../../content';
+import { telemetryUi } from '../../content-instruments';
 import { chip, esc } from '../html';
 
 export type CspNote = { directive: string; note: string };
@@ -27,10 +28,7 @@ export const SECURITY = [
   'x-content-type-options',
 ];
 
-/* Not in src/content*.ts yet (listed in WS2's report). */
-const L = {
-  missing: 'This preview server doesn’t send it. Production does.',
-};
+const L = { missing: telemetryUi.headersMissing };
 
 /** The policy, one directive per line, as `curl -I` would print it. */
 export function cspLines(directives: string[]): string {

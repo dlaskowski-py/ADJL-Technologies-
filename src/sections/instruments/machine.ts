@@ -29,43 +29,18 @@
  * same markup at runtime, where check-css can't see a class.
  */
 import { machineView as MV, prov, status } from '../../content';
+import { machineUi as UI } from '../../content-instruments';
 import { chip, esc } from '../html';
 import type { Measure } from '../../lib/measure';
 import { fmtInt, fmtKB, ldList, ldSig, ldSvg, outlineHtml, outlineSig, pathOf, siteOrg, x } from './machine-kit';
 
 export type MachineVariant = 'full' | 'parity' | 'schema' | 'surfaces';
 
-/* Labels that aren't in src/content.ts yet. They're short instrument
-   labels, not prose; listed in WS2's report to move into machineView. */
+/* Labels: content-instruments.ts `machineUi`. The schema and surfaces
+   variants are titled by the rows they show. */
 const L = {
-  title: { full: 'Machine view', parity: 'Parity', schema: MV.rows.graph, surfaces: MV.rows.surfaces },
-  bytes: 'bytes',
-  robotsDefault: 'index, follow (default)',
-  raw: 'raw HTML',
-  dom: 'rendered',
-  over: 'over',
-  far: 'described on another page',
-  graphLabel: 'JSON-LD graph: {n} entities, {e} references',
-  ldFacts: '{n} entities · {e} references · {b} block',
-  parses: 'parses',
-  broken: 'doesn’t parse',
-  file: 'file',
-  status: 'status',
-  size: 'size',
-  firstLines: 'first {n} lines',
-  links: '{n} · {u} unique',
-  other: 'mailto {m} · external {e}',
-  headings: 'headings',
-  missing: 'not found',
-  twinMissing: 'Fetched from {url} when JavaScript runs.',
-  llmsMissing: 'Read from /llms.txt when JavaScript runs.',
-  /* "Entities in plain words": generated from the graph. */
-  says: 'This page says it’s a {types} on the website of {org}, an Organization founded by {founder}.',
-  saysNoFounder: 'This page says it’s a {types} on the website of {org}.',
-  about: 'It’s about {x}.',
-  also: 'It also describes a {type}: {name}.',
-  questions: 'It lists {n} questions, each with its answer.',
-  elsewhere: 'It points to {n} things described on other pages.',
+  ...UI,
+  title: { ...UI.title, schema: MV.rows.graph, surfaces: MV.rows.surfaces },
 };
 
 /** The machine-readable files the readout checks, in the order shown. */

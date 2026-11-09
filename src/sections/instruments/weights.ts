@@ -10,10 +10,10 @@
  * OWNER: WS2. Filled at [data-weights].
  */
 import { chip, esc } from '../html';
+import { telemetryUi } from '../../content-instruments';
 
-/* Not in src/content*.ts yet (listed in WS2's report). */
-const TITLE = 'module weights · gz';
-const OVER = '▲ over budget';
+const TITLE = telemetryUi.weightsTitle;
+const OVER = telemetryUi.overBudget;
 
 /** Lazy modules and their spec budgets (gz bytes). `core` is the entry
  *  every page loads first: boot, telemetry, views, reveal and friends. */

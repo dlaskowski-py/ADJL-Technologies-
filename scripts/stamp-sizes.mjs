@@ -230,8 +230,13 @@ function stamp(html, values) {
   );
 }
 
+/* The 404 page carries the same status bar, so its sizes are stamped too.
+   It's written by gen-404, outside the page registry. */
+const NOT_FOUND = { route: '/404', out: 'dist/404.html' };
+const STAMPED = existsSync(NOT_FOUND.out) ? [...PAGES, NOT_FOUND] : PAGES;
+
 let total = 0;
-for (const page of PAGES) {
+for (const page of STAMPED) {
   if (!existsSync(page.out)) {
     console.error(`stamp-sizes: ${page.out} is missing`);
     process.exit(1);

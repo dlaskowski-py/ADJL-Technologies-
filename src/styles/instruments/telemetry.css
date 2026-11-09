@@ -69,12 +69,13 @@
 .status-readouts [data-metric='thirdparty'] {
   min-width: 2ch;
 }
+/* Value, space, swatch (11px, about 1.5ch) and the rating word. */
 .status-readouts [data-metric='lcp'],
 .status-readouts [data-metric='inp'] {
-  min-width: 12ch;
+  min-width: 14ch;
 }
 .status-readouts [data-metric='cls'] {
-  min-width: 11ch;
+  min-width: 12.5ch;
 }
 .status-readouts [data-metric='tier'] {
   min-width: 8ch;

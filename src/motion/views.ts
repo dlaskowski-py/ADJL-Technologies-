@@ -119,7 +119,10 @@ export function setView(v: View): void {
 export function initViews(): void {
   const sets = document.querySelectorAll<HTMLElement>('[data-views]');
   if (!sets.length) return;
+  /* Every load starts in Render, whatever the browser restored into the
+     radios from a previous visit. */
   root.dataset.view = 'render';
+  sets.forEach((fs) => fs.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((i) => (i.checked = i.value === 'render')));
 
   /* The one decorative label Machine view's CSS draws comes from the
      content module, via the markup, as a CSS string. */

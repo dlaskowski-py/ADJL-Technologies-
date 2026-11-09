@@ -15,6 +15,7 @@
  * OWNER: WS2. Markup contract: [data-telemetry].
  */
 import { prov, status } from '../../content';
+import { telemetryUi } from '../../content-instruments';
 import { chip, esc } from '../html';
 
 type Key = keyof typeof status.metrics;
@@ -39,9 +40,8 @@ const STATUS: [Key, number][] = [
 /** The large panel: sizes, then the timings, then the page itself. */
 const PANEL: Key[] = ['html', 'css', 'js', 'thirdparty', 'lcp', 'cls', 'inp', 'ttfb', 'transfer', 'requests', 'dom', 'cookies', 'tier'];
 
-/* Not in src/content.ts yet (listed in WS2's report): what a metric that
-   needs an interaction says before there's been one. */
-const NONE = { label: 'none yet', title: 'No interaction yet. Click, tap or type and it’s measured.' };
+/* What a metric that needs an interaction says before there's been one. */
+const NONE = { label: telemetryUi.none, title: telemetryUi.noneTitle };
 
 /** Strings the live module needs, carried in the markup so the main bundle
  *  never imports the site's copy. One JSON attribute per readout group. */
