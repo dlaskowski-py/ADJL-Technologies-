@@ -21,6 +21,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { PAGES } from './pages.mjs';
+import { proseText } from './lib-text.mjs';
 
 /* Per 1,000 words of shipped copy, except where noted. */
 const LIMITS = {
@@ -40,15 +41,13 @@ const LIMITS = {
 const MIN_SHORT_PCT = 8;
 const MAX_AVG_WORDS = 19.5;
 
+/* Prose only: instrument chrome marked data-prose="off", code panes and
+   aria-hidden decoration are dropped in lib-text.mjs. They aren't writing,
+   and a row of readouts with no full stop glues onto the next paragraph as
+   one long "sentence". check-claims still reads all of it. */
 let text = '';
-for (const page of PAGES) {
-  text +=
-    readFileSync(page.out, 'utf8')
-      .replace(/<script[\s\S]*?<\/script>/g, ' ')
-      .replace(/<style[\s\S]*?<\/style>/g, ' ')
-      .replace(/<[^>]+>/g, ' ') + '\n';
-}
-text = text.replace(/&[a-z]+;/g, ' ').replace(/[ \t]+/g, ' ');
+for (const page of PAGES) text += proseText(readFileSync(page.out, 'utf8')) + '\n';
+text = text.replace(/[ \t]+/g, ' ');
 
 const words = text.split(/\s+/).filter(Boolean).length;
 const per1k = (n) => (n / words) * 1000;

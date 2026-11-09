@@ -23,6 +23,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { PAGES } from './pages.mjs';
+import { readableText } from './lib-text.mjs';
 
 const BANNED = [
   'cutting-edge', 'cutting edge', 'best-in-class', 'best in class', 'world-class',
@@ -55,8 +56,10 @@ let bad = 0;
 
 for (const page of PAGES) {
   const html = readFileSync(page.out, 'utf8');
-  // Compare on text, not markup — otherwise a class name can trip a phrase.
-  const text = html.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ');
+  /* Compare on text, not markup, so a class name can't trip a phrase. And
+     read the JSON data blocks too: a demo that types "8.4% yield" into a
+     console is making that claim even though the words live in a <script>. */
+  const text = readableText(html);
   const hay = text.toLowerCase();
 
   for (const phrase of BANNED) {
