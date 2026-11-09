@@ -29,7 +29,7 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
   /* --end (inline, from the renderer) is how many characters the code and
      the build take. Everything after waits for it. */
   --cps: 4ms;
-  --t1: 0.1s;
+  --t1: 0.15s;
   --t3: calc(var(--t1) + var(--end) * var(--cps) + 0.1s);
   --t4: calc(var(--t3) + 0.85s);
   --t5: calc(var(--t4) + 1.3s);
@@ -43,7 +43,7 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
   overflow: hidden;
   /* A touch that starts on the overlay can't scroll the page under it. */
   touch-action: none;
-  animation: intro-out 1ms step-end var(--t7) forwards;
+  animation: intro-out 1ms var(--t7) forwards;
 }
 
 /* The curtain: two halves of ground. They part on the seam, each carrying
@@ -58,7 +58,7 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
   border-right-width: 1px;
   --x: -100%;
   animation: intro-part 0.5s cubic-bezier(0.7, 0, 0.2, 1) var(--t6) forwards,
-    intro-edge 1ms step-end var(--t6) forwards;
+    intro-edge 1ms var(--t6) forwards;
 }
 .intro::after {
   inset: 0 0 0 50%;
@@ -110,10 +110,10 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
   font-size: 9.5px;
   letter-spacing: 0.06em;
   fill: var(--fg-3);
-  animation: intro-out 1ms step-end var(--t3) forwards;
+  animation: intro-out 1ms var(--t3) forwards;
 }
 .intro-svg .intro-dist {
-  animation: intro-in 1ms step-end var(--t3) backwards;
+  animation: intro-in 1ms var(--t3) backwards;
 }
 .intro-svg .intro-k {
   fill: var(--model);
@@ -127,22 +127,27 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
 
 /* A typed line's cover steps off it a character at a time. The dash
    pattern strokes only its left edge (nothing, then top + right + bottom
-   as one gap, then the left side), and only while it moves: the caret. */
+   as one gap, then the left side), and only while it moves: the caret.
+   steps(n, start), held forwards only: the first character lands as the
+   line begins, and the last step is taken inside the animation, so a
+   rounding error at its end can't leave the last character covered. */
 .intro-code rect {
+  /* One line pitch tall, so the covers abut: a descender can't show under
+     its own cover, in the mono face or in its fallback. */
   width: 344px;
-  height: 14px;
+  height: 15px;
   fill: var(--panel);
   stroke-width: 1.5px;
-  stroke-dasharray: 0 702 14;
+  stroke-dasharray: 0 703 15;
   --at: calc(var(--t1) + var(--c) * var(--cps));
-  animation: intro-type calc(var(--n) * var(--cps)) steps(var(--n)) var(--at) both,
-    intro-lit calc(var(--n) * var(--cps)) step-end var(--at);
+  animation: intro-type calc(var(--n) * var(--cps)) steps(var(--n), start) var(--at) forwards,
+    intro-lit calc(var(--n) * var(--cps)) var(--at);
 }
 
 /* The build's steps tick off: they snap in, they don't fade. */
 .intro-oks text {
   font-size: 10px;
-  animation: intro-in 1ms step-end calc(var(--t1) + var(--c) * var(--cps)) backwards;
+  animation: intro-in 1ms calc(var(--t1) + var(--c) * var(--cps)) backwards;
 }
 .intro-oks tspan {
   fill: var(--ok);
@@ -157,7 +162,7 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
   stroke-width: 1.5px;
   stroke-dasharray: 0 668 360 308;
   transform-box: fill-box;
-  animation: intro-wipe 0.3s var(--ease-io) var(--t3) backwards, intro-lit 0.3s step-end var(--t3);
+  animation: intro-wipe 0.3s var(--ease-io) var(--t3) backwards, intro-lit 0.3s var(--t3);
 }
 .intro-wire path {
   fill: none;
@@ -192,7 +197,7 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
   text-anchor: middle;
   fill: var(--fg-faint);
   --at: calc(var(--t1) + var(--c, 0) * var(--cps));
-  animation: intro-beat 1ms step-end var(--at) forwards;
+  animation: intro-beat 1ms var(--at) forwards;
 }
 .intro-beats text:first-child {
   text-anchor: start;
@@ -209,7 +214,7 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
    first where the wireframe's nav has them, then grown to the middle. */
 .intro-mk {
   transform: translate(25px, 32.6px) scale(0.25);
-  animation: intro-in 1ms step-end calc(var(--t3) + 0.12s) backwards,
+  animation: intro-in 1ms calc(var(--t3) + 0.12s) backwards,
     intro-grow 0.45s var(--ease-io) var(--t4) forwards;
 }
 .intro-b {
@@ -222,13 +227,13 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
 .intro-b2 {
   fill: var(--signal);
   animation: intro-seam 0.16s cubic-bezier(0.7, 0, 0.84, 0) var(--t5) forwards,
-    intro-out 1ms step-end var(--t6) forwards;
+    intro-out 1ms var(--t6) forwards;
 }
 
 /* The name, set by one pass of a caret, and the line under it. */
 .intro-lk {
-  animation: intro-in 1ms step-end calc(var(--t4) + 0.3s) backwards,
-    intro-out 1ms step-end var(--t5) forwards;
+  animation: intro-in 1ms calc(var(--t4) + 0.3s) backwards,
+    intro-out 1ms var(--t5) forwards;
 }
 .intro-svg .intro-nm {
   font: 700 30px var(--font-sans);
@@ -245,11 +250,11 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
   stroke-width: 2px;
   stroke-dasharray: 0 558 38;
   animation: intro-set 0.28s var(--ease-io) calc(var(--t4) + 0.32s) both,
-    intro-lit 0.28s step-end calc(var(--t4) + 0.32s);
+    intro-lit 0.28s calc(var(--t4) + 0.32s);
 }
 .intro-svg .intro-tg {
   text-anchor: middle;
-  animation: intro-in 1ms step-end calc(var(--t4) + 0.62s) backwards;
+  animation: intro-in 1ms calc(var(--t4) + 0.62s) backwards;
 }
 
 /* ── The foot: what this is, and the way out ─────────────────────── */
@@ -262,10 +267,17 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
   align-items: center;
   justify-content: space-between;
   gap: var(--s-4);
-  animation: intro-out 1ms step-end var(--t5) forwards;
+  animation: intro-out 1ms var(--t5) forwards;
+}
+/* The chip labels the drawing, so it goes when the drawing does: the
+   mark and the name aren't an illustration of anything. */
+.intro-foot .prov {
+  animation: intro-out 1ms var(--t4) forwards;
 }
 .intro-skip {
   min-height: 44px;
+  /* Alone in the row once the chip has gone, it stays on the right. */
+  margin-left: auto;
   padding: 0 16px;
   font-family: var(--font-mono);
   font-size: var(--t-label);
@@ -281,12 +293,20 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
   border-color: var(--fg-3);
 }
 
+/* The switches. Something that turns on at a moment holds `intro-in`
+   backwards until then; something that turns off, lights or colors holds
+   its keyframes forwards from then. Each sets the SAME value at both ends
+   on purpose: a 1ms step-end animation can finish a rounding error short
+   of its last step (a delay computed from calc() isn't a whole number of
+   milliseconds), and then `to` never applies. */
 @keyframes intro-in {
-  from {
+  from,
+  to {
     opacity: 0;
   }
 }
 @keyframes intro-out {
+  from,
   to {
     visibility: hidden;
     pointer-events: none;
@@ -304,6 +324,7 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
   }
 }
 @keyframes intro-beat {
+  from,
   to {
     fill: var(--fg);
   }
@@ -357,6 +378,7 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
   }
 }
 @keyframes intro-edge {
+  from,
   to {
     border-color: var(--signal);
   }

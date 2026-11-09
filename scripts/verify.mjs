@@ -560,6 +560,7 @@ if (!ONLY || ONLY.has('/')) {
           lcpText: !!el && (!!el.closest('h1') || (!!el.closest('.hero, #top') && !el.closest('figure, svg, canvas') && el.tagName !== 'IMG')),
           lcpTag: el ? el.tagName.toLowerCase() : null,
           seen: sessionStorage.getItem('adjl:intro'),
+          cls: (window.__vitals?.shifts ?? []).reduce((sum, e) => sum + e.value, 0),
         };
       });
       if (!r.done) fail(`intro ${vp.name}: handed off, but "adjl:intro-done" never fired on window`);
@@ -567,6 +568,7 @@ if (!ONLY || ONLY.has('/')) {
       if (r.lcpTag === null) skip(`intro ${vp.name}: LCP not reported by this browser`);
       else if (!r.lcpText) fail(`intro ${vp.name}: with the intro playing, LCP is <${r.lcpTag}>, not the hero text`);
       else ok(`intro ${vp.name}: LCP is still the hero's <${r.lcpTag}>, at ${r.lcp}ms, under the overlay`);
+      if (r.cls >= CLS_MAX) fail(`intro ${vp.name}: CLS ${r.cls.toFixed(3)} through the sequence and its hand-off (max ${CLS_MAX})`);
       if (r.seen !== 'seen') fail(`intro ${vp.name}: the session wasn't marked as having seen it`);
       if (!r.compile) fail(`intro ${vp.name}: the h1's compile effect never ran after the hand-off`);
       else if (r.compile < r.done) fail(`intro ${vp.name}: the h1's compile effect began ${Math.round(r.done - r.compile)}ms before the hand-off`);

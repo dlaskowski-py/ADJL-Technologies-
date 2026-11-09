@@ -51,7 +51,9 @@ export function initIntro(): void {
     window.dispatchEvent(new Event('adjl:intro-done'));
   };
   const skip = () => {
-    if (over || root.dataset.skip) return;
+    /* Once the timeline has hidden the button, the curtain is already
+       opening: restarting that from closed would be a flash, so let it. */
+    if (over || root.dataset.skip || (btn && getComputedStyle(btn).visibility === 'hidden')) return;
     root.dataset.skip = 'true';
     window.setTimeout(done, 200);
   };
