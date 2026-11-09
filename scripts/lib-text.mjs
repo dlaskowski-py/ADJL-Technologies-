@@ -46,25 +46,33 @@ export const proseText = (html) => textOf(html, { voice: true });
 const SPOKEN = new Set(['aria-label', 'alt', 'title', 'placeholder', 'aria-valuetext']);
 const META = new Set(['description', 'og:title', 'og:description', 'twitter:title', 'twitter:description', 'og:image:alt']);
 
-/** Everything a visitor could read, excluded or not. */
+/** Marks the edge of a block in readableText. It isn't whitespace, so a
+ *  pattern like /\d+\s+systems/ can't reach from a decorative "04" in one
+ *  element to the "Systems" heading in the next, while a phrase inside one
+ *  paragraph still matches across its inline tags. */
+export const BLOCK = ' \u241e ';
+
+/** Everything a visitor could read, excluded or not. Inline tags (and
+ *  spans, which carry inline keywords) join their neighbors with a space;
+ *  every other element boundary, attribute value and JSON string is
+ *  separated by BLOCK. */
 export function readableText(html) {
   const parts = [];
+  const edge = (el) => parts.push(el.name === 'span' ? ' ' : INLINE.has(el.name) ? '' : BLOCK);
   walk(html, {
     open(el) {
-      if (!INLINE.has(el.name)) parts.push(' ');
-      for (const [k, v] of Object.entries(el.attrs)) if (SPOKEN.has(k) && v) parts.push(` ${v} `);
+      edge(el);
+      for (const [k, v] of Object.entries(el.attrs)) if (SPOKEN.has(k) && v) parts.push(`${BLOCK}${v}${BLOCK}`);
       if (el.name === 'meta') {
         const key = el.attrs.name ?? el.attrs.property ?? '';
-        if (META.has(key) && el.attrs.content) parts.push(` ${el.attrs.content} `);
+        if (META.has(key) && el.attrs.content) parts.push(`${BLOCK}${el.attrs.content}${BLOCK}`);
       }
     },
-    close(el) {
-      if (!INLINE.has(el.name)) parts.push(' ');
-    },
+    close: edge,
     text(t, info) {
       if (!info.raw) parts.push(t);
     },
   });
   const json = jsonScripts(html).flatMap((s) => (s.ok ? jsonStrings(s.data) : [s.raw]));
-  return (parts.join('') + ' \n ' + json.join(' \n ')).replace(/[ \t]+/g, ' ');
+  return (parts.join('') + BLOCK + json.join(BLOCK)).replace(/[ \t\n]+/g, ' ');
 }

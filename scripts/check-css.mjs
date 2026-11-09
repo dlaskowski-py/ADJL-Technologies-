@@ -66,7 +66,8 @@ const defined = new Set();
 const selectors = css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\{[^{}]*\}/g, '{}');
 for (const m of selectors.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)) defined.add(m[1]);
 
-const missing = [...used].filter((c) => !defined.has(c)).sort();
+const missing = [...used].filter((c) => !defined.has(c) && !JS_APPLIED.has(c)).sort();
+const unstyledJs = [...JS_APPLIED].filter((c) => !defined.has(c)).sort();
 const unused = [...defined].filter((c) => !used.has(c)).sort();
 
 /* JS_APPLIED, the other way: each entry must still be set by some script. */
@@ -90,6 +91,12 @@ if (unused.length) {
   console.error(
     '  If JavaScript builds that element, style it with an attribute selector under its module root ([data-x] [data-y]) instead of a class.',
   );
+  bad = true;
+}
+if (unstyledJs.length) {
+  console.error(`check-css: ${unstyledJs.length} JS_APPLIED class(es) that no rule styles:`);
+  for (const c of unstyledJs) console.error(`  .${c}`);
+  console.error('  Style the state, or stop setting the class (and drop it from JS_APPLIED).');
   bad = true;
 }
 if (stale.length) {

@@ -42,7 +42,7 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { PAGES } from './pages.mjs';
-import { readableText, jsonStrings } from './lib-text.mjs';
+import { readableText, jsonStrings, BLOCK } from './lib-text.mjs';
 import { pass } from './lib/report.mjs';
 
 const BANNED = [
@@ -86,7 +86,7 @@ function scan(where, text) {
   for (const phrase of BANNED) {
     const at = hay.indexOf(phrase.toLowerCase());
     if (at >= 0) {
-      const around = text.slice(Math.max(0, at - 40), at + phrase.length + 40).replace(/\s+/g, ' ');
+      const around = text.slice(Math.max(0, at - 40), at + phrase.length + 40).replaceAll(BLOCK, ' / ').replace(/\s+/g, ' ');
       console.error(`check-claims: ${where} contains banned phrase "${phrase}" (…${around}…)`);
       bad++;
     }
@@ -131,7 +131,10 @@ const surfaces = [
   ...['dist/llms.txt', 'dist/llms-full.txt'].filter((f) => existsSync(f)),
   ...files('dist', (p) => p.endsWith('index.md')),
 ];
-for (const f of surfaces) scan(f.replace(/^dist/, ''), readFileSync(f, 'utf8'));
+/* Each line of a markdown file is its own block, the same rule as the
+   HTML: a count can't be assembled from the end of one line and the start
+   of the next. */
+for (const f of surfaces) scan(f.replace(/^dist/, ''), readFileSync(f, 'utf8').split(/\n/).join(BLOCK));
 
 const jsonSurfaces = [
   ...(existsSync('dist/search-index.json') ? ['dist/search-index.json'] : []),
@@ -141,7 +144,7 @@ for (const f of jsonSurfaces) {
   const raw = readFileSync(f, 'utf8');
   let text;
   try {
-    text = jsonStrings(JSON.parse(raw)).join(' \n ');
+    text = jsonStrings(JSON.parse(raw)).join(BLOCK);
   } catch {
     console.error(`check-claims: ${f} isn't valid JSON`);
     bad++;

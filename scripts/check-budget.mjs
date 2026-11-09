@@ -47,6 +47,10 @@ const BUDGET = {
   reachable: 70 * KB,
 };
 
+/* A font's license travels with the font (the OFL asks for exactly that),
+   and nothing links to it. */
+const LICENSES = [/^fonts\/[\w.-]*(OFL|LICENSE|license)[\w.-]*\.(txt|md)$/];
+
 /* Machine-readable surfaces and site furniture: files in dist/ that no page
    needs to reference, by pattern. Anything else unreferenced is an orphan. */
 const SURFACES = [
@@ -222,6 +226,7 @@ for (const f of all) {
      expected to stand alone. */
   const owned = /^(assets|fonts|og)\//.test(r);
   if (!owned && SURFACES.some((re) => re.test(r))) continue;
+  if (LICENSES.some((re) => re.test(r))) continue;
   fail(`${r} ships, and nothing references it`);
   orphans++;
 }

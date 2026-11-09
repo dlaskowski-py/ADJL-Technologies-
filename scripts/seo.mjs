@@ -97,7 +97,9 @@ export function dateModifiedOf(page) {
 
 /* ── The firm ─────────────────────────────────────────────────────── */
 
-const ORG_DESCRIPTION =
+/** The firm in one sentence pair: the Organization description and the
+ *  blockquote at the top of /llms.txt. */
+export const ORG_DESCRIPTION =
   'An AI engineering, technical SEO and software studio. Builds AI agents and automation, websites and native apps, and makes them readable to search engines and AI answer engines.';
 
 const KNOWS_ABOUT = [
