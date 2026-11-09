@@ -1,7 +1,8 @@
 /**
  * "What we do", in plain words: one panel per practice, each with a small
- * animated scene that shows the thing happening. Replaces the practice
- * panels on the home page; the services hub keeps those.
+ * animated scene that shows the thing happening, and one closing strip (a
+ * sentence, the code written for it, the page that comes out). Replaces
+ * the practice panels on the home page; the services hub keeps those.
  *
  * Each scene is one inline SVG on a 360 × 240 grid, drawn for a phone's
  * width and scaled up on a desktop, so its labels stay readable on both
@@ -211,6 +212,57 @@ function panel(o: Offer, getLabel: string): string {
       </article>`;
 }
 
+/* ── The closing strip: a sentence, the code, the page ─────────────── */
+
+/**
+ * One wide panel in three steps, on the same five beats as the scenes: the
+ * request arrives a word at a time, the code types, the page assembles.
+ * The request is real text in a blockquote; the code and the little page
+ * are decoration, and the figcaption says what the three of them show.
+ */
+function buildStrip(): string {
+  const B = landing.offers.build;
+  const hue = ['', 'lp-d', 'lp-c', ''];
+  const step = (i: number) =>
+    `<span class="label"><b class="lp-step-n" aria-hidden="true">0${i + 1}</b> ${esc(B.steps[i])}</span>`;
+  const words = B.say
+    .split(' ')
+    .map((w, i) => `<span${on(1, '', +(i * 0.09).toFixed(2))}>${esc(w)}</span>`)
+    .join(' ');
+  const code = B.code
+    .map((line, i) => `<span${on(i < 2 ? 2 : 3, `lp-ty ${hue[i]}`.trim(), (i % 2) * 0.45)}>${esc(line)}</span>`)
+    .join('');
+  /* Two weeks of days, one of them picked. */
+  const days = Array.from({ length: 14 }, (_, i) => `M${14 + (i % 7) * 18} ${50 + Math.floor(i / 7) * 18}h14v14h-14z`);
+  const picked = days.splice(10, 1)[0];
+
+  return `<figure class="lp-build panel" data-scene="build" data-reveal>
+        <div class="lp-build-col">
+          ${step(0)}
+          <blockquote class="lp-build-say"><span class="lp-act">${words}</span></blockquote>
+        </div>
+        <div class="lp-build-col">
+          ${step(1)}
+          <div class="lp-code" aria-hidden="true" data-chrome><div class="lp-act">${code}</div></div>
+        </div>
+        <div class="lp-build-col">
+          ${step(2)}
+          <svg class="lp-art lp-ui" viewBox="0 0 220 138" aria-hidden="true" focusable="false">
+            ${rect(c('lp-f'), 1, 1, 218, 136, 6)}${path(c('lp-ln'), 'M1 20h218')}${path(c('lp-sk'), 'M12 8h5v5h-5zM21 8h5v5h-5zM30 8h5v5h-5z')}
+            <g class="lp-act">
+              ${text(on(4, 'lp-hi'), 14, 40, B.ui.title)}
+              ${path(on(4, 'lp-sk', 0.2, 0, 6), days.join(''))}${path(on(4, 'lp-fl lp-d', 0.45), picked)}
+              <g${on(4, '', 0.7, 0, 6)}>${rect(c('lp-fl lp-c'), 14, 96, 122, 26, 4)}<text class="lp-on" x="75" y="113" text-anchor="middle">${esc(
+                B.ui.button,
+              )}</text></g>
+              <g${on(5)}>${tick(c('lp-st lp-ok'), 152, 109)}${text(c('lp-hi'), 168, 113, B.ui.ready)}</g>
+            </g>
+          </svg>
+        </div>
+        <figcaption class="lp-build-cap"><span>${rich(B.caption)}</span>${chip('illustration')}</figcaption>
+      </figure>`;
+}
+
 export function renderOffers(n: number): string {
   const o = landing.offers;
   return `${sectionOpen({ id: 'offers', src: 'content-landing.ts#landing.offers', renderer: 'sections/landing/offers.ts#renderOffers' })}
@@ -223,6 +275,7 @@ export function renderOffers(n: number): string {
       </div>
       <div class="lp-offers">
         ${o.items.map((it) => panel(it, o.getLabel)).join('')}
+        ${buildStrip()}
       </div>
     </div>
   </section>`;

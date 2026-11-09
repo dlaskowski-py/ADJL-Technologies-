@@ -6,7 +6,7 @@
  *
  * The reader here is a business owner, not an engineer, so nothing below
  * uses a word the practice pages have to explain. The practice names are
- * the site's own, spelled exactly as the nav spells them.
+ * the site's own, spelled exactly as every other page spells them.
  *
  * The words inside the four drawings live here too (`art`). They're labels
  * in an illustration: values are masked, nothing in them is a measurement,
@@ -33,8 +33,9 @@ export type Offer = {
 export const landing = {
   /** The hero's typed line. `phrases` are typed after the prompt, one at a
    *  time; keep each to 42 characters and plain ASCII, so the longest one
-   *  fits a phone's width in the mono face on one line. `summary` is the
-   *  one static sentence screen readers and text readers get. */
+   *  fits a phone's width in the mono face on one line, and keep "|" out
+   *  of them (it separates them in the markup). `summary` is the one
+   *  static sentence screen readers and text readers get. */
   typer: {
     prompt: 'now building',
     phrases: [
@@ -67,7 +68,7 @@ export const landing = {
     eyebrow: 'What we do',
     headline: ['What we can', '{em}build for you.{/em}'],
     intro:
-      'You don’t need the jargon to work with us. Here’s what we build, what you get, and a small drawing of each one at work.',
+      'You don’t need the jargon to work with us. Here’s what we build and what you get.',
     getLabel: 'You get',
     items: [
       {
@@ -112,13 +113,24 @@ export const landing = {
         title: 'We run what we build',
         body: 'We built the engine behind ADJL Capital’s property decisions, and it’s still running. Paste in a listing link and it returns a file where every figure names its source.',
         points: [
-          'A listing link in, a sourced file out',
           'Every number says where it came from',
+          'Unaudited figures say so',
           'New methods tried on our own systems first',
         ],
         link: { label: 'See the systems', href: '/work/' },
       },
     ] satisfies Offer[],
+
+    /** The strip that closes the section: a request in plain words, the
+     *  code written for it, and the page that comes out. One made-up
+     *  request, drawn as an illustration; `caption` says so in a sentence. */
+    build: {
+      steps: ['You say', 'We write', 'You get'],
+      say: '“We need a booking page that takes a deposit.”',
+      code: ['<BookingPage>', '  <Calendar />', '  <Deposit />', '</BookingPage>'],
+      ui: { title: 'Book a time', button: 'Pay deposit', ready: 'ready' },
+      caption: 'It starts with a sentence. We write the code, test it, and hand you something people can use.',
+    },
   },
 
   /** Labels inside the four drawings. Mono, short, and never a result:

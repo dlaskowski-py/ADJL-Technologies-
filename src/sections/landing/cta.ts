@@ -21,7 +21,7 @@ export function renderCtaBand(): string {
   })}
     <div class="wrap">
       <div class="lp-cta-box panel" data-reveal>
-        <div>
+        <div class="lp-cta-copy">
           ${headline(c.headline)}
           <p class="lead">${rich(c.body)}</p>
         </div>

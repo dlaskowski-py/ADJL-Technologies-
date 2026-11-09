@@ -14,7 +14,7 @@
  *   shared CSS (linked by every page)     ≤ 24 kB gz   (was 20; see BUDGET)
  *   page-only CSS (one page's own sheet)  ≤ 10 kB gz
  *   each lazy chunk                       ≤ 10 kB gz
- *   /search-index.json                    ≤ 22 kB gz
+ *   /search-index.json                    ≤ 24 kB gz
  *   all JS reachable from home            ≤ 70 kB gz   first load plus every
  *                                                      chunk it can import,
  *                                                      transitively
@@ -53,7 +53,8 @@ const BUDGET = {
   /* Styles one page links for itself, on top of the shared sheet. */
   pageCss: 10 * KB,
   lazyChunk: 10 * KB,
-  searchIndex: 22 * KB,
+  /* Lazy: fetched on first use of Ask. Grows with the site's copy. */
+  searchIndex: 24 * KB,
   reachable: 70 * KB,
 };
 

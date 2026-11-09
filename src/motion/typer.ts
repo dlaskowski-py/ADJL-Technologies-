@@ -14,7 +14,8 @@
  * It runs through whileVisible: offscreen, in a hidden tab or on Pause the
  * timer is cleared and the current phrase is shown whole. Reduced motion
  * never starts it, and the prerendered first phrase stays as it was.
- * data-on (set while it runs) is what the caret's blink hangs off.
+ * data-on is set while it runs: "hold" while a finished phrase waits (the
+ * caret blinks), "type" while characters are moving (it doesn't).
  *
  * OWNER: WS-B.
  */
@@ -38,8 +39,13 @@ export function initTyper(): void {
     let timer = 0;
 
     const show = () => box.style.setProperty('--n', String(n));
+    const hold = () => {
+      root.dataset.on = 'hold';
+      timer = window.setTimeout(step, HOLD_MS);
+    };
     const step = () => {
       let wait = dir > 0 ? TYPE_MS : ERASE_MS;
+      if (root.dataset.on !== 'type') root.dataset.on = 'type';
       if (dir < 0 && n === 0) {
         /* Clipped to nothing: swap the phrase, then type it. */
         i = (i + 1) % list.length;
@@ -48,7 +54,7 @@ export function initTyper(): void {
         wait = GAP_MS;
       } else if (dir > 0 && n === list[i].length) {
         dir = -1;
-        wait = HOLD_MS;
+        return hold();
       } else {
         n += dir;
         show();
@@ -59,9 +65,7 @@ export function initTyper(): void {
     whileVisible(
       root,
       () => {
-        if (timer || tier === 'reduced') return;
-        root.dataset.on = '';
-        timer = window.setTimeout(step, HOLD_MS);
+        if (!timer && tier !== 'reduced') hold();
       },
       () => {
         window.clearTimeout(timer);

@@ -1,6 +1,6 @@
 /* Landing styles: the hero's typed line, the ticker, the offer panels with
-   their four scenes, and the call-to-action band. Home-page only.
-   Owner: WS-B.
+   their four scenes, the closing strip and the call-to-action band.
+   Home-page only. Owner: WS-B.
 
    One rule runs through all of it: WHAT'S PRERENDERED IS THE FINISHED,
    STILL PICTURE. Motion hangs off attributes a script sets ([data-on] on
@@ -10,11 +10,13 @@
    or a motion-path distance. */
 
 /* ── The typed line ────────────────────────────────────────────────
-   One fixed row (two on a phone: prompt, then phrase), never wrapping.
+   One fixed row, or two where the column is narrow (a phone, or the hero
+   beside a Source sheet): prompt, then phrase. Never wrapping.
    --n is the number of characters shown: it clips the text and places the
    caret, one ch per character in the mono face. motion/typer.ts only
    counts --n; the box around it never changes size. */
 .lp-typer {
+  container: lp-typer / inline-size;
   margin-top: var(--s-6);
 }
 .lp-typer-line {
@@ -22,6 +24,8 @@
   flex-direction: column;
   font-family: var(--font-mono);
   font-size: var(--t-readout);
+  /* The longest phrase still fits one row on a 320px phone. */
+  font-size: min(var(--t-readout), 3.6cqi);
   line-height: 1.7;
   white-space: nowrap;
   color: var(--fg);
@@ -41,7 +45,7 @@
 }
 .lp-typer-text {
   display: block;
-  clip-path: inset(0 calc(100% - var(--n) * 1ch - 1px) 0 0);
+  clip-path: inset(0 calc(100% - var(--n) * 1ch) 0 0);
 }
 .lp-typer-caret {
   position: absolute;
@@ -52,15 +56,16 @@
   background: var(--signal);
   transform: translateX(calc(var(--n) * 1ch));
 }
-[data-typer][data-on] .lp-typer-caret {
-  animation: lp-blink 1.1s steps(1) infinite;
+/* The caret blinks only while a finished phrase is waiting. */
+[data-typer][data-on='hold'] .lp-typer-caret {
+  animation: lp-blink 1s steps(1) infinite;
 }
 @keyframes lp-blink {
   50% {
     opacity: 0;
   }
 }
-@media (min-width: 560px) {
+@container lp-typer (min-width: 520px) {
   .lp-typer-line {
     flex-direction: row;
     align-items: baseline;
@@ -154,11 +159,13 @@ html.js:not([data-motion='reduced']) .lp-tick-mark {
 }
 
 /* ── Offer panels ──────────────────────────────────────────────────
-   A scene and its copy. On a phone they stack and the scene runs edge to
-   edge, so its labels are drawn at about their real size. From 900px
-   they sit side by side, the scene inset like an instrument's screen and
-   changing sides on every other panel. */
+   A scene and its copy. In a narrow column (a phone, or beside a Source
+   sheet) they stack and the scene runs edge to edge, so its labels are
+   drawn at about their real size. With 860px to work in they sit side by
+   side, the scene inset like an instrument's screen and changing sides on
+   every other panel. */
 .lp-offers {
+  container: lp-offers / inline-size;
   display: grid;
   gap: var(--col-gap);
   margin-top: var(--s-7);
@@ -199,7 +206,7 @@ html.js:not([data-motion='reduced']) .lp-tick-mark {
 .lp-get {
   margin-top: var(--s-3);
 }
-@media (min-width: 900px) {
+@container lp-offers (min-width: 860px) {
   .lp-offer {
     grid-template-columns: minmax(0, 11fr) minmax(0, 10fr);
   }
@@ -332,8 +339,12 @@ html.js:not([data-motion='reduced']) .lp-tick-mark {
 [data-playing='true'] .lp-tmp {
   animation: lp-tmp 9s linear var(--d, 0s) var(--scene-iter, infinite);
 }
-[data-playing='true'] .lp-pk {
-  animation: lp-go 9s linear var(--d, 0s) var(--scene-iter, infinite);
+/* Without motion paths a packet would sit at the drawing's corner, so
+   there it never shows at all. */
+@supports (offset-path: path('M0 0')) {
+  [data-playing='true'] .lp-pk {
+    animation: lp-go 9s linear var(--d, 0s) var(--scene-iter, infinite);
+  }
 }
 html[data-motion='full'] [data-playing='true'] .lp-act {
   animation: lp-loop 9s linear infinite;
@@ -457,6 +468,77 @@ html[data-motion='full'] [data-playing='true'] .lp-act {
   }
 }
 
+/* ── The closing strip: you say, we write, you get ─────────────────
+   Three steps in one panel, on the scenes' beats: the request arrives a
+   word at a time, the code types, the page assembles. Real type sizes,
+   so it's HTML except for the little page. */
+.lp-build {
+  display: grid;
+  gap: var(--s-6) var(--s-7);
+  padding: var(--s-5);
+}
+.lp-build-col {
+  display: grid;
+  align-content: start;
+  gap: var(--s-4);
+  min-width: 0;
+}
+.lp-step-n {
+  margin-right: var(--s-2);
+  color: var(--signal-hi);
+}
+.lp-build-say {
+  font-size: clamp(1.5rem, 1.15rem + 1.5vw, 2.25rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  color: var(--fg);
+}
+.lp-code {
+  padding: var(--s-4);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-1);
+  background: var(--ground);
+  font-family: var(--font-mono);
+  font-size: var(--t-code);
+  line-height: 1.9;
+  color: var(--fg-2);
+}
+.lp-code span {
+  display: block;
+  width: fit-content;
+  white-space: pre;
+}
+.lp-ui {
+  max-width: 320px;
+  margin: 0;
+}
+.lp-on {
+  color: var(--on-signal);
+  font-weight: 600;
+}
+.lp-build-cap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3) var(--s-5);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--t-small);
+  color: var(--fg-2);
+}
+@container lp-offers (min-width: 860px) {
+  .lp-build {
+    grid-template-columns: 5fr 4fr 4fr;
+    padding: var(--s-7) clamp(24px, 4vw, 64px) var(--s-5);
+  }
+  .lp-build-cap {
+    grid-column: 1 / -1;
+  }
+}
+
 /* ── The call-to-action band ───────────────────────────────────────
    One panel between the portfolio and the proof. The next section brings
    its own top padding, so this one adds none underneath. */
@@ -464,19 +546,20 @@ html[data-motion='full'] [data-playing='true'] .lp-act {
   padding-bottom: 0;
 }
 .lp-cta-box {
-  display: grid;
-  gap: var(--s-6);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-6) var(--s-7);
   padding: clamp(24px, 5vw, 64px);
+}
+.lp-cta-copy {
+  flex: 1 1 26rem;
+  min-width: 0;
 }
 .lp-cta-act {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--s-3) var(--s-5);
-}
-@media (min-width: 900px) {
-  .lp-cta-box {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
-  }
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-2);
 }
