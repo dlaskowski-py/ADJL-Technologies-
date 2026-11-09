@@ -6,13 +6,18 @@
  *   1. /search-index.json   every quotable passage on the site (<p>, <li>,
  *                           <dd> and FAQ answers inside <main>, with the
  *                           shared exclusion set applied, and the Ask panel
- *                           and footer left out), plus df, N and avgdl.
- *                           Postings are built in the browser on load.
+ *                           and footer left out), plus N, avgdl and the
+ *                           stopword list. df and postings are built in the
+ *                           browser on load, and checked against N and avgdl.
  *   2. Ask precompute       every chip's answer, computed here by the same
  *                           src/lib/bm25.ts the browser runs, written into
  *                           each Ask panel as <article id="ask-q{n}">. With
  *                           JavaScript off the chips link to these, and
- *                           check-links validates every citation in them.
+ *                           check-links validates every citation in them. A
+ *                           passage quoted once is linked, not re-quoted, by
+ *                           later answers. "Break the input" answers also
+ *                           carry data-met: every slider floor at which the
+ *                           case does what it promises.
  *   3. Ask evaluation       the demo has its own evaluation set: every home
  *                           chip must answer, and each "Break the input"
  *                           chip must answer, abstain, or answer from two
@@ -237,7 +242,14 @@ const { abstainSay } = await loadTs('src/sections/instruments/ask.ts');
 const FLOORS = [];
 for (let f = bm.FLOOR_MIN; f <= bm.FLOOR_MAX + 1e-9; f += bm.FLOOR_STEP) FLOORS.push(Math.round(f * 100));
 
-function articleHtml(n, q, res, ui, expect) {
+/**
+ * One chip's answer. `quoted` maps each passage already quoted in this
+ * panel to the answer that quoted it: a later answer citing the same
+ * passage links it and says where it's quoted, instead of quoting it
+ * twice. ("Who ownes the code?" citing the same three passages as "Who
+ * owns the code…" is the point of that case, and reads better that way.)
+ */
+function articleHtml(n, q, res, ui, expect, quoted) {
   const { cited } = res.answer;
   const ok = cited.length > 0;
   const head = ok
@@ -247,13 +259,17 @@ function articleHtml(n, q, res, ui, expect) {
     .map((h) => {
       const qt = bm.quote(h.p.text, h.matched, engine.stop);
       const href = `${h.p.route}#${h.p.anchor}`;
-      return `<li data-a="quote"><blockquote data-a="text" data-cut="${+qt.before}${+qt.after}"><p>${esc(
-        qt.text,
-      )}</p></blockquote><p data-a="cite"><a href="${esc(
-        href,
-      )}"><span data-a="where">${esc(href)}</span><span data-a="head">${esc(h.p.heading)}</span></a><span data-a="conf">${bm.fmt(
-        h.conf,
-      )}</span></p></li>`;
+      const key = `${href} ${qt.text}`;
+      const first = quoted.get(key);
+      if (first === undefined) quoted.set(key, n);
+      const cite = `<p data-a="cite"><a href="${esc(href)}"><span data-a="where">${esc(href)}</span><span data-a="head">${esc(
+        h.p.heading,
+      )}</span></a><span data-a="conf">${bm.fmt(h.conf)}</span>${
+        first === undefined ? '' : `<a data-a="same" href="#ask-q${first}">${esc(ui.sameAs.replace('{n}', String(first)))}</a>`
+      }</p>`;
+      return first === undefined
+        ? `<li data-a="quote"><blockquote data-a="text" data-cut="${+qt.before}${+qt.after}"><p>${esc(qt.text)}</p></blockquote>${cite}</li>`
+        : `<li data-a="quote">${cite}</li>`;
     })
     .join('');
   /* A "Break the input" case also carries every slider floor at which it
@@ -325,6 +341,7 @@ for (const pg of pages) {
     variant === 'full'
       ? C.ask.groups.items.map((g) => ({ q: g.q, expect: g.expect, label: g.label }))
       : C.ask.chips.map((q) => ({ q, expect: 'answer', label: 'Home chip' }));
+  const quoted = new Map();
   const articles = qs.map((item, i) => {
     const res = bm.run(engine, item.q, bm.FLOOR);
     const { cited } = res.answer;
@@ -333,7 +350,7 @@ for (const pg of pages) {
       if (!idsOf.get(h.p.route)?.has(h.p.anchor)) fail(`citation ${h.p.route}#${h.p.anchor} doesn't resolve`);
     }
     results.push({ route: pg.page.route, variant, ...item, res, ok });
-    return articleHtml(i + 1, item.q, res, UI, variant === 'full' && item.expect);
+    return articleHtml(i + 1, item.q, res, UI, variant === 'full' && item.expect, quoted);
   });
   pg.html = pg.html.replace('<!--ask:pre-->', `<!--ask:pre-->${articles.join('')}<!--/ask:pre-->`);
 }

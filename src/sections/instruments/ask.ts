@@ -53,7 +53,7 @@ function pane(n: number, key: 'query' | 'retrieve' | 'gate' | 'answer', body = '
           ? `<span data-o="answer">${esc(askUi.answerLabel)}</span><span data-o="abstain">${esc(askUi.abstainLabel)}</span>`
           : ''
       }</span></div>
-      <div class="askp-pane-body" data-body>${body || `<p class="askp-idle">${esc(askUi.idle[key])}</p>`}</div>${after}
+      <div data-body>${body || `<p class="askp-idle">${esc(askUi.idle[key])}</p>`}</div>${after}
     </div>`;
 }
 
@@ -106,7 +106,7 @@ const verdictWords = (['build', 'met', 'missed'] as const)
  *  then it's re-run live at whatever floor the slider is on. */
 function cases(id: string): string {
   const g = ask.groups;
-  return `<div class="askp-cases" role="group" aria-labelledby="${id}-cases">
+  return `<div role="group" aria-labelledby="${id}-cases">
       <p class="label askp-cases-title" id="${id}-cases" data-chrome>${esc(g.legend)}</p>
       <ol class="askp-case-list">${g.items
         .map(
@@ -213,6 +213,7 @@ export function renderAsk(variant: AskVariant): string {
     <p class="sr-only" role="status" aria-live="polite" data-chrome data-live></p>
     <div class="askp-pre-wrap" data-ask-pre>
       <p class="askp-pre-note">${esc(askUi.preNote)}</p>
+      <p class="askp-pre-note" data-js-only data-note="fallback">${esc(askUi.fallbackNote)}</p>
       <!--ask:pre-->
     </div>
   </div>${copyBlock(variant)}`;

@@ -97,10 +97,11 @@ function wire(root: HTMLElement): void {
   let started = false;
 
   /* Chips: links to the build's answers become buttons that ask here. */
-  const chips = Array.from(root.querySelectorAll('a[data-chip]'), (a) => {
+  const links = Array.from(root.querySelectorAll<HTMLElement>('a[data-chip]'));
+  const chips = links.map((a) => {
     const b = document.createElement('button');
     b.type = 'button';
-    b.dataset.chip = (a as HTMLElement).dataset.chip;
+    b.dataset.chip = a.dataset.chip;
     b.textContent = a.textContent;
     b.onclick = () => ask(b.textContent!, b);
     a.replaceWith(b);
@@ -114,7 +115,11 @@ function wire(root: HTMLElement): void {
     started = true;
     root.dataset.index = 'loading';
     void load().then((l) => {
-      if (!l?.e.ok) return void (root.dataset.index = l ? 'mismatch' : 'failed');
+      if (!l?.e.ok) {
+        /* Back to the build's answers, and the chips back to links to them. */
+        chips.forEach((b, i) => b.replaceWith(links[i]));
+        return void (root.dataset.index = l ? 'mismatch' : 'failed');
+      }
       engine = l.e;
       $('[data-i="ready"]')!.textContent = sub(ui.ready, { n: l.e.N, ms: l.ms.toFixed(1) });
       root.dataset.index = 'ready';

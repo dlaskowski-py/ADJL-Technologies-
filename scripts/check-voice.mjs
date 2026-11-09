@@ -36,10 +36,18 @@
  *
  * AN EXCLUSION IS NOT A HIDING PLACE. The set names containers, not words,
  * and the guard prints how many words it dropped and why. If the dropped
- * share passes 25% of everything on the site, it fails: at that point the
- * "chrome" is the site, and the copy budget is being met by moving prose
- * out of view of the counter. check-claims and check-usage still read every
- * word, excluded or not.
+ * share passes 25% of the site's AUTHORED words, it fails: at that point
+ * the "chrome" is the site, and the copy budget is being met by moving
+ * prose out of view of the counter. check-claims and check-usage still read
+ * every word, excluded or not.
+ *
+ * Derived text is kept out of that share entirely. Machine View's readout,
+ * Ask's precomputed answers and Source view's sheets are generated FROM the
+ * page: they quote its headings and passages, which are already counted as
+ * prose where they were written. Counting the quote as "hidden prose" would
+ * double-count the same sentence and make the cap measure how many
+ * instruments a page has, not how much writing it hides. They're printed
+ * on their own line so nothing disappears from the report.
  *
  * SOFT WORDS. The rebuild added one more density: the vocabulary of
  * generated marketing copy (seamless, leverage, empower, elevate, unlock,
@@ -109,8 +117,13 @@ const measured = {
 };
 
 let bad = 0;
-const totalWords = words + excludedWords;
-const excludedPct = totalWords ? (excludedWords / totalWords) * 100 : 0;
+/** Containers whose text is generated from the page itself. */
+const DERIVED = new Set(['data-machine', 'data-ask-pre', 'data-source-sheet']);
+const derivedWords = Object.entries(byReason)
+  .filter(([r]) => DERIVED.has(r))
+  .reduce((a, [, n]) => a + n, 0);
+const totalWords = words + excludedWords - derivedWords;
+const excludedPct = totalWords ? ((excludedWords - derivedWords) / totalWords) * 100 : 0;
 console.log(`check-voice: ${words} words of prose across ${PAGES.length} pages`);
 
 for (const [key, limit] of Object.entries(LIMITS)) {
@@ -150,12 +163,18 @@ if (!shortOk) {
    can see what was dropped without rerunning anything. */
 const exclOk = excludedPct <= MAX_EXCLUDED_PCT;
 const reasons = Object.entries(byReason)
+  .filter(([r]) => !DERIVED.has(r))
   .sort((a, b) => b[1] - a[1])
   .map(([r, n]) => `${r} ${n}`)
   .join(', ');
 console.log(
-  `  ${exclOk ? 'ok  ' : 'FAIL'} ${excludedPct.toFixed(1).padStart(5)} / ${MAX_EXCLUDED_PCT}%      words excluded as not prose (${excludedWords} of ${totalWords}${reasons ? `: ${reasons}` : ''})`,
+  `  ${exclOk ? 'ok  ' : 'FAIL'} ${excludedPct.toFixed(1).padStart(5)} / ${MAX_EXCLUDED_PCT}%      words excluded as not prose (${excludedWords - derivedWords} of ${totalWords}${reasons ? `: ${reasons}` : ''})`,
 );
+const derived = Object.entries(byReason)
+  .filter(([r]) => DERIVED.has(r))
+  .map(([r, n]) => `${r} ${n}`)
+  .join(', ');
+if (derivedWords) console.log(`       derived from the page, outside the cap: ${derivedWords} words (${derived})`);
 if (!exclOk) {
   const worst = perPage
     .map((p) => ({ ...p, pct: (p.excluded / Math.max(1, p.words + p.excluded)) * 100 }))
