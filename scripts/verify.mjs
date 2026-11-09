@@ -39,12 +39,16 @@
  *
  * Run against `npm run preview`.
  */
-import { mkdirSync } from 'node:fs';
-import { PAGES, slugOf } from './pages.mjs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { PAGES as ALL_PAGES, slugOf } from './pages.mjs';
 import { bundleForBrowser } from './lib/ts.mjs';
 import { chromiumLauncher, launchOptions } from './lib/browser.mjs';
 
 const BASE = (process.env.BASE ?? 'http://localhost:4173').replace(/\/$/, '');
+/* ONLY=/,/work/ limits the run to those routes, for a quick look after one
+   change. The full run is the one that counts. */
+const ONLY = process.env.ONLY ? new Set(process.env.ONLY.split(',').map((r) => r.trim())) : null;
+const PAGES = ALL_PAGES.filter((p) => !ONLY || ONLY.has(p.route));
 const SHOTS = 'artifacts';
 mkdirSync(SHOTS, { recursive: true });
 
@@ -134,6 +138,19 @@ async function scrollThrough(p) {
 }
 
 const jsOnText = new Map();
+
+/** An instrument is present when its markup is on the page AND its motion
+ *  module exists and isn't a placeholder (a file whose header says STUB).
+ *  Stub markup ahead of its module is "not present" yet. */
+const hasModule = (name) => {
+  const f = `src/motion/${name}.ts`;
+  return existsSync(f) && !/\bSTUB\b/.test(readFileSync(f, 'utf8').slice(0, 600));
+};
+const absent = async (p, selector, module) => {
+  if (!hasModule(module)) return `src/motion/${module}.ts`;
+  if (!(await p.$(selector))) return selector;
+  return null;
+};
 
 /* ── Every page, both viewports ──────────────────────────────────────── */
 for (const vp of VIEWPORTS) {
@@ -226,8 +243,8 @@ console.log('instruments');
   /* Lattice: full tier runs, Pause stops it, offscreen stops it. */
   {
     const { p } = await open(ctx, '/');
-    const has = await p.$('[data-lattice]');
-    if (!has) skip('lattice: skipped (not present)');
+    const missing = await absent(p, '[data-lattice]', 'lattice');
+    if (missing) skip(`lattice: skipped (not present: ${missing})`);
     else {
       const tier = await p.evaluate(() => document.documentElement.dataset.motion ?? '(unset)');
       const running = () => p.evaluate(() => document.querySelector('[data-lattice]')?.getAttribute('data-running'));
@@ -270,7 +287,8 @@ console.log('instruments');
   /* Pipeline: data-stage reaches 5 over a scroll. */
   {
     const { p } = await open(ctx, '/');
-    if (!(await p.$('[data-pipeline]'))) skip('pipeline: skipped (not present)');
+    const missing = await absent(p, '[data-pipeline]', 'pipeline');
+    if (missing) skip(`pipeline: skipped (not present: ${missing})`);
     else {
       const max = await p.evaluate(async () => {
         const root = document.querySelector('[data-pipeline]');
@@ -301,7 +319,8 @@ console.log('instruments');
   /* Machine View: the live fetch completes with parity at 100%. */
   {
     const { p } = await open(ctx, '/');
-    if (!(await p.$('[data-machine]'))) skip('machine: skipped (not present)');
+    const missing = await absent(p, '[data-machine]', 'machine');
+    if (missing) skip(`machine: skipped (not present: ${missing})`);
     else {
       await p.evaluate(() => document.querySelector('[data-machine]')?.scrollIntoView({ block: 'center' }));
       const result = await p.evaluate(async () => {
@@ -328,8 +347,9 @@ console.log('instruments');
   {
     const { p } = await open(ctx, '/');
     const input = await p.$('[data-ask] input[type="search"], [data-ask] input');
-    if (!(await p.$('[data-ask]'))) skip('ask: skipped (not present)');
-    else if (!input) skip('ask: skipped (no input in [data-ask] yet)');
+    const missing = await absent(p, '[data-ask]', 'ask');
+    if (missing) skip(`ask: skipped (not present: ${missing})`);
+    else if (!input) skip('ask: skipped (not present: no input in [data-ask])');
     else {
       const ask = (q) =>
         p.evaluate(async (question) => {
@@ -373,7 +393,9 @@ console.log('instruments');
   {
     const { p } = await open(ctx, '/');
     const radios = await p.$$('[data-views] input[type="radio"]');
-    if (!radios.length) skip('views: skipped (not present)');
+    const missing = await absent(p, '[data-views]', 'views');
+    if (missing) skip(`views: skipped (not present: ${missing})`);
+    else if (!radios.length) skip('views: skipped (not present: no radios in [data-views])');
     else {
       for (const v of ['machine', 'source', 'render']) {
         const got = await p.evaluate(async (value) => {

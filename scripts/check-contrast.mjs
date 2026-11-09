@@ -2,338 +2,281 @@
  * Measures text contrast on the BUILT, RUNNING site.
  *
  * tokens.css states a ratio for every pairing it defines, but a stated ratio
- * is an intention. What a reader actually sees is the colour that won the
- * cascade, over whatever is actually behind it — which on this site is
- * sometimes a film under a gradient veil, and there is no way to compute that
- * from the stylesheet at all.
+ * is an intention. What a reader actually sees is the color that won the
+ * cascade, at whatever opacity it ended up with, over whatever is actually
+ * behind it. So this measures the page a browser rendered: for every element
+ * with its own text, the computed color, composited through its own and
+ * every ancestor's opacity, against the first opaque background up the tree.
  *
- * So there are two passes, and the second is the one that matters:
+ * One ground and no text over any canvas or the hero figure (the layout rule
+ * in tokens.css) is what makes that flat measurement valid. The film pass
+ * this script used to carry is gone with the films.
  *
- *   FLAT   Text over a solid ground. The effective background is found by
- *          walking ancestors until something opaque is hit. Fast, exact,
- *          and it covers most of the site.
+ * The page isn't one state, though, so it's measured in each of them:
  *
- *   FILM   Text over a .backdrop. The text is made TRANSPARENT, the region behind
- *          it is screenshotted, and a NEAR-EXTREME percentile of that region
- *          is used. Several frames are sampled across the loop, because a
- *          clip whose average is comfortable can still sweep a specular
- *          highlight under a headline twice a loop, and an average hides
- *          exactly that.
+ *   render    the page as it loads
+ *   machine   html[data-view="machine"]: the grid brightens, decoration
+ *             dims, and headings, links and landmarks grow annotations.
+ *             Those annotations are ::before/::after content, so pseudo-
+ *             elements with text are measured too, in every pass.
+ *   source    html[data-view="source"], with the Source sheets open
+ *   drawer    Machine view's readout drawer, when the page has one
+ *   dialog    the ⌘K palette, open, when the page has one
+ *   ask       Ask This Site after a cited answer and after an abstention
  *
- *          Sampling is done over the TEXT's own client rects, obtained from a
- *          Range over its text nodes, not over the element's bounding box. A
- *          block-level <p class="eyebrow"> spans the whole column however
- *          short its words are, so its box is mostly empty film to the right
- *          of the text — and measuring that reported 1.50:1 on an eyebrow
- *          whose actual glyphs sit on a well-veiled part of the frame. What
- *          matters is what is behind the letters.
- *
- *          Transparency rather than visibility:hidden, and the whole
- *          containing block rather than the target alone. Two bugs came out
- *          of getting this wrong. Hiding only the target left the ADJACENT
- *          line's descenders inside the sample — a 'p' hanging into the line
- *          below reported 1.94:1 against text sitting on pale film. And
- *          hiding the element outright removed its OWN background, so a
- *          translucent numeral chip was measured against the film it is there
- *          to sit on top of. Making every glyph in the block transparent
- *          leaves backgrounds, borders and chips exactly where they are and
- *          removes only the letters.
- *
- *          A percentile is still used on top of that, for antialiased edges
- *          and for the odd stray pixel a border contributes.
- *
- * PNG decoding is done by handing the screenshot back to the browser as a
- * data URL and reading it off a canvas, rather than adding an image library
- * for the sake of one number.
+ * A state whose element isn't on the page yet is skipped with a note, not
+ * failed. Decoration (anything under aria-hidden="true") is exempt, as WCAG
+ * exempts pure decoration; its pseudo-element labels are not.
  *
  * Run against `npm run preview`.
  */
-import { chromium } from 'playwright-core';
-import { globSync } from 'node:fs';
-import { PAGES } from './pages.mjs';
+import { PAGES as ALL_PAGES } from './pages.mjs';
+import { chromiumLauncher, launchOptions } from './lib/browser.mjs';
 
-const BASE = process.env.BASE ?? 'http://localhost:4173';
-const CHROME = globSync('/opt/pw-browsers/chromium-*/chrome-linux/chrome')[0];
-
-/** Frames sampled across an 8-second loop, for text sitting over film. */
-const FILM_SAMPLES = 5;
+const BASE = (process.env.BASE ?? 'http://localhost:4173').replace(/\/$/, '');
+/* ONLY=/,/work/ limits the run to those routes, for a quick look after one
+   change. The full run is the one that counts. */
+const ONLY = process.env.ONLY ? new Set(process.env.ONLY.split(',').map((r) => r.trim())) : null;
+const PAGES = ALL_PAGES.filter((p) => !ONLY || ONLY.has(p.route));
 
 const srgb = (c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
-const lum = ([r, g, b]) =>
-  0.2126 * srgb(r / 255) + 0.7152 * srgb(g / 255) + 0.0722 * srgb(b / 255);
+const lum = ([r, g, b]) => 0.2126 * srgb(r / 255) + 0.7152 * srgb(g / 255) + 0.0722 * srgb(b / 255);
 const ratio = (a, b) => {
   const [hi, lo] = a > b ? [a, b] : [b, a];
   return (hi + 0.05) / (lo + 0.05);
 };
-
 /** WCAG AA: 3:1 for large text (>=24px, or >=18.66px bold), else 4.5:1. */
 const floorFor = (px, weight) => (px >= 24 || (px >= 18.66 && weight >= 700) ? 3 : 4.5);
+/** Text drawn at alpha < 1 is its color mixed with what's behind it. */
+const composite = (fg, bg, a) => fg.map((c, i) => a * c + (1 - a) * bg[i]);
 
-const browser = await chromium.launch({
-  executablePath: CHROME,
-  args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required'],
-});
+const chromium = await chromiumLauncher();
+const browser = await chromium.launch(launchOptions);
 const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-
-/** A scratch page used only to decode screenshots into pixels. */
-const decoder = await ctx.newPage();
-await decoder.goto('about:blank');
-
-async function worstPixel(pngBuffer) {
-  return decoder.evaluate(async (b64) => {
-    const img = new Image();
-    img.src = 'data:image/png;base64,' + b64;
-    await img.decode();
-    const c = document.createElement('canvas');
-    c.width = img.width;
-    c.height = img.height;
-    const g = c.getContext('2d');
-    g.drawImage(img, 0, 0);
-    const { data } = g.getImageData(0, 0, c.width, c.height);
-    const s = (v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
-
-    const lums = new Float64Array(data.length / 4);
-    const px = new Array(data.length / 4);
-    for (let i = 0, j = 0; i < data.length; i += 4, j++) {
-      px[j] = [data[i], data[i + 1], data[i + 2]];
-      lums[j] = 0.2126 * s(px[j][0] / 255) + 0.7152 * s(px[j][1] / 255) + 0.0722 * s(px[j][2] / 255);
-    }
-
-    const idx = Array.from(lums.keys()).sort((a, b) => lums[a] - lums[b]);
-    // 2% in from each end. Anything rarer than that is a stray glyph edge or
-    // a compression artefact, not something a word is sitting on.
-    const lo = idx[Math.floor(idx.length * 0.01)];
-    const hi = idx[Math.floor(idx.length * 0.99)];
-    return { min: px[lo], max: px[hi], minL: lums[lo], maxL: lums[hi] };
-  }, pngBuffer.toString('base64'));
-}
 
 let failures = 0;
 let checked = 0;
+const notes = new Set();
+const perPass = {};
 
-for (const page of PAGES) {
-  const p = await ctx.newPage();
-  await p.goto(BASE + page.route, { waitUntil: 'networkidle' });
-  /* text-fill-color as well as color: a descendant that sets its own colour
-     — the copper <em> in every headline does — would otherwise ignore an
-     inherited transparent. */
-  await p.addStyleTag({
-    content: '.cc-blank, .cc-blank * { color: transparent !important; -webkit-text-fill-color: transparent !important; text-shadow: none !important; }',
-  });
-  // Reveal everything, then come back to the top.
-  await p.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await p.waitForTimeout(900);
-  await p.evaluate(() => window.scrollTo(0, 0));
-  await p.waitForTimeout(700);
+/** Every text-bearing element (and text-bearing pseudo-element) under
+ *  `scope`, with what's needed to compute its ratio. Runs in the page. */
+function collect(scope) {
+  const parse = (s) => {
+    const m = /rgba?\(([^)]+)\)/.exec(s ?? '');
+    if (!m) return null;
+    const n = m[1].split(/[ ,/]+/).filter(Boolean).map((v) => parseFloat(v));
+    return { rgb: [n[0], n[1], n[2]], a: n.length > 3 ? n[3] : 1 };
+  };
+  const root = scope ? document.querySelector(scope) : document.body;
+  if (!root) return null;
 
-  const targets = await p.evaluate(() => {
-    const parse = (s) => {
-      const m = /rgba?\(([^)]+)\)/.exec(s);
-      if (!m) return null;
-      const n = m[1].split(',').map((v) => parseFloat(v));
-      return { rgb: [n[0], n[1], n[2]], a: n.length > 3 ? n[3] : 1 };
-    };
+  const alphaOf = (el, own) => {
+    let a = own;
+    for (let e = el; e && e !== document.documentElement; e = e.parentElement) {
+      const o = parseFloat(getComputedStyle(e).opacity);
+      if (!Number.isNaN(o)) a *= o;
+    }
+    return a;
+  };
+  const bgOf = (el) => {
+    for (let a = el; a; a = a.parentElement) {
+      const b = parse(getComputedStyle(a).backgroundColor);
+      if (b && b.a >= 0.95) return b.rgb;
+    }
+    return parse(getComputedStyle(document.documentElement).backgroundColor)?.rgb ?? [255, 255, 255];
+  };
+  const visible = (el, cs) => {
+    if (cs.visibility === 'hidden' || cs.display === 'none') return false;
+    const r = el.getBoundingClientRect();
+    return r.width >= 2 && r.height >= 2;
+  };
 
-    const out = [];
-    let id = 0;
+  const out = [];
+  for (const el of [root, ...root.querySelectorAll('*')]) {
+    const cs = getComputedStyle(el);
+    const decorative = !!el.closest('[aria-hidden="true"]');
 
-    for (const el of document.querySelectorAll('body *')) {
-      // Only elements with their own visible text.
-      const own = Array.from(el.childNodes)
-        .filter((n) => n.nodeType === 3)
-        .map((n) => n.textContent.trim())
-        .join('');
-      if (!own) continue;
-
-      const cs = getComputedStyle(el);
-      if (cs.visibility === 'hidden' || cs.display === 'none') continue;
-      const r = el.getBoundingClientRect();
-      if (r.width < 2 || r.height < 2) continue;
-
+    const own = Array.from(el.childNodes)
+      .filter((n) => n.nodeType === 3)
+      .map((n) => n.textContent.trim())
+      .join('');
+    if (own && !decorative && visible(el, cs)) {
       const fg = parse(cs.color);
+      const alpha = fg ? alphaOf(el, fg.a) : 0;
+      if (fg && alpha >= 0.06) {
+        out.push({
+          what: `${el.tagName.toLowerCase()}${el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\s+/).slice(0, 2).join('.') : ''}`,
+          text: own.slice(0, 46),
+          fg: fg.rgb,
+          bg: bgOf(el),
+          alpha,
+          px: parseFloat(cs.fontSize),
+          weight: parseInt(cs.fontWeight, 10) || 400,
+        });
+      }
+    }
+
+    /* Generated text: Machine view's annotations are content: attr(href)
+       and friends on ::before/::after. */
+    for (const pseudo of ['::before', '::after']) {
+      const ps = getComputedStyle(el, pseudo);
+      const content = ps.content;
+      if (!content || content === 'none' || content === 'normal' || ps.display === 'none') continue;
+      /* Drop the alt-text part (`/ ""`). What's left is text when it
+         carries a letter or digit, or pulls one in with attr()/counter().
+         Separator and bullet glyphs alone (› · →) are decoration. */
+      const textual = content.replace(/\/\s*(""|'')\s*$/, '').trim();
+      if (!/attr\(|counters?\(|[\p{L}\p{N}]/u.test(textual)) continue;
+      if (!visible(el, cs)) continue;
+      const fg = parse(ps.color);
       if (!fg) continue;
-
-      /* Effective alpha: the element's own opacity times every ancestor's,
-         multiplied by the alpha in the colour itself.
-
-         This used to SKIP anything under 0.9, on the theory that a partly
-         transparent element was mid-reveal. That was wrong twice over — the
-         reveals are all complete by the time this runs, and design states
-         that dim text permanently are exactly the ones most likely to fail.
-         The skip hid an 11px numeral sitting at 2.16:1 and a whole column of
-         body copy at 2.2:1, and reported the page clean. A faded colour is
-         not a reason to look away; it is the reason to look. */
-      let alpha = fg.a;
-      for (let a = el; a && a !== document.documentElement; a = a.parentElement) {
-        const o = parseFloat(getComputedStyle(a).opacity);
-        if (!Number.isNaN(o)) alpha *= o;
-      }
+      const own = parse(ps.backgroundColor);
+      const alpha = alphaOf(el, fg.a) * (parseFloat(ps.opacity) || 1);
       if (alpha < 0.06) continue;
-
-      // Is there film behind this element anywhere up the tree?
-      let overFilm = false;
-      for (let a = el; a && a !== document.body; a = a.parentElement) {
-        if (a.querySelector?.(':scope > .backdrop')) { overFilm = true; break; }
-      }
-
-      // Effective flat background: first opaque ancestor background-color.
-      let bg = null;
-      for (let a = el; a && !bg; a = a.parentElement) {
-        const b = parse(getComputedStyle(a).backgroundColor);
-        if (b && b.a >= 0.95) bg = b.rgb;
-      }
-
-      /* Tight rects around the glyphs themselves — one per rendered line —
-         rather than the element's box. */
-      const rects = [];
-      for (const n of el.childNodes) {
-        if (n.nodeType !== 3 || !n.textContent.trim()) continue;
-        const range = document.createRange();
-        range.selectNodeContents(n);
-        for (const rr of range.getClientRects()) {
-          if (rr.width >= 4 && rr.height >= 4) rects.push({ x: rr.x, y: rr.y, w: rr.width, h: rr.height });
-        }
-      }
-      if (overFilm && !rects.length) continue;
-
-      el.setAttribute('data-cc', String(id));
       out.push({
-        id: id++,
-        tag: el.tagName.toLowerCase(),
-        cls: el.className?.toString?.().slice(0, 40) ?? '',
-        text: own.slice(0, 46),
+        what: `${el.tagName.toLowerCase()}${pseudo}`,
+        text: textual.replace(/^"(.*)"$/, '$1').slice(0, 46),
         fg: fg.rgb,
-        bg,
-        px: parseFloat(cs.fontSize),
-        weight: parseInt(cs.fontWeight, 10) || 400,
+        bg: own && own.a >= 0.95 ? own.rgb : bgOf(el),
         alpha,
-        overFilm,
-        // Widest first: if the count has to be capped, keep the lines with
-        // the most glyphs on them.
-        rects: rects.sort((a, b) => b.w - a.w).slice(0, 4),
+        px: parseFloat(ps.fontSize),
+        weight: parseInt(ps.fontWeight, 10) || 400,
       });
     }
-    return out;
-  });
+  }
+  return out;
+}
 
-  /** Text drawn at alpha < 1 is really its colour mixed with what is behind
-   *  it. Measure what lands on the screen, not what the stylesheet asked for. */
-  const composite = (fg, bg, a) => fg.map((c, i) => a * c + (1 - a) * bg[i]);
-
+function judge(route, pass, targets) {
+  perPass[pass] = (perPass[pass] ?? 0) + targets.length;
   for (const t of targets) {
-    const floor = floorFor(t.px, t.weight);
-
-    if (!t.overFilm) {
-      if (!t.bg) continue;
-      checked++;
-      const fgL = lum(t.alpha < 0.995 ? composite(t.fg, t.bg, t.alpha) : t.fg);
-      const r = ratio(fgL, lum(t.bg));
-      if (r < floor) {
-        console.error(
-          `check-contrast: ${page.route} ${t.tag}.${t.cls} "${t.text}" — ${r.toFixed(2)}:1 (needs ${floor}) at ${t.px}px${
-            t.alpha < 0.995 ? ` (alpha ${t.alpha.toFixed(2)})` : ''
-          }`,
-        );
-        failures++;
-      }
-      continue;
-    }
-
-    // FILM. Hide the text, sample the region behind it across the loop.
     checked++;
-    let worst = Infinity;
-    let worstAt = null;
-
-    for (let i = 0; i < FILM_SAMPLES; i++) {
-      await p.evaluate(
-        ([id, frac]) => {
-          const el = document.querySelector(`[data-cc="${id}"]`);
-          if (el) {
-            el.scrollIntoView({ block: 'center', behavior: 'instant' });
-            /* Blank EVERY glyph on the page, not just this element's block.
-               A line box belongs to its block, so a neighbouring line's
-               descenders overlap this rect and get sampled as background —
-               and walking up to "the containing block" does not help when
-               the masked headline spans are themselves display:block. There
-               is no downside to blanking everything: only backgrounds are
-               being measured, and colour:transparent leaves every background,
-               border, chip and film exactly where it was. */
-            document.body.classList.add('cc-blank');
-          }
-          for (const v of document.querySelectorAll('video')) {
-            if (v.duration && isFinite(v.duration)) v.currentTime = v.duration * frac;
-          }
-        },
-        [t.id, i / FILM_SAMPLES],
-      );
-      await p.waitForTimeout(260);
-
-      /* Clip in VIEWPORT coordinates after centring the element. A fullPage
-         screenshot is stitched from several captures and repaints
-         position:fixed elements into every one, so the fixed nav lands
-         inside clips taken far down the page. */
-      const clips = await p.evaluate((id) => {
-        const el = document.querySelector(`[data-cc="${id}"]`);
-        if (!el) return [];
-        el.scrollIntoView({ block: 'center', behavior: 'instant' });
-        // Re-derive the glyph rects after scrolling — they are viewport
-        // relative, so the pre-scroll values are stale.
-        const out = [];
-        for (const n of el.childNodes) {
-          if (n.nodeType !== 3 || !n.textContent.trim()) continue;
-          const range = document.createRange();
-          range.selectNodeContents(n);
-          for (const rr of range.getClientRects()) {
-            if (rr.width < 4 || rr.height < 4) continue;
-            const x = Math.max(0, Math.floor(rr.x));
-            const y = Math.max(0, Math.floor(rr.y));
-            const w = Math.floor(Math.min(rr.width, window.innerWidth - x));
-            const h = Math.floor(Math.min(rr.height, window.innerHeight - y));
-            if (w >= 4 && h >= 4) out.push({ x, y, width: w, height: h });
-          }
-        }
-        return out.sort((a, b) => b.width - a.width).slice(0, 4);
-      }, t.id);
-
-      for (const clip of clips) {
-        const shot = await p.screenshot({ clip });
-        const { minL, maxL, min, max } = await worstPixel(shot);
-        // Dark text is worst against the dark end; light text against the
-        // light end. Take whichever applies to this foreground.
-        const rawL = lum(t.fg);
-        const bgL = rawL < 0.4 ? minL : maxL;
-        const bgPx = rawL < 0.4 ? min : max;
-        const fgL = t.alpha < 0.995 ? lum(composite(t.fg, bgPx, t.alpha)) : rawL;
-        const r = ratio(fgL, bgL);
-        if (r < worst) {
-          worst = r;
-          worstAt = bgPx;
-        }
-      }
-
-      await p.evaluate(() => {
-        document.querySelectorAll('.cc-blank').forEach((n) => n.classList.remove('cc-blank'));
-      });
-    }
-
-    if (worst === Infinity) continue;
-    if (worst < floor) {
+    const floor = floorFor(t.px, t.weight);
+    const fgL = lum(t.alpha < 0.995 ? composite(t.fg, t.bg, t.alpha) : t.fg);
+    const r = ratio(fgL, lum(t.bg));
+    if (r < floor) {
       console.error(
-        `check-contrast: ${page.route} ${t.tag}.${t.cls} "${t.text}" over film — ${worst.toFixed(
-          2,
-        )}:1 (needs ${floor}) at ${t.px}px, worst background rgb(${worstAt.join(',')})`,
+        `check-contrast: [${pass}] ${route} ${t.what} "${t.text}": ${r.toFixed(2)}:1 (needs ${floor}) at ${t.px}px${t.alpha < 0.995 ? ` (alpha ${t.alpha.toFixed(2)})` : ''}`,
       );
       failures++;
     }
   }
+}
 
+/** Load a page with every reveal fired, back at the top. */
+async function load(route) {
+  const p = await ctx.newPage();
+  await p.goto(BASE + route, { waitUntil: 'networkidle' });
+  await p.evaluate(async () => {
+    const step = Math.floor(window.innerHeight * 0.8);
+    for (let y = 0; y < document.documentElement.scrollHeight; y += step) {
+      window.scrollTo(0, y);
+      await new Promise((r) => setTimeout(r, 60));
+    }
+    window.scrollTo(0, document.documentElement.scrollHeight);
+    await new Promise((r) => setTimeout(r, 700));
+    window.scrollTo(0, 0);
+    await new Promise((r) => setTimeout(r, 400));
+  });
+  return p;
+}
+
+/** Switch views the way a visitor does (the radio, so views.ts runs and
+ *  Source sheets get inserted), and set the attribute regardless, so the
+ *  CSS state is measured even before views.ts exists. */
+async function setView(p, view) {
+  await p.evaluate(async (v) => {
+    const radio = document.querySelector(`[data-views] input[type="radio"][value="${v}"]`);
+    if (radio) radio.click();
+    document.documentElement.dataset.view = v;
+    await new Promise((r) => setTimeout(r, 700));
+  }, view);
+}
+
+const ASK_PAGES = new Set(['/', '/services/ai-engineering/']);
+
+for (const page of PAGES) {
+  const route = page.route;
+
+  // ── Render ──
+  let p = await load(route);
+  judge(route, 'render', (await p.evaluate(collect, null)) ?? []);
+
+  // ── Ask, answered and abstained ──
+  if (ASK_PAGES.has(route)) {
+    for (const [state, q] of [
+      ['ask answered', null],
+      ['ask abstained', 'Do you sell a chatbot subscription?'],
+    ]) {
+      const ran = await p.evaluate(async (question) => {
+        const root = document.querySelector('[data-ask]');
+        const field = root?.querySelector('input[type="search"], input');
+        if (!field) return false;
+        root.scrollIntoView({ block: 'center' });
+        field.focus();
+        field.value = question ?? field.placeholder ?? 'Who owns the code?';
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+        const btn = [...root.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Ask');
+        if (btn) btn.click();
+        else field.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+        await new Promise((r) => setTimeout(r, 1500));
+        return true;
+      }, q);
+      if (!ran) notes.add(`${state}: skipped (no Ask input on ${route} yet)`);
+      else judge(route, state, (await p.evaluate(collect, '[data-ask]')) ?? []);
+    }
+  }
+
+  // ── ⌘K dialog ──
+  const opened = await p.evaluate(async () => {
+    const btn = document.querySelector('[data-palette]');
+    if (!btn) return false;
+    btn.click();
+    await new Promise((r) => setTimeout(r, 500));
+    return !!document.querySelector('dialog[open]');
+  });
+  if (!opened) notes.add('dialog: skipped (no [data-palette] that opens a dialog yet)');
+  else judge(route, 'dialog', (await p.evaluate(collect, 'dialog[open]')) ?? []);
+  await p.close();
+
+  // ── Machine, and its drawer ──
+  p = await load(route);
+  await setView(p, 'machine');
+  judge(route, 'machine', (await p.evaluate(collect, null)) ?? []);
+  const drawer = await p.evaluate(() => {
+    const d = document.querySelector('[data-drawer]');
+    if (!d) return false;
+    const r = d.getBoundingClientRect();
+    return r.width > 2 && r.height > 2 && getComputedStyle(d).visibility !== 'hidden';
+  });
+  if (!drawer) notes.add('drawer: skipped (no visible [data-drawer] in Machine view yet)');
+  else judge(route, 'drawer', (await p.evaluate(collect, '[data-drawer]')) ?? []);
+  await p.close();
+
+  // ── Source, with the sheets open ──
+  p = await load(route);
+  await setView(p, 'source');
+  const sheets = await p.evaluate(async () => {
+    const t0 = performance.now();
+    while (performance.now() - t0 < 2500 && !document.querySelector('[data-source-sheet]')) {
+      await new Promise((r) => setTimeout(r, 150));
+    }
+    return document.querySelectorAll('[data-source-sheet]').length;
+  });
+  if (!sheets) notes.add('source: sheets not present yet; measured the source-view CSS state only');
+  judge(route, 'source', (await p.evaluate(collect, null)) ?? []);
   await p.close();
 }
 
 await browser.close();
 
+for (const n of notes) console.log(`check-contrast: note: ${n}`);
+const passes = Object.entries(perPass)
+  .map(([k, v]) => `${k} ${v}`)
+  .join(', ');
 if (failures) {
-  console.error(`\ncheck-contrast: ${failures} failure(s) across ${checked} text elements`);
+  console.error(`\ncheck-contrast: ${failures} failure(s) across ${checked} measurements (${passes})`);
   process.exit(1);
 }
-console.log(`check-contrast: ${checked} text elements measured, all clear of their WCAG AA floor`);
+console.log(`check-contrast: ${checked} measurements across ${PAGES.length} pages (${passes}), all clear of their WCAG AA floor`);

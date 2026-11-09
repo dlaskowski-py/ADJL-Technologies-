@@ -21,14 +21,17 @@
  *   - every `data-ld="#x"` in the markup (the attribute Machine View and the
  *     hero graph use to pin a section to its entity) resolves to an @id in
  *     the same page's graph
- *   - the markdown twin the head advertises was actually written
+ *   - the markdown twin the head advertises was actually written, and
+ *     dist/_headers serves it as text/markdown with a canonical Link back
+ *     to its page (and marks the search index and source sheets noindex)
  *   - no title carries an em-dash: the separator is " | " everywhere
  */
-import { readFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { ORIGIN, PAGES } from './pages.mjs';
 import { slugOf, twinOf } from './seo.mjs';
 import { walk, ldNodes, typesOf, jsonScripts } from './lib-text.mjs';
 import { pass } from './lib/report.mjs';
+import { readHeaders } from './lib/headers.mjs';
 
 /** Google truncates a title near 60 characters (the spec target). Over 65
  *  is certainly cut. */
@@ -261,6 +264,42 @@ for (const [route, { nodes, ids }] of graphs) {
     if (!target) fail(`${route} references ${id}, on a page that isn't built`);
     else if (!target.ids.has(id)) fail(`${route} references ${id}, which ${routeOfId(id)} doesn't define`);
   }
+}
+
+/* ── dist/_headers ─────────────────────────────────────────────────
+   What the machine files are served AS is invisible in the HTML and only
+   shows up in a `curl -I` against a deploy. A twin served as text/plain
+   with no canonical competes with the page it copies; a search index
+   served without noindex can be indexed as a page. Netlify path patterns
+   allow `*` (any run of characters) and `:name` (one segment). */
+const headerBlocks = readHeaders();
+const matches = (pattern, path) =>
+  new RegExp(
+    '^' + pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/:[A-Za-z_]+/g, '[^/]+') + '$',
+  ).test(path);
+const headerOf = (path, name) => {
+  let value = null;
+  for (const b of headerBlocks) {
+    if (!matches(b.path, path)) continue;
+    for (const [k, v] of b.headers) if (k.toLowerCase() === name.toLowerCase()) value = v;
+  }
+  return value;
+};
+for (const page of PAGES) {
+  const twin = twinOf(page.route);
+  const type = headerOf(twin, 'Content-Type') ?? '';
+  if (!/^text\/markdown\b/.test(type) || !/charset=utf-8/i.test(type)) {
+    fail(`_headers doesn't serve ${twin} as text/markdown; charset=utf-8 (got "${type || 'nothing'}")`);
+  }
+  const link = headerOf(twin, 'Link') ?? '';
+  if (link !== `<${ORIGIN}${page.route}>; rel="canonical"`) fail(`_headers gives ${twin} no canonical Link back to ${ORIGIN}${page.route}`);
+}
+const noindex = [
+  ...(existsSync('dist/search-index.json') ? ['/search-index.json'] : []),
+  ...(existsSync('dist/source') ? readdirSync('dist/source').filter((f) => f.endsWith('.json')).map((f) => `/source/${f}`) : []),
+];
+for (const path of noindex) {
+  if (!/noindex/i.test(headerOf(path, 'X-Robots-Tag') ?? '')) fail(`_headers doesn't mark ${path} X-Robots-Tag: noindex`);
 }
 
 // ── Sitemap, robots, 404 ────────────────────────────────────────

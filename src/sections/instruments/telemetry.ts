@@ -1,34 +1,89 @@
 /**
  * Telemetry markup: the status-bar readouts and the large panel.
- * Sizes (html, css, js, 3rd-party) are written at build by
- * scripts/stamp-sizes.mjs into [data-metric]; the rest prerender as
- * "needs JS" and motion/telemetry.ts swaps in live values.
  *
- * OWNER: WS2. STUB until WS2 lands. Markup contract: [data-telemetry].
+ * Sizes (html, css, js, 3rd-party) are BUILD values: scripts/stamp-sizes.mjs
+ * writes them into [data-metric] once the page is final. Everything else is
+ * measured in the visitor's browser, so it prerenders as "needs JS" and
+ * motion/telemetry.ts swaps in the reading when the browser reports one,
+ * flipping that metric's chip to Live. Every value sits in a fixed-width
+ * slot (machine.css / telemetry.css), so a reading landing never moves
+ * anything.
+ *
+ * OWNER: WS2. Markup contract: [data-telemetry].
  */
-import { status } from '../../content';
+import { prov, status } from '../../content';
 import { chip, esc } from '../html';
 
-const KEYS = ['html', 'css', 'js', 'thirdparty', 'lcp', 'cls', 'inp', 'tier'] as const;
-const BUILD = new Set(['html', 'css', 'js', 'thirdparty']);
+type Key = keyof typeof status.metrics;
 
-function slots(): string {
-  const m = status.metrics as Record<string, string>;
-  return KEYS.map(
-    (k) =>
-      `<div class="tm"><dt>${esc(m[k])}</dt><dd class="num" data-metric="${k}" data-chrome${
-        BUILD.has(k) ? '' : ` title="${esc('Measured when JavaScript runs.')}"`
-      }>${BUILD.has(k) ? '' : esc(status.needsJs)}</dd></div>`,
-  ).join('');
+/** Measured at build (stamp-sizes). 3rd-party also has a live reading. */
+const BUILD = new Set<Key>(['html', 'css', 'js', 'thirdparty']);
+
+/** The status bar: the spec's eight, in its order. `pri` decides which
+ *  ones the fixed bar can drop when it runs out of room (telemetry.css);
+ *  every one is always in the large panel and in Machine View. */
+const STATUS: [Key, number][] = [
+  ['html', 1],
+  ['css', 2],
+  ['js', 1],
+  ['thirdparty', 2],
+  ['lcp', 1],
+  ['cls', 1],
+  ['inp', 3],
+  ['tier', 3],
+];
+
+/** The large panel: sizes, then the timings, then the page itself. */
+const PANEL: Key[] = ['html', 'css', 'js', 'thirdparty', 'lcp', 'cls', 'inp', 'ttfb', 'transfer', 'requests', 'dom', 'cookies', 'tier'];
+
+/* Not in src/content.ts yet (listed in WS2's report): what a metric that
+   needs an interaction says before there's been one. */
+const NONE = { label: 'none yet', title: 'No interaction yet. Click, tap or type and it’s measured.' };
+
+/** Strings the live module needs, carried in the markup so the main bundle
+ *  never imports the site's copy. One JSON attribute per readout group. */
+export function telemetryCopy(): string {
+  return esc(
+    JSON.stringify({
+      needs: status.needsJs,
+      needsTitle: status.needsJsTitle,
+      nr: status.notReported,
+      nrTitle: status.notReportedTitle,
+      cached: status.cached,
+      rate: status.ratings,
+      live: prov.live.label,
+      liveDef: prov.live.def,
+      none: NONE.label,
+      noneTitle: NONE.title,
+    }),
+  );
+}
+
+/** One value slot. BUILD ones are empty until stamp-sizes fills them. */
+function slot(k: Key): string {
+  return BUILD.has(k)
+    ? `<dd class="num" data-metric="${k}" data-chrome data-prov="build" title="${esc(prov.build.def)}"></dd>`
+    : `<dd class="num" data-metric="${k}" data-chrome data-state="nojs" title="${esc(status.needsJsTitle)}">${esc(
+        status.needsJs,
+      )}</dd>`;
 }
 
 export function renderStatusReadouts(): string {
-  return `<dl class="status-readouts" data-chrome>${slots()}</dl>${chip('build')}`;
+  const m = status.metrics;
+  return `<dl class="status-readouts" data-chrome data-copy="${telemetryCopy()}">${STATUS.map(
+    ([k, pri]) => `<div class="tm" data-pri="${pri}"><dt>${esc(m[k])}</dt>${slot(k)}</div>`,
+  ).join('')}</dl>${chip('build')}`;
 }
 
 export function renderTelemetryPanel(): string {
+  const m = status.metrics;
   return `<div class="panel tm-panel" data-telemetry="panel">
     <div class="panel-head"><span class="panel-title">${esc(status.label)}</span>${chip('build')}</div>
-    <dl class="tm-grid" data-chrome>${slots()}</dl>
+    <dl class="tm-grid" data-chrome data-copy="${telemetryCopy()}">${PANEL.map(
+      (k) => `<div class="tm-tile" data-key="${k}">
+        <dt><span>${esc(m[k])}</span><span class="tm-chip" data-tchip>${BUILD.has(k) ? chip('build') : ''}</span></dt>
+        ${slot(k)}
+      </div>`,
+    ).join('')}</dl>
   </div>`;
 }

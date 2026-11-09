@@ -1,37 +1,57 @@
 # ADJL Technology
 
-The site for ADJL Technology — the AI consulting and applied engineering
-practice that builds ADJL Capital's software. Static build, deploys to Netlify.
+The site for ADJL Technology, an AI engineering, technical SEO and software
+studio. Static build, deploys to Netlify.
 
-It is a sibling of [ADJL Capital's site](https://adjlcapital.com), and reuses
-its brand kit: Manrope, the copper signal, and the three-bar mark. The obvious
-difference is the ground. Capital is black; this is porcelain, and the single
-copper signal has grown into a three-colour spectrum — copper, teal, violet —
-that the data and AI work is drawn in.
+The site is built as a running, instrumented system the visitor can open
+("Glass Box"). The hero is the page's own structure, drawn from its HTML. A
+status bar shows what the page weighs and how fast it painted, measured on
+the visitor's device. One switch shows the page the way a crawler reads it,
+or the code that produced it. A console answers questions by retrieving and
+citing passages from the site, and refuses when the evidence is thin. Every
+figure carries a provenance chip saying whether it's Live, Build, Recorded
+or an Illustration.
+
+It's a sibling of [ADJL Capital's site](https://adjlcapital.com) and reuses
+its brand kit: Manrope, the copper signal and the three-bar mark.
 
 ## Changing the words
 
-**All copy lives in `src/content*.ts`.** Edit a sentence there and it changes on
-the site; you do not need to touch markup, styling or animation code. If you
-find yourself editing a sentence inside a section renderer, the renderer is
-wrong.
+**All copy lives in `src/content*.ts`.** Edit a sentence there and it changes
+on the site; you don't need to touch markup, styling or animation code. If
+you find yourself editing a sentence inside a section renderer, the renderer
+is wrong. The shapes every module follows are in `src/content-types.ts`.
 
-| File | Page |
+| Content module | Route |
 |---|---|
-| `src/content.ts` | Home, plus the nav, footer and contact address |
-| `src/content-work.ts` | `/work/` |
+| `src/content.ts` | `/` (home), plus the nav, footer, status bar, provenance chips, the shared contact block and the instruments' fixed copy |
+| `src/content-services.ts` | `/services/` |
+| `src/content-service-ai.ts` | `/services/ai-engineering/` |
+| `src/content-service-seo.ts` | `/services/seo/` |
+| `src/content-service-software.ts` | `/services/software/` |
+| `src/content-work.ts` | `/work/` (its cards come from `content.ts` `systems.items`) |
 | `src/content-case-real-estate.ts` | `/work/real-estate-intelligence/` |
 | `src/content-case-trading.ts` | `/work/trading-infrastructure/` |
 | `src/content-case-ai.ts` | `/work/ai-implementation/` |
+| `src/content-case-mobile-app.ts` | `/work/mobile-app/` |
+| `src/content-case-private-site.ts` | `/work/private-site/` |
+| `src/content-case-this-site.ts` | `/work/this-site/` |
 | `src/content-approach.ts` | `/approach/` |
 | `src/content-legal.ts` | `/legal/privacy/` and `/legal/terms/` |
 
-Three conventions in those files:
+`scripts/pages.mjs` is the one list of pages. Each entry names its content
+modules (their last git commit is the page's `dateModified` and sitemap
+`lastmod`), its kind (home, hub, service, case, firm, legal) and what its
+structured data says about it (FAQ, Service, TechArticle, collection, app).
+
+Conventions in the content files:
 
 - Headlines are **arrays**. Each entry renders as its own line.
-- `{em}word{/em}` sets that phrase in copper. **One per headline**, on the word
-  that carries the meaning.
+- `{em}word{/em}` sets that phrase in copper. **Exactly one per headline**,
+  on the word that carries the meaning. `check-markers` checks the content
+  exports for this before any renderer runs.
 - `{k}word{/k}` marks a technical term in **body copy only**, never a headline.
+- Apostrophes are `’`. Titles use ` | ` as the separator, never a dash.
 
 ## Running it
 
@@ -43,132 +63,235 @@ npm run preview   # serve the production build on :4173
 npm run verify    # drive a real browser over it (needs preview running)
 ```
 
-`verify` and the media pipeline need two tools deliberately kept **out** of
-`devDependencies` — they are local chores, and keeping them out spares every
-Netlify build a large install and a binary download:
+`verify`, `check:contrast` and `og` need Playwright, deliberately kept **out**
+of `devDependencies`. They're local chores, and keeping them out spares every
+Netlify build a large install and a browser download:
 
 ```bash
-npm i --no-save playwright-core ffmpeg-static
+npm i --no-save playwright-core
 ```
+
+## The build
+
+```
+tsc --noEmit && vite build
+node scripts/prerender.mjs      # every page to static HTML: content, head and JSON-LD,
+                                # the hero's poster SVG, Machine View's BUILD readout, the stamp
+node scripts/gen-machine.mjs    # search index, Ask's precomputed answers and chip evaluation,
+                                # /source/*.json, _headers
+node scripts/gen-sitemap.mjs    # sitemap.xml, lastmod from git per page
+node scripts/gen-404.mjs
+node scripts/gen-wellknown.mjs  # robots.txt, .well-known/security.txt
+node scripts/gen-llms.mjs       # llms.txt, llms-full.txt, a markdown twin of every page, _headers
+node scripts/stamp-sizes.mjs    # the LAST change to any HTML: gzip sizes into the status bar
+node scripts/check-*.mjs        # the guards, below
+node scripts/gen-report.mjs     # build-report.json from the guards' own output
+```
+
+Pages are prerendered by **pure string functions**. Section renderers in
+`src/sections/` never touch the DOM, so `prerender.mjs` bundles each page
+with esbuild and runs it in Node. Crawlers and no-JS visitors get the whole
+page, and the browser gets real content on first paint. In production the
+browser bundle only boots motion and interaction; a page's renderer is
+imported only by the dev shell, so the copy never ships as JavaScript.
+
+The pure libraries in `src/lib/` run in both places. `scripts/lib/ts.mjs`
+loads them into Node scripts (esbuild bundle, imported from a `data:` URL),
+and the browser imports them normally:
+
+| Library | What it is |
+|---|---|
+| `tokenize.ts` | A streaming tag tokenizer with a depth stack, void elements and entity decoding. Every reader of the site's words goes through it. |
+| `exclude.ts` | **The** exclusion set: which subtrees aren't prose (`script`, `style`, `svg`, `template`, `noscript`, and anything `aria-hidden="true"`, `data-chrome`, `data-machine`, `data-ask-pre` or `data-source-sheet`). Used by the guards, the markdown twins, Machine View, the hero graph and `verify`, so none of them can disagree about what the page says. |
+| `measure.ts` | What a crawler is handed, measured from an HTML string (at build, and live from a re-fetch). |
+| `pagegraph.ts`, `layout.ts`, `poster.ts` | The hero figure: the page's own structure as a graph, its two layouts, and the build-time SVG. |
+| `bm25.ts` | Ask This Site's tokenizer, stemmer, scoring and confidence gate. |
 
 ## The guards
 
-`npm run build` **fails** rather than shipping a regression. Each of these
-exists because of a specific way a site like this goes wrong:
+`npm run build` **fails** instead of shipping a regression. Each guard
+prints one summary line through `scripts/lib/report.mjs`, and the last step
+writes those lines to `/build-report.json`, which the home page's pipeline
+and `/work/this-site/` print live. If the page says every check passed, it's
+this deploy's own output saying so.
 
 | Guard | What it prevents |
 |---|---|
-| `check-css` | A class in the markup with no rule (silently unstyled), or a rule matching nothing (dead CSS) |
-| `check-links` | A link to a page that was not built, a fragment that does not exist on the target page, or a built page nothing links to |
-| `check-claims` | Fabricated claims and hype — see below |
+| `check-css` | A class in the markup with no rule (silently unstyled), a rule matching nothing (dead CSS), or a JavaScript-only class nobody sets any more |
+| `check-links` | A link to a page that wasn't built, a fragment that doesn't exist on its target, a built page nothing links to, a link to a machine-readable file the build didn't write, or an Ask citation pointing at a missing anchor |
+| `check-claims` | Fabricated claims and hype, in the pages, their structured data and JSON, and every machine-readable file. See below |
 | `check-contact` | The contact address missing, unlinked, or half-migrated |
-| `check-media` | A film named in markup with no file on disk, or a film shipped that nothing uses |
-| `check-motion` | A motion module whose markup contract appears on no page — dead JavaScript, the same argument `check-css` makes about dead rules |
-| `check-markers` | An authoring marker (`{em}`, `{k}`) reaching production as literal text, because a renderer reached for `esc()` instead of `rich()` |
-| `check-usage` | A British spelling, the old plural name, or a meta description over 160 characters |
-| `check-voice` | The copy drifting back into the AI-essay register — see below |
+| `check-motion` | A motion module whose markup contract appears on no page: dead JavaScript, the same argument `check-css` makes about dead rules |
+| `check-markers` | An authoring marker (`{em}`, `{k}`) reaching production as literal text, or a headline without exactly one `{em}` |
+| `check-usage` | A British spelling, the old plural name, or a meta description that's missing, repeated or over 160 characters |
+| `check-voice` | The copy drifting back into the AI-essay register. See below |
+| `check-seo` | A missing canonical, a second h1, a relative share image, a dash in a title, a missing markdown twin, or structured data that doesn't hold together: a `data-ld` pin or an `@id` reference that resolves to nothing |
+| `check-provenance` | An instrument with no provenance chip, a chip prerendered as Live (Live is set only after a real measurement in the browser), or a hatched "not shown" area with no label |
+| `check-budget` | A page over its byte budget (HTML 40 kB gz, first-load JS 24 kB, CSS 20 kB, each lazy chunk 10 kB, search index 22 kB, everything reachable from home 70 kB), a resource from another origin, anything in `dist/media/`, or a shipped file nothing references |
 
 `check-voice` is the unusual one. Every other guard tests a fact; this one
-tests a habit, and it exists because the habit was invisible from the inside.
-The first version of this site read, in the client's words, "too AI-ish". He
-was right, and counting said exactly why: **53 em-dashes in 8,866 words**
-(published prose runs about one per thousand), 31 `rather than`, uncontracted
-forms outnumbering contractions more than two to one, and only 5% of sentences
-under eight words. Every sentence was a polished aphorism carrying a reversal.
-No single sentence was wrong — the density was.
+tests a habit, and it exists because the habit was invisible from the
+inside. The first version of this site read, in the client's words, "too
+AI-ish". He was right, and counting said exactly why: **53 em-dashes in 8,866
+words** (published prose runs about one per thousand), 31 `rather than`,
+uncontracted forms outnumbering contractions more than two to one, and only
+5% of sentences under eight words. Every sentence was a polished aphorism
+carrying a reversal. No single sentence was wrong; the density was.
 
-So it measures density, not vocabulary, and the thresholds sit just above where
-the copy currently lands. If one trips, vary the writing; don't raise the
-number. One threshold is there because of a mistake worth remembering: after
-the em-dashes came out, the same reflex reappeared as seventeen paragraphs
-ending on a short "That's the X". Removing a verbal tic and installing another
-is not an improvement.
+So it measures density, not vocabulary, and the thresholds sit just above
+where the copy lands. If one trips, vary the writing; don't raise the
+number. It reads the pages through the shared exclusion set plus code panes,
+because a row of readouts isn't a sentence. It prints how many words that
+dropped and fails if more than 25% of the site is excluded, so moving copy
+into a chrome container can't be a way around it. It also counts the soft
+vocabulary of generated marketing copy (seamless, leverage, empower and the
+rest) against a budget of 0.3 per thousand words.
 
 `check-claims` is the one to understand before editing copy. ADJL Technology
 is new and small: there are no clients to name, no metrics to quote, no
-headcount, no awards. The guard fails the build on consulting-site
-filler, on the constructions that smuggle in a claim (`trusted by`,
-`years of experience`), and on any number attached to a performance verb —
-because if the site says "40% faster", that figure was invented.
+headcount, no awards. The guard fails the build on consulting-site filler,
+on the constructions that smuggle in a claim, on any number attached to a
+performance verb, and on counts of clients, projects or systems, spelled out
+or not. If the site says "40% faster", that figure was invented. It reads
+everything, chrome and structured data included, because a readout can be a
+claim even when it isn't a sentence. It also fails if an analytics or tag
+script appears while `/legal/privacy/` still says the site has none.
+**Change the policy first.**
 
-It also fails if an analytics or tag script appears while `/legal/privacy/`
-still says the site has none. **Change the policy first.**
-
-Two more guards need a browser, so they are **not** in `npm run build` — run
+Two more checks need a browser, so they're **not** in `npm run build`. Run
 them against `npm run preview`:
 
 ```bash
 npm run preview &      # then, in another shell:
-npm run verify         # overflow, reveals, console errors, film, the diagram
-npm run check:contrast # every text element, measured
+npm run verify
+npm run check:contrast
 ```
 
-`npm run check:contrast` is the one to run after touching a colour. It
-measures what a reader actually sees rather than what the stylesheet asked
-for: it composites `opacity` into the foreground, and for text sitting over
-film it blanks every glyph on the page, screenshots the region behind the
-words across five frames of the loop, and takes a near-extreme percentile of
-the real pixels. Colours picked by eye on a light ground fail this
-constantly — that is the point of it.
+`npm run check:contrast` measures every text element (and every generated
+`::before`/`::after` label) as the browser rendered it, opacity composited,
+against the background actually behind it. It runs each page in Render
+view, Machine view and Source view, and measures Machine view's drawer, the
+⌘K dialog and Ask in its answered and abstained states. Run it after
+touching a color.
 
-`npm run verify` drives a real browser and checks the things only a browser
-can: horizontal overflow at 390px, elements left unrevealed after a full
-scroll, console errors, that each film's `currentTime` actually **advances**
-(present is not the same as playing — Capital once shipped a hero that played
-correctly and measured zero movement), and that the flow diagram's trace
-responds to scroll.
+`npm run verify` runs every page at 390px and 1440px: no sideways overflow,
+no console errors, the largest contentful paint is the hero's text, CLS under
+0.02 across a full scroll, no hero text over the figure, every reveal fired.
+Then the instruments: the hero graph runs on the full tier and stops on Pause
+and offscreen, no canvas exists under reduced motion or on touch, the
+pipeline reaches its last stage, Machine View's live fetch reads 100% parity,
+Ask cites for a fair question and abstains for one the site can't answer,
+and the view switch changes `html[data-view]`. Finally, with JavaScript off,
+every page's text is within 2% of the scripted page's. An instrument that
+isn't built yet is reported as skipped, not passed.
 
-## Media
+## Machine-readable surfaces
 
-Six films in `public/media/`, generated with Seedance 2.5 and processed by
-`scripts/encode-media.mjs`:
+Everything here is generated from the built pages on every deploy, so none
+of it can describe a site that no longer exists.
 
-| Clip | Where |
-|---|---|
-| `lumen` | Home hero — glass prisms and caustics |
-| `survey` | Real estate intelligence |
-| `latency` | Trading infrastructure |
-| `mesh` | AI implementation |
-| `weave` | `/approach/` hero |
-| `bloom` | Closing CTA, `/work/` hero |
+| File | Written by | What it is |
+|---|---|---|
+| `/llms.txt` | `gen-llms.mjs` | A plain-markdown index for answer engines: the firm in two sentences, then every page grouped under Services, Work, Firm and Legal, then the machine-readable files. `llms.txt` is a proposed convention, not a standard. |
+| `/llms-full.txt` | `gen-llms.mjs` | Every page's prose as markdown, in one file |
+| `/{route}index.md` | `gen-llms.mjs` | A markdown twin of every page (home is `/index.md`), linked from its page with `<link rel="alternate" type="text/markdown">`. `_headers` serves each as `text/markdown` with a `Link: rel="canonical"` back to the page. |
+| `/search-index.json` | `gen-machine.mjs` | Ask This Site's passages, `noindex` |
+| `/source/{slug}.json` | `gen-machine.mjs` | Source view's sheets: each section's content object, renderer, contracts and bytes, `noindex` |
+| `/build-report.json` | `gen-report.mjs` | `{commit, date, node, guards: [{name, line}]}`, `noindex` |
+| `/sitemap.xml` | `gen-sitemap.mjs` | Every page, `lastmod` from the git history of its content modules |
+| `/robots.txt` | `gen-wellknown.mjs` | Allow all, a named group for AI crawlers (GPTBot, ClaudeBot, PerplexityBot, Google-Extended; default allow, Daniel confirms before launch), and the sitemap |
+| `/.well-known/security.txt` | `gen-wellknown.mjs` | The contact address |
+| `dist/_headers` | `scripts/lib/headers.mjs` | Per-file headers on top of `netlify.toml` |
 
-Each 4-second render is **ping-ponged** — concatenated with its own reverse —
-into an 8-second loop that is seamless by construction, because the last frame
-*is* the first. They ship as H.264 and VP9 with a poster, one size at native
-1470×630; `encode-media.mjs` explains why there is no resolution ladder.
+Every page carries one JSON-LD graph with stable `@id`s: the Organization
+(`/#organization`), its founder (`/#daniel`), the WebSite (`/#website`), the
+page's WebPage (`#webpage`, never replaced: a hub is also a CollectionPage
+and an FAQ page also an FAQPage), its BreadcrumbList, and what the page is
+about: a Service on each service page, a TechArticle on each case page, an
+ItemList on each hub, a SoftwareApplication on the app page. Sections in the
+markup point at their entity with `data-ld="#service"` and friends, and
+`check-seo` resolves every one.
 
-To regenerate: `node scripts/encode-media.mjs name=url [name=url ...]`. It
-rewrites `src/media-manifest.ts` from the files on disk, so the markup can
-never drift from the media directory.
+## The dark kit
+
+One theme, no toggle: a dark graphite ground, blue-shifted so it reads as a
+different room from ADJL Capital's neutral black, under a faint drafting
+grid. One ground means one set of measured pairs. `@media print` switches to
+paper and ink.
+
+| Token | Value | Use |
+|---|---|---|
+| `--ground` / `--ground-2` | `#0a0c10` / `#0e1015` | Page and alternating band |
+| `--panel` / `--panel-2` | `#12151b` / `#1a1e26` | Instrument panels and cards / raised, inputs, dialogs |
+| `--fg` / `--fg-2` / `--fg-3` | `#e8ecf2` / `#aab2bf` / `#808999` | Headlines and lead / body / labels and readouts |
+| `--fg-faint` | `#6a7282` | Text ≥24px and aria-hidden decoration only |
+| `--signal` / `--signal-hi` | `#d9542a` / `#ec6e44` | Copper: display `{em}`, fills, marks / every small copper text, links, focus |
+| `--data` | `#3cc8c0` | Teal: data, measurement, crawl paths, LIVE |
+| `--model` | `#a08cff` | Violet: models and structured data, BUILD |
+| `--ok` / `--warn` / `--fail` | `#4cc38a` / `#e0a53a` / `#f2705e` | States, always with a glyph and a word |
+
+Every ratio is in a comment beside its token in `src/styles/tokens.css`,
+measured against all four surfaces. Copper means people and interfaces, teal
+means data, violet means models and machine-readable structure, amber means
+unverified or waiting on a person. Type is Manrope (preloaded) and JetBrains
+Mono (swapped in, metric-matched fallback), both self-hosted. No text ever
+sits over a canvas or the hero figure, so the flat contrast measurement
+stays valid.
 
 ## How the motion works
 
-Eleven modules in `src/motion/`, all gated by one capability tier resolved
-once in `prefs.ts`:
+Every module in `src/motion/` is gated by one capability tier, resolved in
+`public/js-on.js` before first paint and set on `<html data-motion>`, so CSS
+and every module agree from frame one:
 
 | Tier | When | What runs |
 |---|---|---|
-| `full` | desktop, fine pointer | everything, including the point-field canvas, tilt and spotlight |
-| `lite` | touch, low memory, data saver | film, reveals, the flow diagram — no canvas, no pointer effects |
-| `reduced` | `prefers-reduced-motion` | no film, no canvas; the flow diagram renders complete and every reveal is visible immediately |
+| `full` | desktop, fine pointer | everything, including the hero graph's WebGL canvas, pointer effects and the headline decode |
+| `lite` | touch, coarse pointer, low memory, data saver | one-shot reveals and short transitions; no continuously running canvas, no pointer effects |
+| `reduced` | `prefers-reduced-motion`, or **Pause motion** pressed | nothing moves on its own; every page is complete and static (posters exploded, the pipeline stacked, the replay complete) |
+
+**Pause motion** sits in the hero figure, the status bar and the footer
+(WCAG 2.2.2). It drops the page to `reduced`, remembers the choice in local
+storage so the next page stays still, and pressing it again restores what was
+detected. Every module with a loop subscribes through `onMotionChange()` and
+renders its static state.
 
 `prefs.ts` also exports `whileVisible()`, and everything continuous goes
-through it — canvas, marquees, film. Nine animations left running at once,
-including the six below the fold, is a warm laptop and a flat phone.
+through it, so it pauses offscreen and in hidden tabs. Heavy setup (the WebGL
+context, the page graph) waits for load and idle, after first paint. The h1
+and hero text never animate in; they're the largest contentful paint on
+every page.
 
-The flow diagram is **prerendered SVG**, not built by JavaScript: it is the
-clearest statement on the site of what the firm does, so it has to survive with
-scripting off and be readable to a screen reader. `motion/flow.ts` only
-animates what is already on the page.
+| Module | Contract | What it does |
+|---|---|---|
+| `lattice.ts` | `[data-lattice]` | The hero graph: the page's own structure, assembling and coming apart into what people read, what crawlers follow and what machines parse |
+| `compile.ts` | `[data-compile]` | The h1's `{em}` markers, drawn once and folded away |
+| `decode.ts` | `[data-decode]` | h2 lines resolve on first entry (full tier only) |
+| `telemetry.ts` | `[data-telemetry]` | The status bar's live readouts: LCP, CLS, slowest input, transfer |
+| `views.ts` | `[data-views]` | Render / Source / Machine views of the page |
+| `machine.ts` | `[data-machine]` | Machine View: re-fetches the page and reads it the way a crawler is handed it |
+| `ask.ts` | `[data-ask]` | Ask This Site: retrieval with citations, or an honest abstain |
+| `pipeline.ts` | `[data-pipeline]` | The scroll-driven "how we build" sequence |
+| `replay.ts` | `[data-replay]` | A replay of the underwriting engine's stages, with bad inputs to try |
+| `leaders.ts` | `[data-leaders]` | Leader-line diagrams (parity, seal, point-in-time, two clocks) |
+| `headers.ts` | `[data-headers]` | This page's real response headers, `curl -I` style |
+| `palette.ts` | `[data-palette]` | ⌘K: jump anywhere |
+| `reveal.ts`, `scrub.ts`, `wordmark.ts`, `flow.ts` | `[data-reveal]`, `[data-scrub]`, `wm-mark`, `[data-flow]` | One-shot reveals, the shared scroll-progress primitive, the mark's pulse, the case pages' stage traces |
+
+`check-motion` fails the build if a module's contract appears on no page.
+Everything a module builds is styled by attribute selectors under its own
+root, never by new classes, so `check-css` stays honest.
+
+With JavaScript off, every prerendered word is visible: hiding-before-reveal
+styles hang off `html.js`, which `public/js-on.js` sets.
 
 ## Deploying
 
 Netlify builds from this repo with no extra configuration.
-[`netlify.toml`](netlify.toml) sets the build command, publish directory, Node
-version, cache headers, and a Content-Security-Policy that is genuinely strict
-— no inline script, no third-party origin, `form-action 'none'` — because the
-site is static and has nothing that needs the exceptions.
-
-The build also prerenders every page to static HTML, so crawlers and visitors
-without JavaScript get the full content, and the browser gets real content on
-first paint instead of an empty shell.
+[`netlify.toml`](netlify.toml) sets the build command, publish directory,
+Node version, cache headers, trailing-slash redirects for every route, and a
+Content-Security-Policy that's genuinely strict: no inline script, no
+third-party origin, `media-src 'none'`, `form-action 'none'`. The site is
+static and has nothing that needs the exceptions. `dist/_headers` adds the
+per-file headers the build knows about (markdown twins, noindex on the
+machine files).

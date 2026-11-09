@@ -49,17 +49,15 @@ export type Token =
 
 /* ── Entities ──────────────────────────────────────────────────────── */
 
+/* The references this site's build can emit (esc() writes the first five)
+   plus the typographic ones an author might type. It's deliberately not
+   the full HTML5 table: that's 2,000 names and most of a kilobyte in the
+   browser bundle, for characters the copy writes as themselves. */
 const ENT: Record<string, string> = {
-  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
-  rsquo: '’', lsquo: '‘', ldquo: '“', rdquo: '”', sbquo: '‚', bdquo: '„',
-  mdash: '—', ndash: '–', hellip: '…', middot: '·', bull: '•', minus: '−',
-  rarr: '→', larr: '←', uarr: '↑', darr: '↓', harr: '↔', rArr: '⇒',
-  times: '×', divide: '÷', plusmn: '±', le: '≤', ge: '≥', ne: '≠', asymp: '≈',
-  deg: '°', prime: '′', Prime: '″', para: '¶', sect: '§', laquo: '«', raquo: '»',
-  copy: '©', reg: '®', trade: '™', euro: '€', pound: '£', cent: '¢', yen: '¥',
-  frac12: '½', frac14: '¼', frac34: '¾', thinsp: ' ', ensp: ' ',
-  emsp: ' ', zwj: '‍', zwnj: '‌', shy: '­', check: '✓',
-  cross: '✗', lowast: '∗', sup2: '²', sup3: '³', micro: 'µ',
+  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: '\u00a0',
+  rsquo: '’', lsquo: '‘', ldquo: '“', rdquo: '”', mdash: '—', ndash: '–',
+  hellip: '…', middot: '·', bull: '•', rarr: '→', larr: '←', times: '×',
+  copy: '©', sect: '§', deg: '°', le: '≤', ge: '≥', thinsp: '\u2009', shy: '\u00ad',
 };
 
 /** Decode named and numeric character references. Unknown names stay as
