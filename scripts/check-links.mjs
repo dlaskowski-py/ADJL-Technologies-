@@ -34,7 +34,7 @@ for (const page of PAGES) {
 
 /* Static files an anchor may legitimately point at. Short by design: if a
    link here is not a page, it should be a deliberate exception. */
-const assets = new Set(['/sitemap.xml', '/robots.txt', '/favicon.svg']);
+const assets = new Set(['/sitemap.xml', '/robots.txt', '/favicon.svg', '/llms.txt', '/llms-full.txt']);
 
 let bad = 0;
 
