@@ -118,9 +118,11 @@ html[data-view='machine'] :is(main > section[id], body > footer, main nav[aria-l
   }
 
   /* Headings: outline number and level, as machine-kit numbers them. An
-     instrument may already draw on a heading's ::before (a step marker):
-     the label replaces it whole, box and all. */
-  html[data-view='machine'] main :is(h1, h2, h3)[data-x]::before {
+     instrument may already draw on a heading's ::before (the pipeline's
+     rail nodes, under state selectors of their own): the label replaces it
+     whole, box and all. :not(#\#) matches every heading and only lifts
+     the specificity above any instrument's, so this box always wins. */
+  html[data-view='machine'] main :is(h1, h2, h3)[data-x]:not(#\#)::before {
     position: static;
     display: block;
     width: fit-content;
