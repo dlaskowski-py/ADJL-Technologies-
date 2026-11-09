@@ -61,7 +61,6 @@ export function renderContact(
     src: 'content.ts#cta',
     renderer: 'sections/bottom.ts#renderContact',
     band: true,
-    cls: 'contact',
   })}
     <div class="wrap">
       ${rail(n, 'contact')}
@@ -77,7 +76,7 @@ export function renderContact(
             <a class="contact-mail mono" href="mailto:${esc(c.email)}">${esc(c.email)}</a>
             <div class="actions">
               <a class="btn btn--primary" href="${esc(c.button.href)}"><span>${esc(c.button.label)}</span><span class="arw" aria-hidden="true">→</span></a>
-              <button class="btn btn--ghost copy-btn" type="button" data-copy="${esc(c.email)}" data-js-only>
+              <button class="btn btn--ghost" type="button" data-copy="${esc(c.email)}" data-js-only>
                 <span class="copy-idle">${esc(c.copy)}</span><span class="copy-done" aria-live="polite">${esc(c.copied)}</span>
               </button>
             </div>
@@ -100,7 +99,7 @@ function renderStatusBar(): string {
       <a class="status-how" href="${esc(status.how.href)}">${esc(status.how.label)}</a>
       <span class="status-sha mono" title="Build commit">${esc(__BUILD_SHA__)}</span>
       <button class="pause-btn" type="button" data-pause data-js-only aria-pressed="false">${esc(status.pause)}</button>
-      <p class="status-live sr-only" aria-live="polite" data-views-announce></p>
+      <p class="sr-only" aria-live="polite" data-views-announce></p>
     </div>
   </aside>`;
 }

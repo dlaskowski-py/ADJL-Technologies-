@@ -143,6 +143,10 @@
     padding-top: 36px;
   }
 }
+.sec-head,
+.sec-main {
+  min-width: 0;
+}
 .sec-main .bullets:first-child,
 .sec-main .defs:first-child {
   margin-top: 0;
@@ -641,6 +645,17 @@
 }
 
 /* ── FAQ ─────────────────────────────────────────────────────────── */
+
+.faq-head {
+  min-width: 0;
+}
+@media (min-width: 1100px) {
+  .faq-head {
+    position: sticky;
+    top: calc(var(--nav-h) + var(--s-6));
+    align-self: start;
+  }
+}
 
 .faq-wrap {
   display: block;

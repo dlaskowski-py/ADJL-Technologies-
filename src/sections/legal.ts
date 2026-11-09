@@ -33,7 +33,7 @@ export function renderLegalPage(doc: LegalDoc): { navHtml: string; pageHtml: str
   const body = `<section class="sec legal" id="top" data-src="content-legal.ts#${
     doc.route.includes('privacy') ? 'privacy' : 'terms'
   }" data-renderer="sections/legal.ts#renderLegalPage">
-    <div class="wrap legal-inner">
+    <div class="wrap">
       ${breadcrumbs(doc.route)}
       ${eyebrow(doc.eyebrow, false)}
       <h1 class="display legal-title" data-compile><span class="hl-line">${esc(doc.title)}</span></h1>

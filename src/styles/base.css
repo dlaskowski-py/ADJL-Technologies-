@@ -116,6 +116,12 @@ html:not(.js) [data-js-only] {
 
 /* ── Layout ──────────────────────────────────────────────────────── */
 
+/* The page's one <main>: the mount point every renderer fills. */
+.page {
+  display: block;
+  min-height: 60vh;
+}
+
 .wrap {
   width: 100%;
   max-width: var(--max);
@@ -228,6 +234,17 @@ html[data-motion='reduced'] .rail-line {
 }
 .hl-line {
   display: block;
+}
+/* The h1's lines are ONE text block with forced breaks, not stacked
+   blocks. The largest-contentful-paint candidate is a text block, so
+   stacked line blocks made the browser pick the hero lead (or a single
+   line) as the LCP instead of the headline. Same layout either way. */
+.display .hl-line {
+  display: inline;
+}
+.display .hl-line + .hl-line::before {
+  content: '\A';
+  white-space: pre;
 }
 /* Emphasis is weight and colour, never italic — Capital's rule. At these
    sizes --signal clears the 3:1 large-text floor on every surface. */
