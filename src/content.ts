@@ -133,7 +133,7 @@ export const hero = {
     layers:
       'People read the top layer, crawlers follow the middle one and machines parse the bottom one.',
     planes: { read: 'What people read', link: 'What crawlers follow', machine: 'What machines parse' },
-    counts: '{h} headings · {l} links · {e} entities',
+    counts: '{h} headings · {l} links · {e} schema nodes',
     openMachine: 'See this page as a crawler does',
   },
 };
