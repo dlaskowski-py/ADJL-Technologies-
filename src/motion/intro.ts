@@ -74,12 +74,18 @@ export function initIntro(): void {
     if (t === 'reduced') done();
   });
 
-  /* The overlay's own animation is the timeline's last keyframe. With no
-     animation on it (Pause was pressed before this loaded, so the CSS has
-     already hidden it), there's nothing to wait for. */
-  const end = root.getAnimations?.()[0];
-  if (end) end.finished.then(done, () => {});
-  else done();
-  /* A watchdog, for an engine that never settles that promise. */
+  /* The overlay's own animation is the timeline's last keyframe. If the
+     CSS has already hidden the overlay (the timeline ended before this
+     loaded, or Pause was pressed), there's nothing to wait for. The two
+     halves are its pseudo-elements, and their animations end on this same
+     element, earlier: those events carry a pseudoElement. */
+  const css = getComputedStyle(root);
+  if (css.display === 'none' || css.visibility === 'hidden') done();
+  else {
+    root.addEventListener('animationend', (e) => {
+      if (e.target === root && !e.pseudoElement) done();
+    });
+  }
+  /* A watchdog, for a frame that never comes. */
   window.setTimeout(done, 6000);
 }

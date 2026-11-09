@@ -17,7 +17,7 @@
  * exist in HTML. Reduced and JS off: the plain h1, em in copper. Pause
  * motion mid-effect ends it at once.
  */
-import { onMotionChange, tier } from './prefs';
+import { afterIntro, onMotionChange, tier } from './prefs';
 
 const ATTR = 'data-compiling';
 
@@ -25,10 +25,9 @@ export function initCompile(): void {
   const h1 = document.querySelector<HTMLElement>('h1[data-compile]');
   if (!h1 || tier === 'reduced') return;
   const go = () => void document.fonts.ready.then(() => requestAnimationFrame(() => run(h1)));
-  /* While the opening sequence covers the page (html[data-intro="play"],
-     home only), wait for its hand-off, so the effect plays where the
-     visitor can see it. motion/intro.ts dispatches the event. */
-  if (document.documentElement.dataset.intro === 'play') window.addEventListener('adjl:intro-done', go, { once: true });
+  /* While the opening sequence covers the page, wait for its hand-off, so
+     the effect plays where the visitor can see it (prefs.ts afterIntro). */
+  if (document.documentElement.dataset.intro === 'play') afterIntro(go);
   else if (document.readyState === 'complete') go();
   else window.addEventListener('load', go, { once: true });
 }

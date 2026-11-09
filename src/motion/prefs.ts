@@ -142,3 +142,34 @@ export function lazyOn(selector: string, load: () => Promise<unknown>, margin = 
   );
   els.forEach((el) => io.observe(el));
 }
+
+/**
+ * Run `fn` once the opening sequence has handed the page over, or now if
+ * it isn't playing. The sequence covers the page (html[data-intro="play"],
+ * home only, first visit of a session); effects meant to be SEEN, like the
+ * headline's compile pass, start at its hand-off.
+ *
+ * The hand-off is an event dispatched by motion/intro.ts, and that module
+ * is a separate chunk. If it never loads, the CSS timeline still opens the
+ * page on its own, so the timeout makes sure nothing waits forever on an
+ * event that won't come.
+ */
+export function afterIntro(fn: () => void): void {
+  if (document.documentElement.dataset.intro !== 'play') {
+    fn();
+    return;
+  }
+  let done = false;
+  const go = () => {
+    if (done) return;
+    done = true;
+    fn();
+  };
+  window.addEventListener('adjl:intro-done', go, { once: true });
+  window.setTimeout(() => {
+    /* No hand-off came. By now the CSS timeline has opened the page by
+       itself, so say so; callers that re-check the attribute then proceed. */
+    if (document.documentElement.dataset.intro === 'play') document.documentElement.dataset.intro = 'done';
+    go();
+  }, 7000);
+}

@@ -50,7 +50,7 @@ const LH = 15;
 /* The clock, in characters: a pause after each line, after the code, and
    between ticks. intro.css turns characters into time (--cps). */
 const LINE_GAP = 2;
-const RUN_GAP = 24;
+const RUN_GAP = 16;
 const TICK = 9;
 /* The guards' three columns: the first is the widest, for check-provenance. */
 const COLS = [0, 118, 230];

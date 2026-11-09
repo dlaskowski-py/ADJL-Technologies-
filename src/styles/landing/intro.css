@@ -31,12 +31,13 @@
 }
 html[data-intro='play']:not([data-motion='reduced']) .intro {
   /* --end (inline, from the renderer) is how many characters the code and
-     the build take. Everything after waits for it. */
+     the build take. Everything after waits for it. As shipped, --t7 comes
+     to about 4.6s; keep it under 5. */
   --cps: 4ms;
   --t1: 0.15s;
   --t3: calc(var(--t1) + var(--end) * var(--cps) + 0.1s);
   --t4: calc(var(--t3) + 0.85s);
-  --t5: calc(var(--t4) + 1.3s);
+  --t5: calc(var(--t4) + 1.25s);
   --t6: calc(var(--t5) + 0.16s);
   --t7: calc(var(--t6) + 0.5s);
   position: fixed;
@@ -307,14 +308,21 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
 
 /* The switches. Something that turns on at a moment holds `intro-in`
    backwards until then; something that turns off, lights or colors holds
-   its keyframes forwards from then. Each sets the SAME value at both ends
-   on purpose: a 1ms step-end animation can finish a rounding error short
-   of its last step (a delay computed from calc() isn't a whole number of
-   milliseconds), and then `to` never applies. */
+   its keyframes forwards from then. Two things about them are deliberate.
+
+   Each sets the SAME value at both ends: a 1ms step-end animation can
+   finish a rounding error short of its last step (a delay computed from
+   calc() isn't a whole number of milliseconds), and then `to` never
+   applies.
+
+   And on and off are both `visibility`, never opacity. An opacity
+   animation runs on the compositor, a frame or more ahead of the main
+   thread on a busy device, so "this title off, that one on" came apart
+   into a frame with both. One property, one thread, one frame. */
 @keyframes intro-in {
   from,
   to {
-    opacity: 0;
+    visibility: hidden;
   }
 }
 @keyframes intro-out {

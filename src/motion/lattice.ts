@@ -30,7 +30,7 @@
  * canvas and the poster is simply there again.
  */
 import { pristine } from '../pristine';
-import { isPaused, whileVisible } from './prefs';
+import { afterIntro, isPaused, whileVisible } from './prefs';
 import { E, GRAPH_SELECTOR, K, P, pageGraph, type Graph } from '../lib/pagegraph';
 import { isExcluded } from '../lib/exclude';
 import {
@@ -107,12 +107,11 @@ export function initLattice(): void {
      live drawing simply runs without its callouts there. */
   const svg = art?.querySelector<SVGSVGElement>('svg.pg');
   if (!fig || !art || fig.dataset.running) return;
-  /* While the opening sequence covers the page (html[data-intro="play"],
-     home only), start at its hand-off: the graph assembles where the
-     visitor can see it, and no shader compiles under the sequence.
-     motion/intro.ts dispatches the event. */
+  /* While the opening sequence covers the page, start at its hand-off: the
+     graph assembles where the visitor can see it, and no shader compiles
+     under the sequence (prefs.ts afterIntro). */
   if (document.documentElement.dataset.intro === 'play') {
-    window.addEventListener('adjl:intro-done', initLattice, { once: true });
+    afterIntro(initLattice);
     return;
   }
 

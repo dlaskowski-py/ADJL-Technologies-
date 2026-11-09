@@ -192,6 +192,9 @@ for (const vp of VIEWPORTS) {
     console.log(`${vp.name} ${page.route}`);
     const { p, errors } = await open(ctx, page.route);
     await p.waitForTimeout(400);
+    /* The first page of a cold browser can report its LCP entry late; give
+       it a moment before calling it missing. */
+    await p.waitForFunction(() => window.__vitals?.lcpEl, null, { timeout: 1500 }).catch(() => {});
 
     // LCP, read before anything scrolls (a scroll ends LCP observation).
     const lcp = await p.evaluate(() => {

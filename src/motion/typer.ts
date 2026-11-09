@@ -19,7 +19,7 @@
  *
  * OWNER: WS-B.
  */
-import { tier, whileVisible } from './prefs';
+import { afterIntro, tier, whileVisible } from './prefs';
 
 const TYPE_MS = 42;
 const ERASE_MS = 18;
@@ -27,6 +27,11 @@ const HOLD_MS = 1900;
 const GAP_MS = 320;
 
 export function initTyper(): void {
+  /* Don't type under the opening sequence: start when the page is shown. */
+  if (document.documentElement.dataset.intro === 'play') {
+    afterIntro(initTyper);
+    return;
+  }
   document.querySelectorAll<HTMLElement>('[data-typer]').forEach((root) => {
     const text = root.querySelector<HTMLElement>('[data-typer-text]');
     const box = text?.parentElement;

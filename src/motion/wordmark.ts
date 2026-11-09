@@ -14,13 +14,20 @@
  * out so explicitly here.
  */
 
-import { tier } from './prefs';
+import { afterIntro, tier } from './prefs';
 
 export function initWordmark(): void {
   if (tier === 'reduced') return;
 
   const marks = Array.from(document.querySelectorAll<HTMLElement>('.wm-mark'));
   if (!marks.length) return;
+
+  /* When the opening sequence hands over, its big mark has just folded
+     away: pulse the nav's mark once, so it reads as the same mark landing. */
+  const nav = document.querySelector<HTMLElement>('.nav .wm-mark');
+  if (nav && document.documentElement.dataset.intro === 'play') {
+    afterIntro(() => nav.classList.add('is-pulsing'));
+  }
 
   for (const mark of marks) {
     const host = mark.closest('a, button') ?? mark;
