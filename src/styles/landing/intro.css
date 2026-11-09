@@ -58,7 +58,11 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
   content: '';
   position: absolute;
   inset: 0 50% 0 0;
-  background: var(--ground);
+  /* Ground, with the site's drafting grid on it, so the sequence plays on
+     the same sheet the page is drawn on. Both halves are positioned from
+     the viewport's left edge, so the lines meet at the seam. */
+  background: linear-gradient(var(--grid-major) 1px, transparent 1px) 0 -1px / 64px 64px,
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px) -1px 0 / 64px 64px, var(--ground);
   border: 0 solid transparent;
   border-right-width: 1px;
   --x: -100%;
@@ -67,6 +71,7 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
 }
 .intro::after {
   inset: 0 0 0 50%;
+  background-position: 0 -1px, calc(-50vw - 1px) 0, 0 0;
   border-width: 0 0 0 1px;
   --x: 100%;
 }
@@ -84,7 +89,7 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
   position: relative;
   z-index: 1;
   /* 360:372, held inside the viewport with room for the foot. */
-  width: min(100% - 32px, 600px, (100vh - 136px) * 0.968);
+  width: min(100% - 32px, 680px, (100vh - 136px) * 0.968);
   height: auto;
   overflow: visible;
   /* Not painted for the first 80ms (nothing in it has started yet: --t1
