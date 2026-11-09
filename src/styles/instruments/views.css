@@ -444,6 +444,11 @@ aside[data-drawer] [data-copied] {
     width: 40%;
     margin: 0;
   }
+  /* The sheet takes the right 40% of the section; the section's content
+     reflows into the rest, so no control ends up focused under a sheet. */
+  html[data-view='source'] main section[data-src] > .wrap {
+    padding-right: calc(40% + var(--gut) + var(--s-5));
+  }
 }
 [data-source-sheet] [data-sh] {
   display: flex;

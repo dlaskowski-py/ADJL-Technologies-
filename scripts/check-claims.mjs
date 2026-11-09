@@ -156,5 +156,5 @@ for (const f of jsonSurfaces) {
 if (bad) process.exit(1);
 pass(
   'check-claims',
-  `${PAGES.length} pages and ${surfaces.length + jsonSurfaces.length} machine-readable files, no fabricated claims, no counts, no hype, no trackers`,
+  `${PAGES.length} pages and ${surfaces.length + jsonSurfaces.length} machine-readable files, no banned phrases, no performance numbers, no counts, no trackers`,
 );

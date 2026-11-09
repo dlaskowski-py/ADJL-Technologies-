@@ -71,6 +71,7 @@ export const PAGES = [
     faq: true,
     service: {
       name: 'AI engineering',
+      alternateName: 'AI Engineering',
       serviceType: 'AI agent development, retrieval-augmented generation and workflow automation',
     },
     priority: '0.9',
@@ -87,6 +88,7 @@ export const PAGES = [
     faq: true,
     service: {
       name: 'Technical SEO and AI search visibility',
+      alternateName: 'SEO & AI Search',
       serviceType: 'Technical search engine optimization',
     },
     priority: '0.9',
@@ -103,6 +105,7 @@ export const PAGES = [
     faq: true,
     service: {
       name: 'Web, mobile app and backend development',
+      alternateName: 'Websites & Apps',
       serviceType: 'Custom software development',
     },
     priority: '0.9',

@@ -341,6 +341,10 @@ export function buildHead({ origin, page, pages, meta, faq, h1 }) {
       '@type': 'Service',
       '@id': serviceId,
       name: page.service.name,
+      /* The one display name the nav, eyebrows and breadcrumbs use, so a
+         machine reading the page can join the Service to how the site
+         actually refers to it. The name stays descriptive for search. */
+      ...(page.service.alternateName ? { alternateName: page.service.alternateName } : {}),
       serviceType: page.service.serviceType,
       description: meta.description,
       url,

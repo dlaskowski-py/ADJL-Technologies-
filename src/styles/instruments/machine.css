@@ -503,7 +503,9 @@ html[data-motion='reduced'] [data-machine] [data-track] i {
 :is([data-machine], aside[data-drawer]) [data-ld-svg] {
   width: 100%;
   height: auto;
-  overflow: visible;
+  /* Labels are placed inside the viewBox in machine-kit.ts; this only
+     catches an estimate that's off, so text never crosses the panel. */
+  overflow: hidden;
 }
 [data-ld-svg] [data-orbit] {
   fill: none;
@@ -542,9 +544,12 @@ html[data-motion='reduced'] [data-machine] [data-track] i {
 [data-ld-svg] [data-sat] {
   fill: var(--model);
 }
+/* Sizes in viewBox units: the drawing renders at about 0.6 of its 600-unit
+   width, so 18 and 17 land near 11px. machine-kit.ts uses the same values
+   to keep every label inside the box. */
 [data-ld-svg] [data-label] {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 18px;
   fill: var(--fg-2);
 }
 [data-ld-svg] [data-label='0'] {
@@ -553,7 +558,7 @@ html[data-motion='reduced'] [data-machine] [data-track] i {
 }
 [data-ld-svg] :is([data-label='4'], [data-label='sat']) {
   fill: var(--fg-3);
-  font-size: 12px;
+  font-size: 17px;
 }
 /* Too small to read: the list beside it carries every name. */
 @container mcol (max-width: 420px) {

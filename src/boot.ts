@@ -86,6 +86,19 @@ export function boot(): void {
     else window.addEventListener('load', go, { once: true });
   }
 
+  /* Smooth in-page scrolling, but only once the page has arrived (see
+     base.css): a #fragment in the URL should land, not fly. */
+  const smooth = () => {
+    /* The browser re-applies the fragment scroll while layout settles, so
+       land on the target ourselves, instantly, then turn smoothing on a
+       beat later for clicks the visitor makes. */
+    const target = location.hash.length > 1 ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+    target?.scrollIntoView({ behavior: 'instant', block: 'start' });
+    window.setTimeout(() => (document.documentElement.dataset.scroll = 'smooth'), 400);
+  };
+  if (document.readyState === 'complete') smooth();
+  else window.addEventListener('load', smooth, { once: true });
+
   /* ⌘K / Ctrl K, and the nav button: the palette chunk loads on first use. */
   const openPalette = () => void import('./motion/palette').then((m) => m.initPalette());
   document.addEventListener('keydown', (e) => {

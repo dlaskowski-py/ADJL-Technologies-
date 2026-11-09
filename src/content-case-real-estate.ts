@@ -26,7 +26,7 @@ export const content: CaseContent = {
         num: "01",
         tag: "resolve",
         title: "Resolve the address",
-        body: "The listing URL is scraped for the address. Then the address is matched against {k}parcel records{/k} to resolve it to a specific parcel. Where the records won’t support a match, the system says so instead of guessing. Listing text is treated as a claim, not a fact. Square footage, bed and bath counts and lot size are checked against the county’s own record of the parcel. Where the two disagree, both are kept."
+        body: "The listing URL is scraped for the address. Then the address is matched against {k}parcel records{/k} to resolve it to a specific parcel. Where the records won’t support a match, the system says so and leaves the field for a person. Listing text is treated as a claim, not a fact. Square footage, bed and bath counts and lot size are checked against the county’s own record of the parcel. Where the two disagree, both are kept."
       },
       {
         num: "02",
@@ -63,15 +63,15 @@ export const content: CaseContent = {
     cards: [
       {
         title: "Tax is modeled, not copied",
-        body: "Most underwriting carries the seller’s current property tax line forward into the buyer’s first year. In a reassessment-on-sale jurisdiction, that one copied cell can misprice the deal outright. The system models the assessment the sale itself triggers. It uses the county’s own rules and its record of what it’s done to comparable parcels after transfer. Where the local behavior is inconsistent, it returns a range instead of pretending to a single figure."
+        body: "Most underwriting carries the seller’s current property tax line forward into the buyer’s first year. In a reassessment-on-sale jurisdiction, that one copied cell can misprice the deal outright. The system models the assessment the sale itself triggers. It uses the county’s own rules and its record of what it’s done to comparable parcels after transfer. Where the local behavior is inconsistent, it returns a range."
       },
       {
         title: "Every number carries its source",
-        body: "A figure with no provenance can’t be argued with, only believed. Each line in the output points back to where it came from: a county record, a live listing, a closed comparable, or an assumption you supplied. Anything derived from thin or stale data is labeled unaudited. It stays labeled all the way to the summary."
+        body: "Each line in the output points back to where it came from: a county record, a live listing, a closed comparable, or an assumption you supplied. Anything derived from thin or stale data is labeled unaudited. It stays labeled all the way to the summary."
       },
       {
         title: "Built for ADJL Capital first",
-        body: "This wasn’t built as a product and then sold as one. It was built for ADJL Capital, to do the underwriting that would otherwise be done a field at a time. It has been run on the firm’s own capital before anyone else’s. Development runs against live listings and live county records instead of synthetic test data, because the edge cases only live there. Off-the-shelf underwriting tools model the way their authors model. A tool that doesn’t match how you underwrite quietly imports someone else’s assumptions."
+        body: "This wasn’t built as a product and then sold as one. It was built for ADJL Capital, to do the underwriting that would otherwise be done a field at a time. It has been run on the firm’s own capital before anyone else’s. Development runs against live listings and live county records, because the edge cases only live there. Off-the-shelf underwriting tools model the way their authors model. A tool that doesn’t match how you underwrite quietly imports someone else’s assumptions."
       }
     ]
   },
@@ -81,7 +81,7 @@ export const content: CaseContent = {
       "Paste a listing.",
       "Get the {em}underwriting.{/em}"
     ],
-    body: "A property underwriting scanner that takes a listing URL and returns a structured underwriting file: rent roll, operating statement, tax and insurance build-up, debt service and the resulting yield. It resolves the address to a parcel, pulls live market data, reads years of public record, and models the tax, insurance, hazard, operating cost and financing that decide whether the deal works. Every figure carries its source: a county record, a live listing, a comparable, or an assumption you supplied. Anything it couldn’t verify is labeled unaudited instead of averaged into the total.",
+    body: "A property underwriting scanner that takes a listing URL and returns a structured underwriting file: rent roll, operating statement, tax and insurance build-up, debt service and the resulting yield. It resolves the address to a parcel, pulls live market data, reads years of public record, and models the tax, insurance, hazard, operating cost and financing that decide whether the deal works. Every figure carries its source: a county record, a live listing, a comparable, or an assumption you supplied.",
     secondary: {
       label: "Talk to Daniel",
       href: "#contact"
@@ -117,7 +117,7 @@ export const content: CaseContent = {
       "Underwriting is slow, and",
       "the slowness is {em}the cost.{/em}"
     ],
-    body: "Underwriting one property properly is slow manual work: match the address to a parcel, pull the rents and sanity-check them against comparables, read the county records for prior sales and assessment history, model the tax forward through reassessment, price the insurance against actual hazard exposure instead of a rule of thumb. Most of the work is retrieval and arithmetic. It’s also expensive in hours, so plenty of deals never get it. They get a screening pass built on the listing’s own numbers and a cap rate someone remembered. That shortcut carries the seller’s tax bill into the buyer’s model. It’s the single most expensive cell in the spreadsheet.",
+    body: "Underwriting one property properly is slow manual work: match the address to a parcel, pull the rents and sanity-check them against comparables, read the county records for prior sales and assessment history, model the tax forward through reassessment, price the insurance against actual hazard exposure instead of a rule of thumb. Most of the work is retrieval and arithmetic. It’s also expensive in hours, so plenty of deals never get it. They get a screening pass built on the listing’s own numbers and a cap rate someone remembered. That shortcut carries the seller’s tax bill into the buyer’s model. The tax line is often the largest error in the model.",
     points: [
       "A full underwriting is expensive in hours, so it tends to go to deals that are already half-decided. The ones that should have been surfaced don’t get it.",
       "Listing figures get taken at face value: square footage, rent, expenses, and a tax line that’s the current owner’s and not yours.",

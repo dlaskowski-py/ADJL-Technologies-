@@ -71,7 +71,7 @@ const telemetry: Section = {
   eyebrow: 'Telemetry',
   headline: ['Measured on', '{em}your visit.{/em}'],
   body: [
-    'Every reading below comes from your browser’s performance APIs. The sizes were measured when this page was built. The timings are measured now, on your device. If a browser doesn’t report a metric, the field says so instead of guessing.',
+    'The sizes below were measured when this page was built. The timings come from your browser’s performance APIs, measured now, on your device. If a browser doesn’t report a metric, the field says so instead of guessing.',
   ],
   dlLabel: 'How each one is measured',
   dl: [
@@ -100,7 +100,7 @@ export const content: SectionPage = {
   hero: {
     eyebrow: 'Case study · This website',
     headline: ['The site you’re on', 'is the {em}SEO case study.{/em}'],
-    lead: 'We can’t name clients yet, so here’s a build we can open all the way. Every page is HTML before any script runs. Nothing loads from another origin. Each page describes itself in structured data, and the build fails if the copy invents a claim. The numbers on this page are measured in your browser.',
+    lead: 'We can’t name clients yet, so here’s a build we can open all the way. Every page is HTML before any script runs. Nothing loads from another origin. Each page describes itself in structured data, and the build fails if the copy uses a hype word or an unmeasured number. The numbers on this page are measured in your browser.',
     secondary: { label: 'Talk to Daniel', href: '#contact' },
     specs: [
       { label: 'Rendering', value: 'Static HTML, prerendered at build' },
@@ -126,7 +126,7 @@ export const content: SectionPage = {
       eyebrow: 'Response headers',
       headline: ['Nothing loads from', '{em}anywhere else.{/em}'],
       body: [
-        'No font host, no CDN, no analytics and no embeds. The content security policy says so, and your browser enforces it. These are this page’s real response headers, fetched a moment ago.',
+        'No font host, no CDN, no analytics and no embeds. The content security policy says so, and your browser enforces it. When scripts run, the panel fetches this page’s real response headers as it comes into view. Without them, it shows the policy this site ships.',
       ],
       instrument: 'headers',
     },
@@ -192,8 +192,8 @@ export const content: SectionPage = {
   ],
   foot: {
     builtUnder: [
-      { label: 'Technical SEO and AI search', href: '/services/seo/' },
-      { label: 'Websites, apps and backends', href: '/services/software/' },
+      { label: 'SEO & AI Search', href: '/services/seo/' },
+      { label: 'Websites & Apps', href: '/services/software/' },
     ],
     next: { label: 'How the trading pipeline works', href: '/work/trading-infrastructure/' },
   },

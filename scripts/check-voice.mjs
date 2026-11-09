@@ -62,7 +62,10 @@ import { pass } from './lib/report.mjs';
 /* Per 1,000 words of shipped copy, except where noted. */
 const LIMITS = {
   emDash: { max: 2.2, label: 'em-dash asides', fix: 'Make it a full stop, a comma, or nothing.' },
-  ratherThan: { max: 1.6, label: '"rather than"', fix: 'Use "not", or "instead of", or rebuild so the contrast is implied.' },
+  /* "instead of" counts too. Swapping one phrase for the other kept the
+     reversal and hid it from the counter, which is the tic moving house,
+     not leaving. */
+  ratherThan: { max: 1.6, label: '"rather than" / "instead of"', fix: 'Say what the thing does. A reversal per sentence is the register the client rejected.' },
   setupColon: { max: 1.4, label: 'setup-then-payoff colons', fix: 'A colon before a list is fine. One before a restated clause is the tic. Use a full stop.' },
   uncontracted: { max: 7.5, label: 'uncontracted forms', fix: 'Write "don\'t", "it\'s", "isn\'t" the way a person writing about their own business would.' },
   /* The aphoristic closer. Stripping the em-dashes moved the reflex here
@@ -100,7 +103,7 @@ const count = (re) => (text.match(re) || []).length;
 
 const measured = {
   emDash: count(/—/g),
-  ratherThan: count(/\brather than\b/gi),
+  ratherThan: count(/\b(rather than|instead of)\b/gi),
   /* A colon whose clause carries NO comma before the sentence ends.
      The first version of this counted every mid-sentence colon and flagged
      26 of them, of which about 22 were introducing a list, which is

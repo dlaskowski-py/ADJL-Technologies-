@@ -55,7 +55,7 @@ export const content: CaseContent = {
       "The pilot worked.",
       "Nothing {em}shipped.{/em}"
     ],
-    body: "In a business that already runs, there’s no shortage of places AI could go. What’s short is places where the change is worth the disruption. The usual sequence runs backwards. A tool gets chosen, a pilot gets run, and then someone goes looking for a workflow that fits it. What survives is a demo. It’s impressive in a meeting and unowned by Monday. The real cost sits in plain sight, in the hours a capable person spends reading a long document to pull a few fields out of it.",
+    body: "In a business that already runs, there’s no shortage of places AI could go. What’s short is places where the change is worth the disruption. The usual sequence runs backwards. A tool gets chosen, a pilot gets run, and then someone goes looking for a workflow that fits it. What’s left is a demo that nobody owns. The real cost sits in plain sight, in the hours a capable person spends reading a long document to pull a few fields out of it.",
     points: [
       "A pilot that worked in the demo and was never wired into the system that holds the data.",
       "Staff quietly redoing the same extraction by hand. The tool is right often enough to use and wrong often enough not to trust.",
@@ -75,7 +75,7 @@ export const content: CaseContent = {
         num: "01",
         tag: "trace",
         title: "Follow the work as it actually happens",
-        body: "We walk one workflow end to end, in the order it really runs instead of the order the org chart implies. Who touches the file, what they open, what they retype, where it sits waiting. The output is a map of steps with a cost written against each one. That cost is time spent, plus what it costs when the step is done wrong."
+        body: "We walk one workflow end to end, in the order it really runs. Who touches the file, what they open, what they retype, where it sits waiting. The output is a map of steps with a cost written against each one. That cost is time spent, plus what it costs when the step is done wrong."
       },
       {
         num: "02",
@@ -93,13 +93,13 @@ export const content: CaseContent = {
         num: "04",
         tag: "gate",
         title: "Put the person where being wrong is expensive",
-        body: "Where an error is costly, the system’s job changes. It prepares the decision instead of making it. The draft arrives with its sources attached. The extraction arrives with the field and the page it came from, and the reviewer approves or corrects in a single action. We capture those corrections. A correction is the cheapest label anyone will ever hand you."
+        body: "Where an error is costly, the system’s job changes. It prepares the decision instead of making it. The draft arrives with its sources attached. The extraction arrives with the field and the page it came from, and the reviewer approves or corrects in a single action. Each correction is saved as a new evaluation case."
       },
       {
         num: "05",
         tag: "instrument",
         title: "Instrument it, then hand it over running",
-        body: "Every run is logged with its inputs, its output and what the reviewer did to it. That produces an {k}evaluation set{/k} built from real traffic instead of invented examples. It also tells you whether the thing is still right this month, which is the only question that keeps mattering. Handover is the running system, the code, the prompts and the evaluation set, with an owner named on your side before we finish."
+        body: "Every run is logged with its inputs, its output and what the reviewer did to it. That produces an {k}evaluation set{/k} built from real traffic. It also tells you whether the thing is still right this month. Handover is the running system, the code, the prompts and the evaluation set, with an owner named on your side before we finish."
       }
     ]
   },

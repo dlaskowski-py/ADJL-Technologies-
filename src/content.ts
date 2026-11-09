@@ -65,7 +65,7 @@ export const nav = {
   links: [
     { label: 'AI Engineering', href: '/services/ai-engineering/' },
     { label: 'SEO & AI Search', href: '/services/seo/' },
-    { label: 'Software', href: '/services/software/' },
+    { label: 'Websites & Apps', href: '/services/software/' },
     { label: 'Work', href: '/work/' },
     { label: 'Approach', href: '/approach/' },
   ],
@@ -187,7 +187,7 @@ export const practices: { eyebrow: string; headline: string[]; intro: string; it
         'Strict security headers by default',
         'One codebase for iOS and Android',
       ],
-      link: { label: 'Websites, apps and backends', href: '/services/software/' },
+      link: { label: 'Websites & Apps', href: '/services/software/' },
     },
     {
       glyph: 'systems',
@@ -209,7 +209,7 @@ export const practices: { eyebrow: string; headline: string[]; intro: string; it
 export const machineView = {
   eyebrow: 'SEO, demonstrated',
   headline: ['What a machine', 'reads {em}on this page.{/em}'],
-  body: 'Nobody outside a search engine can tell you what it’ll do with a page. We can show you exactly what it’s handed. The panel below fetched this page again a moment ago and read the raw HTML with no script run. Switch readers to see what an answer engine gets.',
+  body: 'Nobody outside a search engine can tell you what it’ll do with a page. We can show you exactly what it’s handed. When scripts run, the panel below fetches this page again and reads the raw HTML with no script run. Switch readers to see what an answer engine gets.',
   readers: {
     legend: 'Read this page as',
     people: 'People',
@@ -351,7 +351,7 @@ export const pipeline: {
       num: '05',
       tag: 'guard',
       title: 'Put guards where mistakes cost',
-      body: 'A person reviews anything that’s expensive to get wrong. The build fails on anything a machine can check. This site won’t deploy if its copy invents a claim.',
+      body: 'A person reviews anything that’s expensive to get wrong. The build fails on anything a machine can check. This site won’t deploy if its copy uses a hype word, counts clients or puts a number on a result nobody measured.',
     },
     {
       num: '06',
@@ -497,7 +497,7 @@ export const team = {
     },
   ],
   stackLabel:
-    'What the work is built out of. No tool here is a religion. The constraint picks it.',
+    'What the work is built out of. The constraint decides the tool.',
   /* Rendered as a lockfile-styled <dl data-chrome>. */
   stack: [
     { name: 'Languages & runtime', items: ['TypeScript', 'Python', 'Node.js', 'Rust', 'SQL', 'C++'] },

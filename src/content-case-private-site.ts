@@ -83,7 +83,7 @@ export const content: SectionPage = {
     },
   ],
   foot: {
-    builtUnder: [{ label: 'Websites, apps and backends', href: '/services/software/' }],
+    builtUnder: [{ label: 'Websites & Apps', href: '/services/software/' }],
     next: { label: 'How this site is built', href: '/work/this-site/' },
   },
 };

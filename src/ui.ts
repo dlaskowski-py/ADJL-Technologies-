@@ -45,6 +45,11 @@ export function initMenu(): void {
   const setOpen = (open: boolean) => {
     burger.setAttribute('aria-expanded', String(open));
     menu.hidden = !open;
+    /* The open menu covers the page, so the page behind it is inert: Tab
+       and screen-reader swipes stay in the menu instead of wandering into
+       content nobody can see. Every close path comes through here. */
+    document.getElementById('page')?.toggleAttribute('inert', open);
+    document.querySelector('.skip-link')?.toggleAttribute('inert', open);
     document.body.style.overflow = open ? 'hidden' : '';
     const label = open ? burger.dataset.labelClose : burger.dataset.labelOpen;
     if (label) burger.setAttribute('aria-label', label);
@@ -68,7 +73,7 @@ export function initMenu(): void {
   /* Widening past the breakpoint removes the burger, and with it the only
      control that could close the menu, while body overflow stays locked.
      Closing on the media query restores everything together. */
-  const wide = window.matchMedia('(min-width: 1100px)');
+  const wide = window.matchMedia('(min-width: 1160px)');
   wide.addEventListener('change', (e) => {
     if (e.matches && burger.getAttribute('aria-expanded') === 'true') setOpen(false);
   });

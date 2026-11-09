@@ -23,7 +23,7 @@ export const content: SectionPage = {
       'Marketing sites, web apps, native iOS and Android apps, APIs and data pipelines. We build them fast to load, strict about security and easy for the next developer to read.',
   },
   hero: {
-    eyebrow: 'Websites, Apps & Backends',
+    eyebrow: 'Websites & Apps',
     headline: ['Websites, apps', 'and the {em}systems behind them.{/em}'],
     lead: 'Marketing sites, web apps, native iOS and Android apps, APIs and data pipelines. We build them fast to load, strict about security and easy for the next developer to read. Then we hand over the repository.',
     primary: { label: 'See this page measured', href: '#telemetry' },

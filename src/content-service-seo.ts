@@ -22,7 +22,7 @@ export const content: SectionPage = {
     ogDescription: 'Search has two readers now. Search engines rank pages.',
   },
   hero: {
-    eyebrow: 'Technical SEO & AI Search',
+    eyebrow: 'SEO & AI Search',
     headline: ['Technical SEO for search', 'and {em}AI answer engines.{/em}'],
     lead: 'Search has two readers now. Search engines rank pages. Answer engines read them and decide what to quote. Both start from the same HTML, and most sites hand them a mess. We fix that layer, then measure what changed.',
     primary: { label: 'See what a crawler reads', href: '#machine' },
@@ -82,7 +82,7 @@ export const content: SectionPage = {
       eyebrow: 'Measured, not described',
       headline: ['Here’s what a crawler', 'gets {em}from this page.{/em}'],
       body: [
-        'This page practices what it describes. The panel fetched it again a moment ago and read the raw HTML with no script run. Compare the readers. Then open the whole page in Machine view.',
+        'This page practices what it describes. When scripts run, the panel fetches it again and reads the raw HTML with no script run. Compare the readers. Then open the whole page in Machine view.',
       ],
       instrument: 'machine-full',
     },

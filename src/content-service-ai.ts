@@ -28,7 +28,7 @@ export const content: SectionPage = {
     eyebrow: 'AI Engineering',
     headline: ['AI agents and automation', 'that {em}show their work.{/em}'],
     lead: 'We build AI systems that do one job inside a business that already runs. Agents that call your tools. Retrieval that cites its sources. Extraction from records nobody structured, and drafting that stops at a review gate. Each one ships with an evaluation set, so you can tell whether it’s still right next month.',
-    primary: { label: 'See an agent stop', href: '#replay' },
+    primary: { label: 'Watch a run stop', href: '#replay' },
     secondary: { label: 'Talk to Daniel', href: '#contact' },
     specs: [
       { label: 'Inputs', value: 'Your documents, records and tools' },
@@ -83,7 +83,7 @@ export const content: SectionPage = {
     {
       id: 'replay',
       eyebrow: 'A system we run',
-      headline: ['An agent is a pipeline', 'with a {em}person in it.{/em}'],
+      headline: ['A pipeline that stops', 'and {em}asks a person.{/em}'],
       body: [
         'This is the underwriting engine we run for ADJL Capital, replayed stage by stage. A model writes the narrative at the end and nothing else. It’s handed figures that are already computed, and its prose is never parsed back into a number. Pick a bad input and watch where the run stops.',
       ],

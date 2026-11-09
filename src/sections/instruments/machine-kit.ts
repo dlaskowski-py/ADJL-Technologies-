@@ -193,6 +193,19 @@ export const typeLabel = (n: LdNode): string =>
 
 const r1 = (v: number) => Math.round(v * 10) / 10;
 
+/** Label sizes in viewBox units; machine.css sets the same values. */
+const FS_NEAR = 18;
+const FS_FAR = 17;
+
+/** A node described on another page, by its last path segment and its
+ *  fragment: "/services/seo/#service" reads "seo #service". The full id
+ *  stays in the list beside the drawing. */
+const farLabel = (id: string): string => {
+  const u = shortId(id);
+  const m = /([^/]+)\/?(#.*)$/.exec(u);
+  return m ? `${m[1]} ${m[2]}` : u;
+};
+
 /** The layered graph as SVG. `label` is its accessible name (role="img");
  *  the adjacent list carries the same facts in text. */
 export function ldSvg(ld: Measure['ld'], label: string, origin = ''): string {
@@ -200,6 +213,7 @@ export function ldSvg(ld: Measure['ld'], label: string, origin = ''): string {
   const H = 440;
   const { placed, r } = ldLayout(ld, W, H, origin);
   const at = new Map(placed.map((p) => [p.n.id, p]));
+  const boxes: { x1: number; x2: number; y1: number; y2: number }[] = [];
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${x(label)}" focusable="false" data-ld-svg>`;
   /* Rings: hairline orbits, dashed for the outer "described elsewhere". */
   for (const rad of r) {
@@ -226,14 +240,35 @@ export function ldSvg(ld: Measure['ld'], label: string, origin = ''): string {
       }
       satText += `${t} ×${count}`;
     }
-    /* Label to the outside of the ring, anchored away from the centre. */
+    /* Label to the outside of the ring, anchored away from the centre,
+       then kept inside the drawing and clear of labels already placed.
+       The SVG renders at about 0.6 of its viewBox, so sizes here are
+       viewBox units (machine.css sets 18 / 17 to match). */
+    const text = p.n.local ? typeLabel(p.n) : farLabel(p.n.id);
+    const fs = p.ring === 4 ? FS_FAR : FS_NEAR;
+    const w = text.length * fs * 0.6;
     const dx = p.x - W / 2;
-    const anchor = p.ring === 0 ? 'middle' : dx > 8 ? 'start' : dx < -8 ? 'end' : 'middle';
-    const lx = p.ring === 0 ? p.x : p.x + (anchor === 'start' ? 12 : anchor === 'end' ? -12 : 0);
-    const ly = p.ring === 0 ? p.y + 26 : anchor === 'middle' ? p.y + (p.y > H / 2 ? 22 : -14) : p.y + 4;
-    s += `<text x="${r1(lx)}" y="${r1(ly)}" text-anchor="${anchor}" data-label="${p.ring}">${x(typeLabel(p.n))}</text>`;
+    let anchor: 'start' | 'end' | 'middle' = p.ring === 0 ? 'middle' : dx > 8 ? 'start' : dx < -8 ? 'end' : 'middle';
+    let lx = p.ring === 0 ? p.x : p.x + (anchor === 'start' ? 12 : anchor === 'end' ? -12 : 0);
+    if (anchor === 'start' && lx + w > W - 4) {
+      anchor = 'end';
+      lx = p.x - 12;
+    } else if (anchor === 'end' && lx - w < 4) {
+      anchor = 'start';
+      lx = p.x + 12;
+    }
+    const left = (a: string, xx: number) => (a === 'end' ? xx - w : a === 'middle' ? xx - w / 2 : xx);
+    lx += Math.max(0, 4 - left(anchor, lx)) - Math.max(0, left(anchor, lx) + w - (W - 4));
+    let ly = p.ring === 0 ? p.y + 30 : anchor === 'middle' ? p.y + (p.y > H / 2 ? 26 : -16) : p.y + 5;
+    const step = p.y < H / 2 ? -(fs + 4) : fs + 4;
+    const hits = (y: number) =>
+      boxes.some((b) => left(anchor, lx) < b.x2 && left(anchor, lx) + w > b.x1 && y - fs < b.y2 && y + 4 > b.y1);
+    for (let i = 0; i < 6 && hits(ly); i++) ly += step;
+    ly = Math.min(H - 6, Math.max(fs + 2, ly));
+    boxes.push({ x1: left(anchor, lx), x2: left(anchor, lx) + w, y1: ly - fs, y2: ly + 4 + (satText ? fs + 4 : 0) });
+    s += `<text x="${r1(lx)}" y="${r1(ly)}" text-anchor="${anchor}" data-label="${p.ring}">${x(text)}</text>`;
     if (satText) {
-      s += `<text x="${r1(lx)}" y="${r1(ly + 14)}" text-anchor="${anchor}" data-label="sat">${x(satText)}</text>`;
+      s += `<text x="${r1(lx)}" y="${r1(Math.min(H - 6, ly + fs + 4))}" text-anchor="${anchor}" data-label="sat">${x(satText)}</text>`;
     }
   }
   return s + '</svg>';

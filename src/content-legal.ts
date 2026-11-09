@@ -47,7 +47,7 @@ export const privacy: LegalDoc = {
       id: 'collect',
       heading: 'What this site collects',
       paragraphs: [
-        'Nothing, through the site itself. These pages are static files served from a content delivery network. No script here reads or writes a cookie. No analytics or session-recording service is loaded, and no third-party embed appears on any page.',
+        'Nothing, through the site itself. These pages are static files served from a content delivery network. No script here sets a cookie. No analytics or session-recording service is loaded, and no third-party embed appears on any page.',
         'Your browser may keep the usual local cache of images, fonts and scripts so pages load faster on a second visit. That cache lives on your device. Your browser controls it, and we can’t read it.',
       ],
     },
@@ -62,7 +62,7 @@ export const privacy: LegalDoc = {
       id: 'measure',
       heading: 'Measurements on the page',
       paragraphs: [
-        'Some sections measure the page you’re reading. They use your browser’s own performance APIs, and they fetch this site’s files again from this site and nowhere else. The results are shown to you and aren’t sent anywhere. Those fetches are ordinary requests, so they appear in the host’s standard logs like any page view.',
+        'Some sections measure the page you’re reading. They use your browser’s own performance APIs, and they fetch this site’s files again from this site and nowhere else. The results are shown to you and aren’t sent anywhere. Those fetches are ordinary requests, so they appear in the host’s standard logs like any page view. The status bar also counts any cookies your browser holds for this site. There should be none. It reads that count from document.cookie, shows it to you and sends it nowhere.',
       ],
     },
     {

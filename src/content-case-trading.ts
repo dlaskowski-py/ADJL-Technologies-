@@ -26,13 +26,13 @@ export const content: CaseContent = {
         num: "01",
         tag: "ingest",
         title: "Market data in, normalized once",
-        body: "Feeds arrive in whatever shape the venue or the vendor chose. They get {k}normalized{/k} into one internal representation, timestamped at capture, not at parse, and recorded so the same bytes can be replayed later. Everything downstream reads that one representation, which means a fix to a feed handler is a fix everywhere instead of in three places you have to remember."
+        body: "Feeds arrive in whatever shape the venue or the vendor chose. They get {k}normalized{/k} into one internal representation, timestamped at capture, not at parse, and recorded so the same bytes can be replayed later. Everything downstream reads that one representation, so a fix to a feed handler is a fix everywhere."
       },
       {
         num: "02",
         tag: "rules",
         title: "The rules set, written down as code",
-        body: "A discretionary rules set gets read back to you as a list of conditions and actions, in plain language, until you agree the list is the thing you actually do. Then it becomes code, with the ambiguities resolved on paper instead of at three in the afternoon. What a trader says the rule is and what the rule turns out to be are two different things. That gap is the part worth spending time on."
+        body: "A discretionary rules set gets read back to you as a list of conditions and actions, in plain language, until you agree the list is the thing you actually do. Then it becomes code, with the ambiguities already resolved on paper. What a trader says the rule is and what the rule turns out to be are two different things. That gap is the part worth spending time on."
       },
       {
         num: "03",
@@ -50,7 +50,7 @@ export const content: CaseContent = {
         num: "05",
         tag: "monitoring",
         title: "Alerting on the conditions that precede a P&L surprise",
-        body: "Gaps in sequence numbers, a feed going stale, an order that never got an ack, position drift against the broker, a process that stopped and told nobody. Each condition raises an alert with enough context to act on, and it goes to a person, not to a dashboard nobody has open. A system nobody watches fails silently. Silent failure gets expensive long before it’s visible."
+        body: "Gaps in sequence numbers, a feed going stale, an order that never got an ack, position drift against the broker, a process that stopped and told nobody. Each condition raises an alert with enough context to act on, and it goes to a person, not to a dashboard nobody has open. Silent failure gets expensive long before it’s visible."
       }
     ]
   },
@@ -85,7 +85,7 @@ export const content: CaseContent = {
       "on Tuesday as it did",
       "on {em}Monday.{/em}"
     ],
-    body: "Programming and network work for trading firms: {k}market data{/k} coming in, orders going out, and the {k}monitoring{/k} that tells you when either one has stopped. It’s unglamorous work. It’s also where the expensive failures start. A correct signal and a late one produce the same result, and only one of them shows up in the research.",
+    body: "Programming and network work for trading firms: {k}market data{/k} coming in, orders going out, and the {k}monitoring{/k} that tells you when either one has stopped. Most expensive failures in trading start here. A correct signal and a late one produce the same result, and only one of them shows up in the research.",
     secondary: {
       label: "Talk to Daniel",
       href: "#contact"
@@ -179,7 +179,7 @@ export const content: CaseContent = {
   },
   foot: {
     builtUnder: [
-      { label: "Websites, apps and backends", href: "/services/software/" }
+      { label: "Websites & Apps", href: "/services/software/" }
     ],
     next: { label: "How an AI rollout runs", href: "/work/ai-implementation/" }
   }

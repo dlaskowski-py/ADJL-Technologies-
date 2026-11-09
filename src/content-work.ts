@@ -34,7 +34,7 @@ export const filter: WorkFilter = {
     { value: 'all', label: 'All' },
     { value: 'ai', label: 'AI' },
     { value: 'seo', label: 'SEO' },
-    { value: 'software', label: 'Software' },
+    { value: 'software', label: 'Websites & Apps' },
     { value: 'systems', label: 'Systems' },
   ],
 };

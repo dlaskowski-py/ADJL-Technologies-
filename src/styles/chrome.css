@@ -74,6 +74,12 @@
 
 /* ── Nav ─────────────────────────────────────────────────────────── */
 
+/* The build mounts the header inside #nav-root, a block exactly as tall
+   as the header, which left sticky no room to work: the header scrolled
+   away with the page. display: contents lets the header stick to body. */
+#nav-root {
+  display: contents;
+}
 .nav {
   position: sticky;
   top: 0;
@@ -198,7 +204,7 @@
   transform-origin: left;
 }
 
-@media (min-width: 1100px) {
+@media (min-width: 1160px) {
   .nav-links,
   .nav-cta {
     display: inline-flex;
@@ -216,7 +222,7 @@
 html:not(.js) .nav-burger {
   display: none;
 }
-@media (max-width: 1099px) {
+@media (max-width: 1159px) {
   html:not(.js) .nav-links {
     display: flex;
     flex-wrap: wrap;
@@ -459,6 +465,11 @@ html:not(.js) .nav-burger {
 }
 
 @media (min-width: 1024px) {
+  /* Keyboard focus scrolled into view must clear the fixed status bar
+     (WCAG 2.4.11), the way scroll-padding-top clears the nav. */
+  html {
+    scroll-padding-bottom: calc(var(--status-h) + 16px);
+  }
   body {
     padding-bottom: var(--status-h);
   }

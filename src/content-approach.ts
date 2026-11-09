@@ -124,7 +124,7 @@ export const content: ApproachContent = {
       "Five positions we",
       "actually {em}build to.{/em}"
     ],
-    intro: "None of these are values. Each one is a position you could disagree with, and each one shows up in the code, not just in a conversation.",
+    intro: "Each one is a position you could disagree with, and each one shows up in the code, not just in a conversation.",
     items: [
       {
         num: "01",
@@ -134,12 +134,12 @@ export const content: ApproachContent = {
       {
         num: "02",
         title: "The model is the small part",
-        body: "Most of an AI project is plumbing: reaching the data, cleaning what comes back, deciding what a correct answer looks like, and building the {k}evaluation set{/k} that tells you when the thing has quietly gotten worse. The model itself is often a few lines and a choice between three vendors, and that choice is reversible. A firm that spends its pitch on model selection is describing the cheapest part of the job. A demo gets judged on one good answer. A system gets judged on the hundredth."
+        body: "Most of an AI project is plumbing: reaching the data, cleaning what comes back, deciding what a correct answer looks like, and building the {k}evaluation set{/k} that tells you when the thing has quietly gotten worse. The model itself is often a few lines and a choice between three vendors, and that choice is reversible. A firm that spends its pitch on model selection is describing the cheapest part of the job."
       },
       {
         num: "03",
         title: "If it can’t be checked, it doesn’t ship",
-        body: "Every output should be traceable back to what produced it: the record, the row, the page of the filing, the version of the prompt. That rules out a whole class of work that shows beautifully and can’t be defended in a meeting. It also slows the first build, because citation and logging get written at the same time as the feature. A system that can’t be audited gets switched off the first time it’s wrong in public. It will eventually be wrong in public."
+        body: "Every output should be traceable back to what produced it: the record, the row, the page of the filing, the version of the prompt. That rules out a whole class of work that shows beautifully and can’t be defended in a meeting. It also slows the first build, because citation and logging get written at the same time as the feature. When a system can’t be audited, the first public mistake usually ends it."
       },
       {
         num: "04",

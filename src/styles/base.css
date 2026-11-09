@@ -11,9 +11,16 @@
 
 html {
   -webkit-text-size-adjust: 100%;
-  scroll-behavior: smooth;
   scroll-padding-top: calc(var(--nav-h) + 16px);
   background: var(--ground);
+}
+/* Smooth scrolling turns on only after load (boot.ts sets data-scroll).
+   On the html element from the start, it also animated the browser's
+   first jump to a #fragment, so "Start a conversation" from another page
+   flew through the whole home page for seconds before it reached
+   #contact. In-page clicks still glide; arrivals land. */
+html[data-scroll='smooth'] {
+  scroll-behavior: smooth;
 }
 html[data-motion='reduced'] {
   scroll-behavior: auto;
@@ -133,7 +140,6 @@ html:not(.js) [data-js-only] {
 .sec {
   position: relative;
   padding-block: var(--sec);
-  scroll-margin-top: var(--nav-h);
 }
 .sec--band {
   background: var(--ground-2);
