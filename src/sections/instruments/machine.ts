@@ -56,6 +56,7 @@ const L = {
   links: '{n} · {u} unique',
   other: 'mailto {m} · external {e}',
   headings: 'headings',
+  missing: 'not found',
   twinMissing: 'Fetched from {url} when JavaScript runs.',
   llmsMissing: 'Read from /llms.txt when JavaScript runs.',
   /* "Entities in plain words": generated from the graph. */
@@ -88,7 +89,8 @@ function liveCopy(): string {
       nrTitle: status.notReportedTitle,
       budget: MV.rows.budget,
       lines: L.firstLines,
-      missing: 'not found',
+      links: L.links,
+      missing: L.missing,
     }),
   );
 }

@@ -165,6 +165,90 @@
 .pg-frame {
   pointer-events: none;
 }
-.pg-lb {
+
+/* The callouts stay legible however small the drawing gets: the figure
+   is a size container, and the mono labels grow (in viewBox units) as it
+   shrinks, so they render at about 10px from phone to desktop. */
+.hero-fig-art {
+  container-type: inline-size;
+}
+@container (max-width: 479px) {
+  .pg-t {
+    font-size: 15px;
+  }
+}
+@container (max-width: 399px) {
+  .pg-t {
+    font-size: 17px;
+  }
+}
+
+/* The canvas (created by lattice.ts) fades in over the poster. */
+[data-lattice] canvas {
+  opacity: 0;
   transition: opacity var(--d-2) linear;
+}
+[data-live] canvas {
+  opacity: 1;
+}
+
+/* Hover readout: e3, mono, aria-hidden. Positioned by transform only. */
+[data-lattice] [data-tip] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  display: grid;
+  gap: 2px;
+  max-width: 240px;
+  padding: 6px 9px 7px;
+  background: var(--panel-2);
+  border: 1px solid var(--rule-3);
+  border-radius: var(--r-1);
+  box-shadow: var(--e3-shadow);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  line-height: 1.4;
+  color: var(--fg-2);
+  pointer-events: none;
+}
+[data-lattice] [data-tip][hidden] {
+  display: none;
+}
+[data-lattice] [data-tip] b {
+  font-weight: 500;
+  color: var(--signal-hi);
+}
+[data-lattice] [data-tip] span {
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-lattice] [data-tip] i {
+  font-style: normal;
+  color: var(--fg-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-lattice] [data-tip] i:empty,
+[data-lattice] [data-tip] span:empty {
+  display: none;
+}
+
+/* Where a click on the graph lands: a copper outline that fades. */
+[data-graph-hit] {
+  outline: 1px solid var(--signal-hi);
+  outline-offset: 6px;
+  animation: graph-hit 1.6s var(--ease-out) forwards;
+}
+@keyframes graph-hit {
+  0%,
+  40% {
+    outline-color: var(--signal-hi);
+  }
+  100% {
+    outline-color: transparent;
+  }
 }

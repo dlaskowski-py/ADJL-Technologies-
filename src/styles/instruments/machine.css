@@ -1,1 +1,736 @@
-/* Instrument styles: machine. Owned by its workstream (see the rebuild ownership map). */
+/* Machine View: what a crawler is handed (sections/instruments/machine.ts,
+   motion/machine.ts). OWNER: WS2.
+
+   The frame (panel, readers, button) is classed; everything inside the
+   readout is styled by ATTRIBUTE selectors under [data-machine], because
+   the live module writes into it and builds parts of it at runtime where
+   check-css can't see a class. The drawer (views.css) shares the outline
+   and entity-list rules below.
+
+   Colour carries meaning, as everywhere: teal is a measurement taken live
+   and the paths a crawler follows, violet is structure (JSON-LD, headings,
+   BUILD), copper is the people reading. Every live slot has a fixed width,
+   so a value landing never moves a line. */
+
+.machine {
+  --mono-s: 0.8125rem;
+}
+
+/* ── Readers: People / Crawlers / Answer engines ─────────────────── */
+
+.machine-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3) var(--s-5);
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--rule);
+}
+.machine-readers {
+  border: 0;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-4);
+}
+.machine-legend {
+  float: left;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.machine-track {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-2);
+}
+.machine-opt {
+  position: relative;
+  display: inline-flex;
+}
+.machine-opt input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.machine-opt span {
+  --mk: var(--data);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: var(--mono-s);
+  color: var(--fg-3);
+  transition: background-color var(--d-1) var(--ease-out), color var(--d-1) var(--ease-out);
+}
+/* The reader's colour: copper for people, teal for crawlers, violet for
+   the models behind answer engines. A small square, never the only cue:
+   the label says which reader it is. */
+.machine-opt span::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--mk);
+  opacity: 0.55;
+}
+.machine-opt input[value='people'] + span {
+  --mk: var(--signal);
+}
+.machine-opt input[value='answer'] + span {
+  --mk: var(--model-dim);
+}
+.machine-opt input:hover + span {
+  color: var(--fg-2);
+}
+.machine-opt input:checked + span {
+  background: var(--panel-2);
+  color: var(--fg);
+  box-shadow: inset 0 0 0 1px var(--rule-3), inset 0 -2px 0 var(--mk);
+}
+.machine-opt input:checked + span::before {
+  opacity: 1;
+}
+.machine-opt input:focus-visible + span {
+  outline: 2px solid var(--signal-hi);
+  outline-offset: 2px;
+}
+.machine-open {
+  font-size: 0.875rem;
+}
+.machine-foot {
+  padding: var(--s-4);
+  border-top: 1px solid var(--rule);
+}
+
+/* Panes. With :has() the radios switch them with no script at all; the
+   live module mirrors the choice into data-on for browsers without it.
+   With neither, every pane shows, stacked, which is still the whole
+   readout. */
+@supports selector(:has(*)) {
+  [data-machine]:not(:has(input[value='people']:checked)) [data-pane='people'],
+  [data-machine]:not(:has(input[value='crawlers']:checked)) [data-pane='crawlers'],
+  [data-machine]:not(:has(input[value='answer']:checked)) [data-pane='answer'] {
+    display: none;
+  }
+}
+[data-machine][data-on]:not([data-on='people']) [data-pane='people'],
+[data-machine][data-on]:not([data-on='crawlers']) [data-pane='crawlers'],
+[data-machine][data-on]:not([data-on='answer']) [data-pane='answer'] {
+  display: none;
+}
+
+/* ── Shared readout parts ──────────────────────────────────────────── */
+
+[data-machine] [data-mr] {
+  container: mr / inline-size;
+}
+[data-machine] [data-pane] {
+  padding: var(--s-5) var(--s-4);
+}
+[data-machine] [data-l] {
+  margin-bottom: var(--s-3);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+[data-machine] [data-dim] {
+  color: var(--fg-3);
+}
+[data-machine] code {
+  font-family: var(--font-mono);
+  font-size: var(--mono-s);
+  color: var(--fg-2);
+  overflow-wrap: anywhere;
+}
+[data-machine] [data-file] {
+  color: var(--data);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--data) 35%, transparent);
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+[data-machine] [data-file]:hover {
+  text-decoration-color: var(--data);
+}
+
+/* "needs JS": a value only a live fetch can supply. */
+[data-machine] [data-nojs] {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+/* Measured live, in this browser. */
+[data-machine] [data-k][data-live]:not([data-v]) {
+  color: var(--data);
+}
+/* ▲ changed since build: amber, with its title saying so. */
+[data-machine] [data-delta] {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  font-style: normal;
+  color: var(--warn);
+  cursor: help;
+}
+
+/* The request line: GET /path, then four live cells in fixed columns. */
+[data-machine] [data-req] {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-3) var(--s-4);
+  padding: var(--s-4);
+  border-bottom: 1px solid var(--rule);
+  background: var(--ground-2);
+  font-family: var(--font-mono);
+  font-size: var(--mono-s);
+}
+[data-machine] [data-req] > [data-verb] {
+  display: none;
+}
+[data-machine] [data-req] > [data-path] {
+  grid-column: 1 / -1;
+  color: var(--fg);
+  overflow-wrap: anywhere;
+}
+[data-machine] [data-req] > [data-path]::before {
+  content: 'GET ';
+  content: 'GET ' / '';
+  color: var(--data);
+}
+[data-machine] [data-cell] {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+[data-machine] [data-cell] > [data-l] {
+  margin: 0;
+  letter-spacing: 0.06em;
+}
+[data-machine] [data-cell] > b {
+  font-weight: 400;
+  color: var(--fg-2);
+  min-height: 1.5em;
+}
+@container mr (min-width: 640px) {
+  [data-machine] [data-req] {
+    grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(0, 1fr));
+    align-items: end;
+  }
+  [data-machine] [data-req] > [data-path] {
+    grid-column: auto;
+    align-self: end;
+  }
+}
+
+/* Label/value rows. */
+[data-machine] [data-rows] {
+  display: grid;
+}
+[data-machine] [data-row] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px var(--s-4);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule);
+}
+[data-machine] [data-row]:first-child {
+  padding-top: 0;
+}
+[data-machine] [data-row] > dt {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.04em;
+  color: var(--fg-3);
+}
+[data-machine] [data-row] > dd {
+  min-width: 0;
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--fg-2);
+}
+@container mr (min-width: 520px) {
+  [data-machine] [data-row] {
+    grid-template-columns: 15ch minmax(0, 1fr);
+    align-items: baseline;
+  }
+}
+
+/* Title and description against their character budgets. */
+[data-machine] q {
+  display: block;
+  color: var(--fg);
+  quotes: '“' '”';
+}
+[data-machine] [data-gauge] {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: 6px;
+}
+[data-machine] [data-meter] {
+  position: relative;
+  flex: 0 1 140px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--rule-2);
+  overflow: hidden;
+}
+[data-machine] [data-meter] i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--f, 0) * 100%);
+  background: var(--model-dim);
+  border-radius: 2px;
+}
+[data-machine] [data-gauge][data-over] [data-meter] i {
+  background: var(--warn);
+}
+[data-machine] [data-n] {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+  white-space: nowrap;
+}
+[data-machine] [data-warn] {
+  color: var(--warn);
+}
+
+/* ── Crawlers: two columns, then the graph beside the files ───────── */
+
+[data-machine] [data-cols] {
+  display: grid;
+  gap: var(--s-6) var(--s-6);
+}
+[data-machine] [data-cols='wide'] {
+  margin-top: var(--s-6);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--rule);
+}
+[data-machine] [data-col] {
+  min-width: 0;
+  container: mcol / inline-size;
+}
+@container mr (min-width: 880px) {
+  [data-machine] [data-cols] {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  }
+}
+
+/* The parity meter. */
+[data-machine] [data-parity] {
+  margin-top: var(--s-5);
+  padding: var(--s-4);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-2);
+  background: var(--ground-2);
+}
+[data-machine] [data-parity] > [data-l] {
+  margin-bottom: var(--s-2);
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-size: var(--t-readout);
+  color: var(--fg-2);
+}
+[data-machine] [data-figure] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.4em;
+  margin-bottom: var(--s-4);
+  font-size: 1.75rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+[data-machine] [data-figure] b {
+  font-weight: 500;
+}
+[data-machine] [data-of] {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--fg-3);
+}
+[data-machine] [data-of] b {
+  font-size: 1.75rem;
+  color: var(--fg);
+}
+[data-machine] [data-of] b[data-live] {
+  color: var(--data);
+}
+[data-machine] [data-of] b[data-nojs] {
+  font-size: var(--t-label);
+  font-weight: 400;
+}
+[data-machine] [data-k='pct'] {
+  font-family: var(--font-mono);
+  font-size: var(--mono-s);
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--data);
+}
+[data-machine] [data-bars] {
+  display: grid;
+  gap: 8px;
+}
+[data-machine] [data-bar] {
+  display: grid;
+  grid-template-columns: 9ch minmax(0, 1fr) 8ch;
+  align-items: center;
+  gap: var(--s-3);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+[data-machine] [data-track] {
+  position: relative;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--rule);
+  overflow: hidden;
+}
+[data-machine] [data-track][data-empty] {
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--rule-2);
+}
+[data-machine] [data-track] i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--f, 0) * 100%);
+  background: var(--model-dim);
+  transition: width var(--d-3) var(--ease-out);
+}
+[data-machine] [data-bar='dom'] [data-track] i {
+  background: var(--data-dim);
+}
+[data-machine] [data-bn] {
+  text-align: right;
+  color: var(--fg-2);
+}
+html[data-motion='reduced'] [data-machine] [data-track] i {
+  transition: none;
+}
+
+/* The outline: h1 → h2 → h3 as a tree. Shared with the drawer. */
+:is([data-machine], [data-drawer]) [data-outline] {
+  list-style: none;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+:is([data-machine], [data-drawer]) [data-outline] ol {
+  list-style: none;
+  margin: 2px 0 2px 5px;
+  padding-left: 14px;
+  border-left: 1px solid var(--rule-2);
+}
+:is([data-machine], [data-drawer]) [data-outline] li {
+  position: relative;
+  padding: 3px 0;
+}
+:is([data-machine], [data-drawer]) [data-outline] ol > li::before {
+  content: '';
+  position: absolute;
+  left: -14px;
+  top: 0.95em;
+  width: 9px;
+  height: 1px;
+  background: var(--rule-2);
+}
+:is([data-machine], [data-drawer]) [data-outline] [data-tag] {
+  display: inline-block;
+  min-width: 3ch;
+  margin-right: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--model);
+}
+:is([data-machine], [data-drawer]) [data-outline] [data-num] {
+  display: none;
+}
+:is([data-machine], [data-drawer]) [data-outline] [data-t],
+:is([data-machine], [data-drawer]) [data-outline] li > a {
+  color: var(--fg-2);
+}
+:is([data-machine], [data-drawer]) [data-outline] > li > [data-t],
+:is([data-machine], [data-drawer]) [data-outline] > li > a {
+  color: var(--fg);
+  font-weight: 600;
+}
+:is([data-machine], [data-drawer]) [data-outline] [data-id] {
+  margin-left: 8px;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+[data-machine] [data-scroll] {
+  max-height: 34rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-right: var(--s-2);
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-3) transparent;
+}
+
+/* ── The JSON-LD graph ─────────────────────────────────────────────── */
+
+[data-machine] [data-graph] {
+  display: grid;
+  gap: var(--s-4);
+}
+[data-machine] [data-svg] {
+  min-width: 0;
+}
+:is([data-machine], [data-drawer]) [data-ld-svg] {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+[data-ld-svg] [data-orbit] {
+  fill: none;
+  stroke: var(--rule-2);
+  stroke-width: 1;
+}
+[data-ld-svg] [data-orbit='4'] {
+  stroke-dasharray: 2 4;
+}
+[data-ld-svg] [data-edge] {
+  stroke: var(--model-dim);
+  stroke-opacity: 0.6;
+  stroke-width: 1.2;
+}
+[data-ld-svg] [data-edge][data-far] {
+  stroke-dasharray: 3 3;
+  stroke-opacity: 0.45;
+}
+[data-ld-svg] [data-node] {
+  fill: var(--panel);
+  stroke: var(--model);
+  stroke-width: 1.5;
+}
+[data-ld-svg] [data-node='0'] {
+  fill: var(--model-dim);
+  stroke: var(--model);
+  stroke-width: 2;
+}
+[data-ld-svg] [data-node='2'] {
+  fill: var(--model);
+}
+[data-ld-svg] [data-node='4'] {
+  stroke: var(--model-dim);
+  stroke-dasharray: 2 2;
+}
+[data-ld-svg] [data-sat] {
+  fill: var(--model);
+}
+[data-ld-svg] [data-label] {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  fill: var(--fg-2);
+}
+[data-ld-svg] [data-label='0'] {
+  fill: var(--fg);
+  font-weight: 600;
+}
+[data-ld-svg] :is([data-label='4'], [data-label='sat']) {
+  fill: var(--fg-3);
+  font-size: 12px;
+}
+/* Too small to read: the list beside it carries every name. */
+@container mcol (max-width: 420px) {
+  [data-ld-svg] [data-label] {
+    display: none;
+  }
+}
+@container mr (max-width: 420px) {
+  [data-ld-svg] [data-label] {
+    display: none;
+  }
+}
+
+[data-machine] [data-facts] {
+  margin-bottom: var(--s-3);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+[data-machine] [data-ok='yes'] {
+  color: var(--ok);
+}
+[data-machine] [data-ok='no'] {
+  color: var(--fail);
+}
+:is([data-machine], [data-drawer]) [data-ld-list] {
+  list-style: none;
+  display: grid;
+}
+:is([data-machine], [data-drawer]) [data-ld-list] li {
+  display: grid;
+  grid-template-columns: 2ch minmax(0, 1fr);
+  column-gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: var(--mono-s, 0.8125rem);
+  line-height: 1.45;
+}
+:is([data-machine], [data-drawer]) [data-ld-list] [data-glyph] {
+  grid-row: span 3;
+  color: var(--model);
+}
+:is([data-machine], [data-drawer]) [data-ld-list] [data-type] {
+  font-family: var(--font-mono);
+  color: var(--model);
+}
+:is([data-machine], [data-drawer]) [data-ld-list] [data-name] {
+  grid-column: 2;
+  color: var(--fg-2);
+}
+:is([data-machine], [data-drawer]) [data-ld-list] [data-id] {
+  grid-column: 2;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+  overflow-wrap: anywhere;
+}
+:is([data-machine], [data-drawer]) [data-ld-list] li[data-far] :is([data-glyph], [data-type]) {
+  color: var(--fg-3);
+}
+@container mcol (min-width: 600px) {
+  [data-machine] [data-graph] {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+@container mr (min-width: 600px) {
+  [data-machine] [data-mr='schema'] [data-graph] {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+/* ── Machine-readable files ────────────────────────────────────────── */
+
+[data-machine] [data-surfaces] {
+  list-style: none;
+}
+[data-machine] [data-surfaces] li,
+[data-machine] [data-surface-head] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 11ch 9ch;
+  gap: var(--s-3);
+  align-items: baseline;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: var(--mono-s);
+  color: var(--fg-2);
+}
+[data-machine] [data-surfaces] li > span:last-child,
+[data-machine] [data-surface-head] > span:last-child {
+  text-align: right;
+}
+[data-machine] [data-surface-head] {
+  padding-top: 0;
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+[data-machine] [data-surfaces] [data-bad] {
+  color: var(--warn);
+}
+
+/* ── Answer engines ────────────────────────────────────────────────── */
+
+[data-machine] [data-twin] pre {
+  max-height: 24rem;
+  margin-bottom: var(--s-5);
+  padding: var(--s-4);
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-1);
+  background: var(--ground);
+  font-family: var(--font-mono);
+  font-size: var(--mono-s);
+  line-height: 1.65;
+  color: var(--fg-2);
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-3) transparent;
+}
+[data-machine] [data-twin] pre[data-nojs] {
+  font-size: var(--mono-s);
+}
+[data-machine] [data-lines] {
+  letter-spacing: 0.06em;
+}
+[data-machine] [data-k='says'] {
+  color: var(--fg);
+}
+
+/* ── People ─────────────────────────────────────────────────────────── */
+
+[data-machine] [data-people] [data-metric] {
+  font-family: var(--font-mono);
+  font-size: var(--mono-s);
+  color: var(--fg-2);
+}
+[data-machine] [data-people] [data-metric][data-prov='live'] {
+  color: var(--data);
+}
+[data-machine] [data-people] [data-metric][data-state] {
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+
+/* ── Variants ──────────────────────────────────────────────────────── */
+
+[data-machine] [data-mr='parity'] [data-parity] {
+  margin: var(--s-5) var(--s-4) var(--s-4);
+}
+[data-machine] [data-parity][data-big] [data-figure],
+[data-machine] [data-parity][data-big] [data-of] b:not([data-nojs]) {
+  font-size: clamp(2rem, 1.2rem + 2.4vw, 3rem);
+}
+[data-machine] [data-parity][data-big] [data-track] {
+  height: 10px;
+}
+[data-machine] [data-rows][data-inline] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0 var(--s-4) var(--s-4);
+  border-top: 1px solid var(--rule);
+}
+[data-machine] [data-rows][data-inline] [data-row] {
+  grid-template-columns: minmax(0, 1fr);
+  padding: var(--s-3) var(--s-3) var(--s-3) 0;
+  border-bottom: 0;
+}
+[data-machine] [data-rows][data-inline] dd {
+  font-family: var(--font-mono);
+  font-size: var(--mono-s);
+  color: var(--fg);
+}
+[data-machine] [data-mr='schema'] {
+  padding: var(--s-5) var(--s-4) var(--s-4);
+}
+[data-machine] [data-mr='surfaces'] {
+  padding: var(--s-5) var(--s-4) var(--s-3);
+}
+[data-machine] [data-mr='surfaces'] [data-surfaces] li:last-child {
+  border-bottom: 0;
+}

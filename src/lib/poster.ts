@@ -153,7 +153,7 @@ function frame(g: Graph): string {
   const labels = rows
     .map(([name, count], k) => {
       const { dot, elbow, y } = leader(k);
-      return `<g class="pg-lb" data-plane="${k}"><path class="pg-ld" d="M${LABEL.x} ${f(y)}H${f(elbow[0])}L${pt(dot)}"/><path class="pg-d3 pg-c${k}" d="M${pt(dot)}h0"/><text class="pg-t" x="${LABEL.x}" y="${f(y - 7)}">${esc(
+      return `<g data-plane="${k}"><path class="pg-ld" d="M${LABEL.x} ${f(y)}H${f(elbow[0])}L${pt(dot)}"/><path class="pg-d3 pg-c${k}" d="M${pt(dot)}h0"/><text class="pg-t" x="${LABEL.x}" y="${f(y - 7)}">${esc(
         name.toUpperCase(),
       )}</text><text class="pg-t pg-tc pg-t${k}" x="${LABEL.x}" y="${f(y + 15)}">${esc(count)}</text></g>`;
     })

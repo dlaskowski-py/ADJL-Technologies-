@@ -365,6 +365,19 @@ export function gate(s: Search, floor = FLOOR): Answer {
   return { floor, above, cited, best: s.hits[0]?.conf ?? 0 };
 }
 
+/** What a "Break the input" chip promises. */
+export type Expect = 'answer' | 'abstain' | 'answer-2';
+
+/** Did the answer do what was promised? `answer-2` means at least two
+ *  passages, and (because an answer quotes one per section) from at least
+ *  two sections. The build's evaluation and the live verdicts both use
+ *  this, so they can't disagree about what passing means. */
+export function meets(expect: Expect, a: Answer): boolean {
+  if (expect === 'abstain') return a.cited.length === 0;
+  if (expect === 'answer-2') return new Set(a.cited.map((h) => sectionOf(h.p))).size >= 2;
+  return a.cited.length >= 1;
+}
+
 /** The whole pipeline: search, then gate. */
 export function run(e: Engine, query: string, floor = FLOOR): { search: Search; answer: Answer } {
   const s = search(e, query);
@@ -423,5 +436,6 @@ export function quote(text: string, matched: readonly string[] = [], max = MAX_Q
   return { text: ss.slice(bi, bj + 1).join(' '), before: bi > 0, after: bj < ss.length - 1 };
 }
 
-/** A confidence or floor, the way every readout prints it. */
-export const fmt = (n: number): string => n.toFixed(2);
+/** A confidence or floor, the way every readout prints it (and the way
+ *  the gate compares them). */
+export const fmt = (n: number): string => (at2(n) / 100).toFixed(2);

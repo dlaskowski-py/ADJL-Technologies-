@@ -200,15 +200,18 @@ export function measureHtml(html: string, origin = ''): Measure {
   );
 
   /* Links, now the page's own path is known (a bare "#faq" targets this
-     page). Mailto and other origins counted apart. */
-  const here = internalPath(canonical || '/', origin, '/') ?? '/';
+     page). Mailto and other origins counted apart. "Internal" means the
+     page's own canonical origin or the origin it was fetched from, so a
+     preview server and production count the same links the same way. */
+  const home = /^https?:\/\/[^/]+/i.exec(canonical)?.[0] ?? '';
+  const here = internalPath(canonical || '/', home || origin, '/') ?? '/';
   for (const { href } of pending) {
     if (!href) continue;
     if (/^mailto:/i.test(href)) {
       links.mailto++;
       continue;
     }
-    const p = internalPath(href, origin, here);
+    const p = internalPath(href, origin, here) ?? (home && home !== origin ? internalPath(href, home, here) : null);
     if (p === null) links.external++;
     else {
       links.internal++;

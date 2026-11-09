@@ -1,1 +1,962 @@
-/* Instrument styles: ask. Owned by its workstream (see the rebuild ownership map). */
+/* Ask This Site. OWNER: WS3.
+   =====================================================================
+   A retrieval console, not a chat box: a prompt, then four numbered
+   stages that rest in a described idle state and light in order when a
+   question runs. Colour follows the house semantics:
+     copper  the prompt, the Ask button, a cited quote (our output)
+     teal    scores, bars and citation paths (measurement, links)
+     violet  the parts of a compound question (structure)
+     amber   ▲ abstained, ▲ unseen term (held, with a glyph and a word)
+   Prerendered parts carry classes. Everything the module builds is
+   styled by attributes under [data-ask], so check-css never sees a class
+   that only exists after a script runs.
+   Staging animates opacity, transform and clip-path only: the panel's
+   layout settles once, at the click, and never again.
+   ===================================================================== */
+
+.askp {
+  --ask-pad: 16px;
+  --barw: 28%;
+  --ask-row: 24px minmax(0, 1fr) var(--barw) 44px;
+}
+@media (min-width: 760px) {
+  .askp {
+    --ask-pad: 24px;
+    --barw: 34%;
+  }
+}
+
+/* ── Head: title, index readout, provenance ─────────────────────────── */
+
+.askp-head {
+  justify-content: flex-start;
+}
+.askp-head .prov {
+  margin-left: auto;
+}
+.askp-index {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.02em;
+  color: var(--fg-3);
+  font-variant-numeric: tabular-nums;
+}
+.askp-index::before {
+  content: '·';
+  margin-right: var(--s-3);
+  color: var(--fg-3);
+}
+.askp-index[data-index='ready'] {
+  color: var(--data);
+}
+.askp-index[data-index='failed'] {
+  color: var(--warn);
+}
+
+/* ── The prompt ─────────────────────────────────────────────────────── */
+
+.askp-ctl {
+  display: grid;
+  gap: var(--s-5);
+  padding: var(--ask-pad);
+}
+.askp-ask {
+  display: grid;
+  gap: var(--s-2);
+}
+.askp-label {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.askp-field {
+  position: relative;
+  display: flex;
+  gap: var(--s-2);
+}
+.askp-prompt {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-52%);
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--signal-hi);
+  pointer-events: none;
+}
+.askp-input {
+  flex: 1;
+  min-width: 0;
+  height: 52px;
+  padding: 0 14px 0 40px;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--fg);
+  background: var(--panel-2);
+  border: 1px solid var(--fg-3);
+  border-radius: var(--r-2);
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color var(--d-1) var(--ease-out);
+}
+.askp-input::placeholder {
+  color: var(--fg-3);
+  opacity: 1;
+}
+.askp-input:hover {
+  border-color: var(--fg-2);
+}
+.askp-input:focus-visible {
+  outline-offset: 2px;
+  border-color: var(--signal-hi);
+}
+.askp-input::-webkit-search-cancel-button {
+  filter: grayscale(1) brightness(1.6);
+}
+.askp-go {
+  flex: none;
+  height: 52px;
+  min-width: 88px;
+}
+
+/* ── Chips ──────────────────────────────────────────────────────────── */
+
+.askp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+}
+.askp-try {
+  margin-right: var(--s-1);
+}
+.askp-chip-list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+[data-ask] [data-chip] {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  line-height: 1.35;
+  text-align: left;
+  color: var(--fg-2);
+  background: var(--panel-2);
+  border: 1px solid var(--rule-3);
+  border-radius: var(--r-1);
+  cursor: pointer;
+  transition: border-color var(--d-1) var(--ease-out), color var(--d-1) var(--ease-out),
+    background-color var(--d-1) var(--ease-out);
+}
+@media (pointer: coarse) {
+  [data-ask] [data-chip] {
+    min-height: 44px;
+  }
+}
+[data-ask] [data-chip]:hover {
+  border-color: var(--fg-3);
+  color: var(--fg);
+}
+/* The question on the bench right now. */
+[data-ask] [data-chip][data-on] {
+  color: var(--fg);
+  border-color: var(--signal-hi);
+  background: color-mix(in srgb, var(--signal) 10%, var(--panel-2));
+}
+/* Corner brackets, as on every button: grey on hover, copper on focus. */
+[data-ask] [data-chip]::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.94);
+  transition: opacity var(--d-1) var(--ease-out), transform var(--d-1) var(--ease-out);
+  --bc: var(--fg-3);
+  background: linear-gradient(var(--bc), var(--bc)) top left / 7px 1.5px,
+    linear-gradient(var(--bc), var(--bc)) top left / 1.5px 7px,
+    linear-gradient(var(--bc), var(--bc)) top right / 7px 1.5px,
+    linear-gradient(var(--bc), var(--bc)) top right / 1.5px 7px,
+    linear-gradient(var(--bc), var(--bc)) bottom left / 7px 1.5px,
+    linear-gradient(var(--bc), var(--bc)) bottom left / 1.5px 7px,
+    linear-gradient(var(--bc), var(--bc)) bottom right / 7px 1.5px,
+    linear-gradient(var(--bc), var(--bc)) bottom right / 1.5px 7px;
+  background-repeat: no-repeat;
+}
+[data-ask] [data-chip]:hover::before {
+  opacity: 1;
+  transform: none;
+}
+[data-ask] [data-chip]:focus-visible::before {
+  --bc: var(--signal-hi);
+  opacity: 1;
+  transform: none;
+}
+
+/* ── Full variant: Break the input, and the floor ───────────────────── */
+
+.askp-tools {
+  display: grid;
+  gap: var(--s-5);
+}
+@media (min-width: 1100px) {
+  .askp-tools {
+    grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+    align-items: stretch;
+  }
+}
+.askp-cases-title {
+  margin-bottom: var(--s-3);
+}
+/* A hairline matrix: the gaps are the rules. */
+.askp-case-list {
+  list-style: none;
+  display: grid;
+  gap: 1px;
+  background: var(--rule-2);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-2);
+  overflow: hidden;
+}
+@media (min-width: 760px) {
+  .askp-case-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.askp-case {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'label label' 'chip chip' 'expect verdict';
+  gap: var(--s-3) var(--s-3);
+  align-content: start;
+  padding: 14px 16px 16px;
+  background: var(--panel);
+}
+.askp-case-label {
+  grid-area: label;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.askp-case [data-chip] {
+  grid-area: chip;
+  justify-self: start;
+}
+.askp-case-expect {
+  grid-area: expect;
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-2);
+}
+.askp-case-verdict {
+  grid-area: verdict;
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  white-space: nowrap;
+  color: var(--ok);
+}
+.askp-case-verdict i {
+  font-style: normal;
+}
+.askp-case-verdict[data-verdict='missed'] {
+  color: var(--warn);
+}
+
+.askp-floor {
+  display: grid;
+  align-content: start;
+  gap: var(--s-3);
+  padding: 14px 16px 16px;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-2);
+  background: var(--panel-2);
+}
+@media (min-width: 1100px) {
+  .askp-floor {
+    margin-top: 29px;
+  }
+}
+.askp-floor-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.askp-floor-out {
+  font-family: var(--font-mono);
+  font-size: 1.75rem;
+  line-height: 1;
+  color: var(--fg);
+  min-width: 4ch;
+  text-align: right;
+}
+/* The track fills copper up to the floor: our threshold, our choice. */
+.askp-range {
+  --p: calc((var(--floor, 0.35) - 0.15) / 0.6 * 100%);
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.askp-range::-webkit-slider-runnable-track {
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, var(--signal) var(--p), var(--rule-3) var(--p));
+}
+.askp-range::-moz-range-track {
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, var(--signal) var(--p), var(--rule-3) var(--p));
+}
+.askp-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 22px;
+  margin-top: -10px;
+  border-radius: var(--r-1);
+  background: var(--fg);
+  border: 2px solid var(--signal);
+  box-shadow: 0 0 0 4px var(--panel-2);
+}
+.askp-range::-moz-range-thumb {
+  width: 10px;
+  height: 18px;
+  border-radius: var(--r-1);
+  background: var(--fg);
+  border: 2px solid var(--signal);
+  box-shadow: 0 0 0 4px var(--panel-2);
+}
+.askp-range:focus-visible {
+  outline-offset: 0;
+}
+.askp-scale {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-top: -6px;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+.askp-hint {
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--fg-2);
+}
+
+/* ── The run: stage rail ────────────────────────────────────────────── */
+
+.askp-run {
+  border-top: 1px solid var(--rule-2);
+}
+.askp-stages {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-bottom: 1px solid var(--rule);
+}
+.askp-stage {
+  position: relative;
+  padding: 10px var(--s-2);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--fg-3);
+  transition: color var(--d-2) var(--ease-out);
+}
+.askp-stage + .askp-stage {
+  border-left: 1px solid var(--rule);
+}
+.askp-stage span {
+  display: none;
+  margin-right: 6px;
+}
+@media (min-width: 760px) {
+  .askp-stage {
+    padding: 10px var(--ask-pad);
+  }
+  .askp-stage span {
+    display: inline;
+  }
+}
+.askp-stage::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--signal);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--d-2) var(--ease-out);
+}
+[data-ask]:is([data-stage='1'], [data-stage='2'], [data-stage='3'], [data-stage='4']) .askp-stage[data-n='1'],
+[data-ask]:is([data-stage='2'], [data-stage='3'], [data-stage='4']) .askp-stage[data-n='2'],
+[data-ask]:is([data-stage='3'], [data-stage='4']) .askp-stage[data-n='3'],
+[data-ask][data-stage='4'] .askp-stage[data-n='4'] {
+  color: var(--fg);
+}
+[data-ask]:is([data-stage='1'], [data-stage='2'], [data-stage='3'], [data-stage='4']) .askp-stage[data-n='1']::after,
+[data-ask]:is([data-stage='2'], [data-stage='3'], [data-stage='4']) .askp-stage[data-n='2']::after,
+[data-ask]:is([data-stage='3'], [data-stage='4']) .askp-stage[data-n='3']::after,
+[data-ask][data-stage='4'] .askp-stage[data-n='4']::after {
+  transform: none;
+}
+[data-ask][data-stage='4'][data-outcome='abstain'] .askp-stage[data-n='4']::after {
+  background: var(--warn);
+}
+.askp-stage span {
+  color: var(--signal-hi);
+}
+
+/* ── Panes ──────────────────────────────────────────────────────────── */
+
+.askp-body {
+  display: grid;
+}
+@media (min-width: 1100px) {
+  .askp-body {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  }
+  .askp-out {
+    border-left: 1px solid var(--rule);
+  }
+}
+.askp-mech {
+  min-width: 0;
+}
+.askp-out {
+  min-width: 0;
+}
+.askp-pane {
+  padding: var(--ask-pad);
+  border-bottom: 1px solid var(--rule);
+}
+.askp-mech .askp-pane:last-child,
+.askp-out .askp-pane {
+  border-bottom: 0;
+}
+@media (max-width: 1099px) {
+  .askp-mech .askp-pane:last-child {
+    border-bottom: 1px solid var(--rule);
+  }
+}
+.askp-pane-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.askp-pane-n {
+  color: var(--signal-hi);
+}
+.askp-pane-name {
+  color: var(--fg-2);
+}
+.askp-pane-read {
+  margin-left: auto;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.askp-idle {
+  max-width: 46ch;
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--fg-3);
+}
+
+/* QUERY: every word, what became of it, and how rare it is. */
+[data-ask] [data-toks] {
+  display: grid;
+  gap: var(--s-3);
+}
+[data-ask] [data-part] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 6px;
+}
+[data-ask] [data-part] > [data-k='q'] {
+  align-self: center;
+  margin-right: 2px;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--model);
+}
+[data-ask] [data-tok] {
+  display: inline-grid;
+  gap: 1px;
+  padding: 5px 8px 4px;
+  font-family: var(--font-mono);
+  border: 1px solid var(--rule-3);
+  border-radius: var(--r-1);
+  background: var(--panel-2);
+}
+[data-ask] [data-tok] [data-k='w'] {
+  font-size: var(--t-readout);
+  line-height: 1.3;
+  color: var(--fg);
+}
+[data-ask] [data-tok] [data-k='sfx'] {
+  color: var(--fg-3);
+}
+[data-ask] [data-tok] [data-k='df'] {
+  font-size: var(--t-label);
+  line-height: 1.3;
+  color: var(--fg-3);
+  font-variant-numeric: tabular-nums;
+}
+[data-ask] [data-tok='stop'] {
+  border-style: dashed;
+  border-color: var(--rule-2);
+  background: transparent;
+}
+[data-ask] [data-tok='stop'] [data-k='w'] {
+  color: var(--fg-3);
+  text-decoration: line-through;
+  text-decoration-color: var(--fg-3);
+}
+[data-ask] [data-tok='unseen'] {
+  border-color: color-mix(in srgb, var(--warn) 45%, transparent);
+}
+[data-ask] [data-tok='unseen'] [data-k='df'] {
+  color: var(--warn);
+}
+
+/* RETRIEVE: eight slots, a bar per passage, the floor drawn across. */
+.askp-hits {
+  position: relative;
+  padding-bottom: 22px;
+}
+.askp-hits-head,
+[data-ask] [data-hit] {
+  display: grid;
+  grid-template-columns: var(--ask-row);
+  gap: 0 10px;
+  align-items: center;
+}
+.askp-hits-head {
+  height: 22px;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  border-bottom: 1px solid var(--rule);
+}
+.askp-hits-head span:last-child {
+  text-align: right;
+}
+.askp-hit-list {
+  list-style: none;
+}
+[data-ask] [data-hit] {
+  min-height: 44px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--rule);
+}
+[data-ask] [data-hit] [data-k='rank'] {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+  font-variant-numeric: tabular-nums;
+}
+[data-ask] [data-hit] [data-k='where'] {
+  display: grid;
+  min-width: 0;
+}
+[data-ask] [data-hit] [data-k='path'],
+[data-ask] [data-hit] [data-k='snip'] {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+[data-ask] [data-hit] [data-k='path'] {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  line-height: 1.4;
+  color: var(--data);
+}
+[data-ask] [data-hit] [data-k='snip'] {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--fg-2);
+}
+[data-ask] [data-hit] [data-k='st'] {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--signal-hi);
+  margin-right: 6px;
+}
+[data-ask] [data-hit][data-state='same'] [data-k='st'] {
+  color: var(--fg-3);
+}
+[data-ask] [data-hit] [data-k='bar'] {
+  position: relative;
+  height: 8px;
+  border-radius: var(--r-1);
+  background: var(--rule);
+  overflow: hidden;
+}
+[data-ask] [data-hit] [data-k='bar'] i {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  transform: scaleX(var(--c, 0));
+  background: var(--data-dim);
+  border-radius: var(--r-1);
+  transition: transform var(--d-3) var(--ease-out), background-color var(--d-1) var(--ease-out);
+  transition-delay: calc(var(--r, 0) * 35ms);
+}
+[data-ask] [data-hit] [data-k='conf'] {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  text-align: right;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'zero' 1;
+}
+[data-ask] [data-hit][data-above='false'] [data-k='bar'] i {
+  background: var(--fg-faint);
+}
+[data-ask] [data-hit][data-above='false'] [data-k='conf'],
+[data-ask] [data-hit][data-above='false'] [data-k='snip'] {
+  color: var(--fg-3);
+}
+[data-ask] [data-hit][data-above='false'] [data-k='path'] {
+  color: color-mix(in srgb, var(--data) 70%, var(--fg-3));
+}
+[data-ask] [data-hit][data-state='cited'] [data-k='rank'] {
+  color: var(--signal-hi);
+}
+
+/* The floor, as a line over the bar column. Same grid as the rows. */
+.askp-gate,
+.askp-axis {
+  position: absolute;
+  right: calc(44px + 10px);
+  width: var(--barw);
+  pointer-events: none;
+}
+.askp-gate {
+  top: 0;
+  bottom: 22px;
+}
+.askp-gate-line {
+  position: absolute;
+  top: 22px;
+  bottom: 0;
+  left: calc(var(--floor) * 100%);
+  border-left: 1px dashed var(--fg-2);
+  transform-origin: top;
+  transition: left var(--d-1) var(--ease-out), transform var(--d-2) var(--ease-out);
+}
+.askp-gate-tag {
+  position: absolute;
+  top: 3px;
+  left: calc(var(--floor) * 100%);
+  transform: translateX(-50%);
+  padding: 0 4px;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  line-height: 16px;
+  white-space: nowrap;
+  color: var(--fg);
+  background: var(--panel);
+  transition: left var(--d-1) var(--ease-out);
+}
+.askp-axis {
+  bottom: 0;
+  height: 18px;
+}
+.askp-axis span {
+  position: absolute;
+  top: 4px;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  line-height: 1;
+  color: var(--fg-3);
+  transform: translateX(-50%);
+}
+.askp-axis span:nth-child(1) {
+  left: 0;
+  transform: none;
+}
+.askp-axis span:nth-child(2) {
+  left: 25%;
+}
+.askp-axis span:nth-child(3) {
+  left: 50%;
+}
+.askp-axis span:nth-child(4) {
+  left: 75%;
+}
+.askp-axis span:nth-child(5) {
+  left: 100%;
+  transform: translateX(-100%);
+}
+
+/* GATE: one line of arithmetic. */
+[data-ask] [data-gate] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  color: var(--fg-2);
+  font-variant-numeric: tabular-nums;
+}
+[data-ask] [data-gate] b {
+  font-weight: 500;
+  color: var(--fg);
+}
+[data-ask] [data-gate] [data-k='held'] {
+  color: var(--warn);
+}
+
+/* ANSWER: quotes with a copper rule and a citation, or the abstain. Used
+   by the live pane and by the prerendered answers alike. */
+[data-ask] [data-a='quotes'] {
+  list-style: none;
+  display: grid;
+  gap: var(--s-5);
+}
+[data-ask] [data-a='quote'] {
+  display: grid;
+  gap: var(--s-3);
+  padding-left: 16px;
+  border-left: 2px solid var(--signal);
+}
+[data-ask] [data-a='meta'] {
+  display: flex;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.04em;
+  color: var(--fg-3);
+  font-variant-numeric: tabular-nums;
+}
+[data-ask] [data-a='meta'] [data-k='q'] {
+  color: var(--model);
+}
+[data-ask] [data-a='text'] p {
+  max-width: 66ch;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--fg);
+}
+[data-ask] [data-a='text'] p::before {
+  content: '“';
+  color: var(--fg-3);
+}
+[data-ask] [data-a='text'] p::after {
+  content: '”';
+  color: var(--fg-3);
+}
+[data-ask] [data-a='cut'] {
+  color: var(--fg-3);
+}
+[data-ask] [data-a='cite'] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 12px;
+}
+[data-ask] [data-a='cite'] a {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  min-height: 24px;
+  border-radius: var(--r-1);
+  text-decoration: none;
+}
+[data-ask] [data-a='where'] {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--data);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--data) 40%, transparent);
+}
+[data-ask] [data-a='where']::before {
+  content: '→ ';
+}
+[data-ask] [data-a='cite'] a:hover [data-a='where'] {
+  text-decoration-color: var(--data);
+}
+[data-ask] [data-a='head'] {
+  font-size: 0.8125rem;
+  color: var(--fg-2);
+}
+[data-ask] [data-a='conf'] {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+  font-variant-numeric: tabular-nums;
+}
+[data-ask] [data-a='abstain'] {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--s-1) var(--s-3);
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+  border-radius: var(--r-2);
+  background: color-mix(in srgb, var(--warn) 6%, var(--panel));
+}
+[data-ask] [data-a='glyph'] {
+  grid-row: span 3;
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  line-height: 1.6;
+  color: var(--warn);
+}
+[data-ask] [data-a='label'] {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--warn);
+}
+[data-ask] [data-a='say'] {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--fg);
+}
+[data-ask] [data-a='why'] {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+  font-variant-numeric: tabular-nums;
+}
+[data-ask] [data-a='note'] {
+  font-size: var(--t-small);
+  color: var(--fg-3);
+}
+
+/* ── Staging, full tier only ────────────────────────────────────────────
+   The module builds every stage at once, at the click, then raises
+   data-stage 1 → 4 over about 600ms. Each pane fades in when its stage is
+   reached, bars grow, the floor line draws, quotes wipe in. Lite and
+   reduced jump straight to stage 4, so none of this applies there. */
+html[data-motion='full'] [data-ask] [data-pane] [data-body] {
+  transition: opacity var(--d-2) var(--ease-out);
+}
+html[data-motion='full'] [data-ask][data-ran][data-stage='0'] [data-pane='query'] [data-body],
+html[data-motion='full'] [data-ask][data-ran]:is([data-stage='0'], [data-stage='1']) [data-pane='retrieve'] [data-body],
+html[data-motion='full'] [data-ask][data-ran]:is([data-stage='0'], [data-stage='1'], [data-stage='2']) [data-pane='gate'] [data-body],
+html[data-motion='full'] [data-ask][data-ran]:not([data-stage='4']) [data-pane='answer'] [data-body] {
+  opacity: 0;
+}
+html[data-motion='full'] [data-ask][data-ran]:is([data-stage='0'], [data-stage='1']) [data-hit] [data-k='bar'] i {
+  transform: scaleX(0);
+}
+html[data-motion='full'] [data-ask][data-ran]:is([data-stage='0'], [data-stage='1'], [data-stage='2']) .askp-gate-line {
+  transform: scaleY(0);
+}
+html[data-motion='full'] [data-ask] [data-a='quote'],
+html[data-motion='full'] [data-ask] [data-a='abstain'] {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path var(--d-3) var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 90ms);
+}
+html[data-motion='full'] [data-ask][data-ran]:not([data-stage='4']) :is([data-a='quote'], [data-a='abstain']) {
+  clip-path: inset(0 100% 0 0);
+}
+html:not([data-motion='full']) .askp-run *,
+html:not([data-motion='full']) .askp-run *::after {
+  transition: none !important;
+}
+
+/* ── With JavaScript off: the answers computed at build ─────────────── */
+
+.askp-pre-wrap {
+  display: grid;
+  gap: var(--s-4);
+  padding: var(--ask-pad);
+  border-top: 1px solid var(--rule-2);
+}
+.js .askp-pre-wrap {
+  display: none;
+}
+/* The module couldn't load the index: fall back to the build's answers. */
+.js [data-ask][data-fallback] .askp-pre-wrap {
+  display: grid;
+}
+.js [data-ask][data-fallback] .askp-run {
+  display: none;
+}
+.askp-pre-note {
+  max-width: 64ch;
+  font-size: var(--t-small);
+  color: var(--fg-3);
+}
+.askp-pre {
+  display: grid;
+  gap: var(--s-3);
+  padding: 16px;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-2);
+  background: var(--ground-2);
+  scroll-margin-top: calc(var(--nav-h, 64px) + 24px);
+}
+.askp-pre:target {
+  border-color: var(--signal-hi);
+}
+.askp-pre-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--s-2) var(--s-4);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.06em;
+  color: var(--fg-3);
+}
+.askp-pre-q {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+.askp-pre[data-outcome='abstain'] .askp-pre-head span:last-child {
+  color: var(--warn);
+}
+
+@media print {
+  .askp-run,
+  .askp-ask,
+  .askp-floor {
+    display: none !important;
+  }
+  .askp-pre-wrap {
+    display: grid !important;
+  }
+}
