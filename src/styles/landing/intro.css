@@ -1,1 +1,369 @@
-/* Landing styles: intro. Home-page only; owned by its workstream. */
+/* Landing styles: the opening sequence. Home page only. Owner: WS-A.
+
+   One overlay, drawn by sections/landing/intro.ts, and one timeline, all of
+   it here: every animation below is a delay on the same clock, so the
+   sequence runs from the first frame without a script. motion/intro.ts
+   adds Skip, the scroll lock and the hand-off to the page.
+
+   Nothing shows unless <html data-intro="play"> (public/js-on.js, in the
+   head: the first page view of a session, home only, never under reduced
+   motion). The overlay's own last keyframe hides it and lets clicks
+   through, so a visitor can't be left behind it if the module never loads.
+
+   The beats:
+     --t1  code types (characters × --cps), then the command and the
+           build's ticks, on the same character clock
+     --t3  the pane is wiped and the page draws as a wireframe
+     --t4  the wireframe's own mark grows into the mark; the name is set
+     --t5  the mark folds into its copper bar, which becomes the seam
+     --t6  the two halves part on the page
+     --t7  gone
+   Only transform, opacity, visibility, stroke-dashoffset and color move. */
+
+/* Off unless the head script says play. (The markup also carries
+   `hidden`, so it stays off if this file never arrives.) */
+.intro {
+  display: none;
+}
+html[data-intro='play']:not([data-motion='reduced']) .intro {
+  /* --end (inline, from the renderer) is how many characters the code and
+     the build take. Everything after waits for it. */
+  --cps: 4ms;
+  --t1: 0.1s;
+  --t3: calc(var(--t1) + var(--end) * var(--cps) + 0.1s);
+  --t4: calc(var(--t3) + 0.85s);
+  --t5: calc(var(--t4) + 1.3s);
+  --t6: calc(var(--t5) + 0.16s);
+  --t7: calc(var(--t6) + 0.5s);
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  /* A touch that starts on the overlay can't scroll the page under it. */
+  touch-action: none;
+  animation: intro-out 1ms step-end var(--t7) forwards;
+}
+
+/* The curtain: two halves of ground. They part on the seam, each carrying
+   a copper edge. Transform only, so the compositor moves them. */
+.intro::before,
+.intro::after {
+  content: '';
+  position: absolute;
+  inset: 0 50% 0 0;
+  background: var(--ground);
+  border: 0 solid transparent;
+  border-right-width: 1px;
+  --x: -100%;
+  animation: intro-part 0.5s cubic-bezier(0.7, 0, 0.2, 1) var(--t6) forwards,
+    intro-edge 1ms step-end var(--t6) forwards;
+}
+.intro::after {
+  inset: 0 0 0 50%;
+  border-width: 0 0 0 1px;
+  --x: 100%;
+}
+/* Skip (motion/intro.ts sets data-skip): the same parting, at once. */
+.intro[data-skip]::before,
+.intro[data-skip]::after {
+  border-color: var(--signal);
+  animation: intro-skip 0.2s var(--ease-out) forwards;
+}
+.intro[data-skip] > * {
+  visibility: hidden;
+}
+
+.intro-svg {
+  position: relative;
+  z-index: 1;
+  /* 360:372, held inside the viewport with room for the foot. */
+  width: min(100% - 32px, 600px, (100vh - 136px) * 0.968);
+  height: auto;
+  overflow: visible;
+}
+.intro-svg text {
+  font: 11.5px var(--font-mono);
+  fill: var(--fg-2);
+}
+
+/* ── The pane: an editor, then a terminal under it ───────────────── */
+
+.intro-pane {
+  animation: intro-fade 0.12s linear var(--t4) forwards;
+}
+.intro-box {
+  fill: var(--panel);
+  stroke: var(--rule-2);
+}
+.intro-rule {
+  stroke: var(--rule);
+}
+.intro-reg {
+  fill: none;
+  stroke: var(--rule-3);
+}
+/* The title: the source file, then the file the build wrote. */
+.intro-svg .intro-file,
+.intro-svg .intro-dist {
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  fill: var(--fg-3);
+  animation: intro-out 1ms step-end var(--t3) forwards;
+}
+.intro-svg .intro-dist {
+  animation: intro-in 1ms step-end var(--t3) backwards;
+}
+.intro-svg .intro-k {
+  fill: var(--model);
+}
+.intro-svg .intro-s {
+  fill: var(--data);
+}
+.intro-svg .intro-c {
+  fill: var(--fg-3);
+}
+
+/* A typed line's cover steps off it a character at a time. The dash
+   pattern strokes only its left edge (nothing, then top + right + bottom
+   as one gap, then the left side), and only while it moves: the caret. */
+.intro-code rect {
+  width: 344px;
+  height: 14px;
+  fill: var(--panel);
+  stroke-width: 1.5px;
+  stroke-dasharray: 0 702 14;
+  --at: calc(var(--t1) + var(--c) * var(--cps));
+  animation: intro-type calc(var(--n) * var(--cps)) steps(var(--n)) var(--at) both,
+    intro-lit calc(var(--n) * var(--cps)) step-end var(--at);
+}
+
+/* The build's steps tick off: they snap in, they don't fade. */
+.intro-oks text {
+  font-size: 10px;
+  animation: intro-in 1ms step-end calc(var(--t1) + var(--c) * var(--cps)) backwards;
+}
+.intro-oks tspan {
+  fill: var(--ok);
+}
+
+/* ── The wireframe ───────────────────────────────────────────────── */
+
+/* The wipe comes down the pane behind a copper leading edge (the same
+   dash trick, on its bottom side), and the page draws in after it. */
+.intro-wipe {
+  fill: var(--panel);
+  stroke-width: 1.5px;
+  stroke-dasharray: 0 668 360 308;
+  transform-box: fill-box;
+  animation: intro-wipe 0.3s var(--ease-io) var(--t3) backwards, intro-lit 0.3s step-end var(--t3);
+}
+.intro-wire path {
+  fill: none;
+  stroke: var(--rule-3);
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: intro-draw 0.34s var(--ease-out) calc(var(--t3) + 0.06s + var(--i) * 34ms) forwards;
+}
+.intro-wire .intro-3 {
+  stroke: var(--fg-faint);
+  stroke-width: 2px;
+}
+.intro-wire .intro-fg {
+  stroke: var(--fg);
+}
+.intro-wire .intro-cu {
+  stroke: var(--signal);
+}
+.intro-wire .intro-te {
+  stroke: var(--data-dim);
+}
+.intro-wire .intro-vi {
+  stroke: var(--model);
+}
+
+/* The beat rail: three names, each lit from its beat on. The middle one
+   carries --c, the character the command starts on. */
+.intro-beats text {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-anchor: middle;
+  fill: var(--fg-faint);
+  --at: calc(var(--t1) + var(--c, 0) * var(--cps));
+  animation: intro-beat 1ms step-end var(--at) forwards;
+}
+.intro-beats text:first-child {
+  text-anchor: start;
+  --at: 0s;
+}
+.intro-beats text:last-child {
+  text-anchor: end;
+  --at: var(--t3);
+}
+
+/* ── The mark ────────────────────────────────────────────────────── */
+
+/* The three bars of .wm-mark (5×19, 2.5 apart, the middle one copper):
+   first where the wireframe's nav has them, then grown to the middle. */
+.intro-mk {
+  transform: translate(25px, 32.6px) scale(0.25);
+  animation: intro-in 1ms step-end calc(var(--t3) + 0.12s) backwards,
+    intro-grow 0.45s var(--ease-io) var(--t4) forwards;
+}
+.intro-b {
+  fill: var(--fg);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: intro-fold 0.14s var(--ease-io) var(--t5) forwards;
+}
+/* The copper bar stretches into the seam the halves part on. */
+.intro-b2 {
+  fill: var(--signal);
+  animation: intro-seam 0.16s cubic-bezier(0.7, 0, 0.84, 0) var(--t5) forwards,
+    intro-out 1ms step-end var(--t6) forwards;
+}
+
+/* The name, set by one pass of a caret, and the line under it. */
+.intro-lk {
+  animation: intro-in 1ms step-end calc(var(--t4) + 0.3s) backwards,
+    intro-out 1ms step-end var(--t5) forwards;
+}
+.intro-svg .intro-nm {
+  font: 700 30px var(--font-sans);
+  letter-spacing: -0.01em;
+  text-anchor: middle;
+  fill: var(--fg);
+}
+.intro-svg .intro-nm2 {
+  font-weight: 400;
+  fill: var(--fg-2);
+}
+.intro-nc {
+  fill: var(--ground);
+  stroke-width: 2px;
+  stroke-dasharray: 0 558 38;
+  animation: intro-set 0.28s var(--ease-io) calc(var(--t4) + 0.32s) both,
+    intro-lit 0.28s step-end calc(var(--t4) + 0.32s);
+}
+.intro-svg .intro-tg {
+  text-anchor: middle;
+  animation: intro-in 1ms step-end calc(var(--t4) + 0.62s) backwards;
+}
+
+/* ── The foot: what this is, and the way out ─────────────────────── */
+
+.intro-foot {
+  position: absolute;
+  z-index: 1;
+  inset: auto var(--gut) max(var(--gut), env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  animation: intro-out 1ms step-end var(--t5) forwards;
+}
+.intro-skip {
+  min-height: 44px;
+  padding: 0 16px;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg);
+  background: var(--panel);
+  border: 1px solid var(--rule-3);
+  border-radius: var(--r-2);
+  transition: border-color var(--d-2) var(--ease-out);
+}
+.intro-skip:hover {
+  border-color: var(--fg-3);
+}
+
+@keyframes intro-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes intro-out {
+  to {
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+@keyframes intro-fade {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes intro-lit {
+  from,
+  to {
+    stroke: var(--signal);
+  }
+}
+@keyframes intro-beat {
+  to {
+    fill: var(--fg);
+  }
+}
+@keyframes intro-type {
+  to {
+    transform: translateX(calc(var(--n) * 6.9px));
+  }
+}
+@keyframes intro-wipe {
+  from {
+    transform: translateY(-100%);
+  }
+}
+@keyframes intro-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes intro-grow {
+  to {
+    transform: translate(140px, 100px) scale(4);
+  }
+}
+@keyframes intro-set {
+  to {
+    transform: translateX(260px);
+  }
+}
+@keyframes intro-fold {
+  to {
+    transform: translateX(var(--x));
+    opacity: 0;
+  }
+}
+@keyframes intro-seam {
+  to {
+    transform: scale(0.07, 60);
+  }
+}
+/* Two names for one motion: Skip has to start it again from the top, and
+   a new name is what makes a running animation restart. */
+@keyframes intro-part {
+  to {
+    transform: translateX(var(--x));
+  }
+}
+@keyframes intro-skip {
+  to {
+    transform: translateX(var(--x));
+  }
+}
+@keyframes intro-edge {
+  to {
+    border-color: var(--signal);
+  }
+}
+
+@media print {
+  .intro {
+    display: none !important;
+  }
+}

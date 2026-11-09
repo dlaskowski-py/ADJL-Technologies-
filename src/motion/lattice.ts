@@ -107,6 +107,14 @@ export function initLattice(): void {
      live drawing simply runs without its callouts there. */
   const svg = art?.querySelector<SVGSVGElement>('svg.pg');
   if (!fig || !art || fig.dataset.running) return;
+  /* While the opening sequence covers the page (html[data-intro="play"],
+     home only), start at its hand-off: the graph assembles where the
+     visitor can see it, and no shader compiles under the sequence.
+     motion/intro.ts dispatches the event. */
+  if (document.documentElement.dataset.intro === 'play') {
+    window.addEventListener('adjl:intro-done', initLattice, { once: true });
+    return;
+  }
 
   /* 1. Parse the page as it arrived, and time it. */
   const t0 = performance.now();

@@ -1,1 +1,482 @@
-/* Landing styles: landing. Home-page only; owned by its workstream. */
+/* Landing styles: the hero's typed line, the ticker, the offer panels with
+   their four scenes, and the call-to-action band. Home-page only.
+   Owner: WS-B.
+
+   One rule runs through all of it: WHAT'S PRERENDERED IS THE FINISHED,
+   STILL PICTURE. Motion hangs off attributes a script sets ([data-on] on
+   the typed line, [data-playing='true'] on a scene), so JavaScript-off,
+   reduced motion and Pause all show the same complete page, and nothing
+   here animates anything but transform, opacity, clip-path, a dash offset
+   or a motion-path distance. */
+
+/* ── The typed line ────────────────────────────────────────────────
+   One fixed row (two on a phone: prompt, then phrase), never wrapping.
+   --n is the number of characters shown: it clips the text and places the
+   caret, one ch per character in the mono face. motion/typer.ts only
+   counts --n; the box around it never changes size. */
+.lp-typer {
+  margin-top: var(--s-6);
+}
+.lp-typer-line {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  line-height: 1.7;
+  white-space: nowrap;
+  color: var(--fg);
+}
+.lp-typer-prompt {
+  font-size: var(--t-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.lp-typer-prompt b {
+  color: var(--signal-hi);
+}
+.lp-typer-phrase {
+  position: relative;
+  align-self: flex-start;
+}
+.lp-typer-text {
+  display: block;
+  clip-path: inset(0 calc(100% - var(--n) * 1ch - 1px) 0 0);
+}
+.lp-typer-caret {
+  position: absolute;
+  left: 2px;
+  top: 0.25em;
+  width: 0.5em;
+  height: 1.2em;
+  background: var(--signal);
+  transform: translateX(calc(var(--n) * 1ch));
+}
+[data-typer][data-on] .lp-typer-caret {
+  animation: lp-blink 1.1s steps(1) infinite;
+}
+@keyframes lp-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@media (min-width: 560px) {
+  .lp-typer-line {
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--s-4);
+    font-size: var(--t-code);
+  }
+}
+
+/* ── The ticker ────────────────────────────────────────────────────
+   At rest: one list, wrapped and centered, no twin and no dividers.
+   Wherever it's going to move (a script is running and motion isn't
+   reduced) it's one row from the first paint, so the band is the same
+   height before and after scenes.ts starts it. */
+.lp-tick {
+  overflow: hidden;
+  padding-block: var(--s-5);
+  background: var(--ground-2);
+  border-block: 1px solid var(--rule);
+}
+.lp-tick-run {
+  display: flex;
+}
+.lp-tick-track {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s-2) var(--s-6);
+  padding-inline: var(--gut);
+  list-style: none;
+}
+.lp-tick-track--twin {
+  display: none;
+}
+.lp-tick-item {
+  display: flex;
+  align-items: center;
+  font-size: clamp(1.25rem, 0.9rem + 1.5vw, 2.125rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  color: var(--fg);
+}
+.lp-tick-item:nth-child(even) {
+  font-weight: 300;
+  color: var(--fg-2);
+}
+/* The mark's three bars, the middle one copper: the divider in the
+   moving line. */
+.lp-tick-mark {
+  display: none;
+  width: 17px;
+  height: 0.62em;
+  margin-inline: clamp(14px, 2.2vw, 32px);
+  background: linear-gradient(
+    90deg,
+    var(--fg-faint) 4px,
+    transparent 0 6.5px,
+    var(--signal) 0 10.5px,
+    transparent 0 13px,
+    var(--fg-faint) 0
+  );
+}
+html.js:not([data-motion='reduced']) .lp-tick {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6% 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6% 94%, transparent);
+}
+html.js:not([data-motion='reduced']) .lp-tick-run {
+  width: max-content;
+}
+html.js:not([data-motion='reduced']) .lp-tick-track {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0;
+  padding: 0;
+}
+html.js:not([data-motion='reduced']) .lp-tick-mark {
+  display: block;
+}
+[data-playing='true'] > .lp-tick-run {
+  animation: lp-tick 44s linear infinite;
+}
+.lp-tick:hover > .lp-tick-run,
+.lp-tick:focus-within > .lp-tick-run {
+  animation-play-state: paused;
+}
+@keyframes lp-tick {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ── Offer panels ──────────────────────────────────────────────────
+   A scene and its copy. On a phone they stack and the scene runs edge to
+   edge, so its labels are drawn at about their real size. From 900px
+   they sit side by side, the scene inset like an instrument's screen and
+   changing sides on every other panel. */
+.lp-offers {
+  display: grid;
+  gap: var(--col-gap);
+  margin-top: var(--s-7);
+}
+.lp-offer {
+  display: grid;
+}
+.lp-scene {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s-3);
+  padding-block: var(--s-4) var(--s-3);
+  border-bottom: 1px solid var(--rule);
+  border-radius: 5px 5px 0 0;
+  background: linear-gradient(var(--grid-major) 1px, transparent 0) 0 -1px / 16px 16px,
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 0) -1px 0 / 16px 16px, var(--ground);
+}
+.lp-scene .prov {
+  align-self: flex-start;
+  margin-left: var(--s-3);
+}
+.lp-offer-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-3);
+  padding: var(--s-5);
+}
+.lp-offer-h {
+  font-size: clamp(1.625rem, 1.2rem + 1.7vw, 2.5rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  color: var(--fg);
+}
+.lp-get {
+  margin-top: var(--s-3);
+}
+@media (min-width: 900px) {
+  .lp-offer {
+    grid-template-columns: minmax(0, 11fr) minmax(0, 10fr);
+  }
+  .lp-offer:nth-child(even) .lp-scene {
+    order: 1;
+  }
+  .lp-scene {
+    margin: var(--s-3);
+    padding: var(--s-6) var(--s-5) var(--s-3);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-1);
+  }
+  .lp-scene .prov {
+    margin-left: 0;
+  }
+  .lp-offer-copy {
+    justify-content: center;
+    padding: var(--s-7) clamp(24px, 4vw, 64px);
+  }
+}
+
+/* ── Scenes ────────────────────────────────────────────────────────
+   Inline SVG on a 360 × 240 grid. Shapes take currentColor, so one class
+   sets what a thing is (.lp-fl a fill, .lp-st a stroke) and another what
+   it means: copper for people and interfaces, teal for data, violet for
+   structure, amber for waiting on a person. */
+.lp-art {
+  width: 100%;
+  max-width: 540px;
+  height: auto;
+  margin-inline: auto;
+  font: 10px var(--font-mono);
+  color: var(--fg-3);
+}
+.lp-art text {
+  fill: currentColor;
+}
+.lp-cap {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.lp-f {
+  fill: var(--panel);
+  stroke: var(--rule-3);
+}
+.lp-ln {
+  fill: none;
+  stroke: var(--rule-3);
+}
+.lp-sk {
+  fill: var(--rule-3);
+}
+.lp-fl {
+  fill: currentColor;
+}
+.lp-st {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.lp-pk {
+  fill: currentColor;
+  color: var(--data);
+  offset-rotate: 0deg;
+}
+.lp-hi {
+  color: var(--fg);
+}
+.lp-c {
+  color: var(--signal-hi);
+}
+.lp-d {
+  color: var(--data);
+}
+.lp-m {
+  color: var(--model);
+}
+.lp-w {
+  color: var(--warn);
+}
+.lp-ok {
+  color: var(--ok);
+}
+/* Not part of the finished picture: packets in flight, a passing state. */
+.lp-tmp,
+.lp-pk {
+  opacity: 0;
+}
+/* How a thing arrives on its beat, when it isn't a fade: typed on (a
+   stepped clip) or drawn (a dash offset over pathLength 1). */
+.lp-ty {
+  --o: 1;
+  --c: inset(0 100% 0 0);
+  --c1: inset(0 -1px 0 0);
+}
+.lp-dr {
+  --o: 1;
+  --s: 1;
+  stroke-dasharray: 1;
+}
+
+/* One 9s loop, five beats. A .lp-k* element is off until its beat and
+   then stays, so one pass (the lite tier, --scene-iter: 1) ends on the
+   finished picture. On the full tier the action layer blinks out between
+   loops, long enough to cover the longest --d inside a beat. */
+[data-playing='true'] [class*='lp-k'] {
+  animation: 9s var(--ease-out) var(--d, 0s) var(--scene-iter, infinite) backwards;
+}
+[data-playing='true'] .lp-ty {
+  animation-timing-function: steps(12);
+}
+[data-playing='true'] .lp-k1 {
+  animation-name: lp-k1;
+}
+[data-playing='true'] .lp-k2 {
+  animation-name: lp-k2;
+}
+[data-playing='true'] .lp-k3 {
+  animation-name: lp-k3;
+}
+[data-playing='true'] .lp-k4 {
+  animation-name: lp-k4;
+}
+[data-playing='true'] .lp-k5 {
+  animation-name: lp-k5;
+}
+[data-playing='true'] .lp-tmp {
+  animation: lp-tmp 9s linear var(--d, 0s) var(--scene-iter, infinite);
+}
+[data-playing='true'] .lp-pk {
+  animation: lp-go 9s linear var(--d, 0s) var(--scene-iter, infinite);
+}
+html[data-motion='full'] [data-playing='true'] .lp-act {
+  animation: lp-loop 9s linear infinite;
+}
+@keyframes lp-k1 {
+  0%,
+  10% {
+    opacity: var(--o, 0);
+    transform: translate(var(--x, 0), var(--y, 0));
+    clip-path: var(--c, none);
+    stroke-dashoffset: var(--s, 0);
+  }
+  15%,
+  to {
+    opacity: 1;
+    transform: none;
+    clip-path: var(--c1, none);
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes lp-k2 {
+  0%,
+  24% {
+    opacity: var(--o, 0);
+    transform: translate(var(--x, 0), var(--y, 0));
+    clip-path: var(--c, none);
+    stroke-dashoffset: var(--s, 0);
+  }
+  29%,
+  to {
+    opacity: 1;
+    transform: none;
+    clip-path: var(--c1, none);
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes lp-k3 {
+  0%,
+  38% {
+    opacity: var(--o, 0);
+    transform: translate(var(--x, 0), var(--y, 0));
+    clip-path: var(--c, none);
+    stroke-dashoffset: var(--s, 0);
+  }
+  43%,
+  to {
+    opacity: 1;
+    transform: none;
+    clip-path: var(--c1, none);
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes lp-k4 {
+  0%,
+  52% {
+    opacity: var(--o, 0);
+    transform: translate(var(--x, 0), var(--y, 0));
+    clip-path: var(--c, none);
+    stroke-dashoffset: var(--s, 0);
+  }
+  57%,
+  to {
+    opacity: 1;
+    transform: none;
+    clip-path: var(--c1, none);
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes lp-k5 {
+  0%,
+  66% {
+    opacity: var(--o, 0);
+    transform: translate(var(--x, 0), var(--y, 0));
+    clip-path: var(--c, none);
+    stroke-dashoffset: var(--s, 0);
+  }
+  71%,
+  to {
+    opacity: 1;
+    transform: none;
+    clip-path: var(--c1, none);
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes lp-loop {
+  0%,
+  9%,
+  98%,
+  to {
+    opacity: 0;
+  }
+  10%,
+  95% {
+    opacity: 1;
+  }
+}
+@keyframes lp-tmp {
+  2%,
+  26% {
+    opacity: 1;
+  }
+  0%,
+  28%,
+  to {
+    opacity: 0;
+  }
+}
+@keyframes lp-go {
+  0% {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+  2%,
+  10% {
+    opacity: 1;
+  }
+  12%,
+  to {
+    offset-distance: 100%;
+    opacity: 0;
+  }
+}
+
+/* ── The call-to-action band ───────────────────────────────────────
+   One panel between the portfolio and the proof. The next section brings
+   its own top padding, so this one adds none underneath. */
+.lp-cta {
+  padding-bottom: 0;
+}
+.lp-cta-box {
+  display: grid;
+  gap: var(--s-6);
+  padding: clamp(24px, 5vw, 64px);
+}
+.lp-cta-act {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3) var(--s-5);
+}
+@media (min-width: 900px) {
+  .lp-cta-box {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+}

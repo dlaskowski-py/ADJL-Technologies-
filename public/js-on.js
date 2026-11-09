@@ -36,18 +36,34 @@
   d.setAttribute('data-motion', paused ? 'reduced' : t);
   if (paused) d.setAttribute('data-paused', 'true');
 
-  /* 3. The opening sequence. It plays once per browser session, only when
-   *    the home page is where the visit starts, and never under reduced
-   *    motion. Decided here so its overlay is in the very first frame: a
-   *    deferred script would show the page, then cover it. A link to a
-   *    section (/#contact) or a click from another page of this site goes
-   *    straight to the page. */
-  var seen = true;
+  /* 3. The opening sequence (home page). The FIRST page view of a browser
+   *    session decides, once: it plays if that view is the home page itself,
+   *    reached from outside this site, with no #fragment, motion allowed and
+   *    a real visitor on the other end. Whatever it decides, the session is
+   *    marked, so the sequence can't appear later in the visit: a link to a
+   *    section (/#contact), a click from another page of this site, a
+   *    reload and a second visit all go straight to the page.
+   *
+   *    Decided here so the overlay is in the very first frame: a deferred
+   *    script would show the page, then cover it. If the mark can't be
+   *    written (storage blocked), it never plays, because "once" couldn't
+   *    be kept. A crawler gets the page, not the curtain. */
+  var first = false;
   try {
-    seen = sessionStorage.getItem('adjl:intro') === 'seen';
-  } catch (e) {}
-  var internal = document.referrer.indexOf(location.origin + '/') === 0;
-  if (!seen && !paused && t !== 'reduced' && location.pathname === '/' && !location.hash && !internal) {
+    first = !sessionStorage.getItem('adjl:intro');
+    if (first) sessionStorage.setItem('adjl:intro', 'seen');
+  } catch (e) {
+    first = false;
+  }
+  if (
+    first &&
+    !paused &&
+    t !== 'reduced' &&
+    location.pathname === '/' &&
+    !location.hash &&
+    document.referrer.indexOf(location.origin + '/') !== 0 &&
+    !/bot|crawl|spider/i.test(n.userAgent)
+  ) {
     d.setAttribute('data-intro', 'play');
   }
 })();

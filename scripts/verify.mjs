@@ -32,6 +32,21 @@
  *   - views: the Render / Source / Machine radios change html[data-view]
  *   - flow: a case page's stage trace advances on scroll
  *
+ * The opening sequence (home page, first page view of a session) gets its
+ * own block, in contexts that haven't seen it. Every other check runs in a
+ * context marked as having seen it, so it measures the page, not the
+ * curtain:
+ *
+ *   - the overlay is up in the first frame the h1 is in, the h1 under it is
+ *     still the LCP, and it hands off (html[data-intro="done"], overlay
+ *     removed, `adjl:intro-done` fired) within 6.5s
+ *   - the h1's compile effect and the hero graph start after the hand-off
+ *   - Skip and Escape end it within 400ms, and the page can't be scrolled
+ *     under it
+ *   - it never appears under prefers-reduced-motion, with motion paused,
+ *     with JavaScript off, on a second visit, on /#contact, on another
+ *     page, or when the visitor arrives from another page of this site
+ *
  * And the one the prerender exists for: with JavaScript OFF, every page's
  * <main> carries the same text as with it on, within 2%, read through the
  * site's exclusion set (src/lib/exclude.ts, injected into the page). And no
@@ -94,9 +109,22 @@ const VITALS = () => {
   }
 };
 
-async function newContext(opts = {}) {
+/* The opening sequence plays on the first page view of a session
+   (public/js-on.js). Every check but the intro's own wants the page as a
+   returning visitor gets it, so their sessions are marked as having seen
+   it before any page script runs. */
+const INTRO_SEEN = () => {
+  try {
+    sessionStorage.setItem('adjl:intro', 'seen');
+  } catch {
+    /* about:blank has no storage */
+  }
+};
+
+async function newContext(opts = {}, { intro = false } = {}) {
   const ctx = await browser.newContext({ deviceScaleFactor: 1, ...opts });
   await ctx.addInitScript(VITALS);
+  if (!intro) await ctx.addInitScript(INTRO_SEEN);
   return ctx;
 }
 
@@ -457,6 +485,154 @@ for (const [label, opts] of [
   if (n) fail(`${label}: ${n} <canvas> on the home page. Only the full tier draws one.`);
   else ok(`${label}: no canvas`);
   await ctx.close();
+}
+
+/* ── The opening sequence ────────────────────────────────────────────
+   In contexts that have NOT seen it (newContext's second argument). The
+   timeline is CSS and runs from first paint; motion/intro.ts adds Skip,
+   the scroll lock and the hand-off. */
+if (!ONLY || ONLY.has('/')) {
+  console.log('intro');
+  const HANDOFF_MAX = 6500;
+  const SKIP_MAX = 400;
+
+  /* Recorded in the page, on its own clock: whether the overlay was up in
+     the first frame that had the h1, when the hand-off fired, and when the
+     two entrances that wait for it (compile, the hero graph) began. */
+  const WATCH = () => {
+    const w = (window.__intro = { first: null, done: 0, compile: 0, lattice: 0, skipAt: 0 });
+    const look = () => {
+      if (!document.querySelector('h1')) return requestAnimationFrame(look);
+      const el = document.querySelector('[data-intro-overlay]');
+      w.first = !!el && document.documentElement.dataset.intro === 'play' && getComputedStyle(el).display !== 'none';
+      new MutationObserver(() => {
+        if (!w.compile && document.querySelector('h1[data-compiling]')) w.compile = performance.now();
+        if (!w.lattice && document.querySelector('[data-lattice] canvas')) w.lattice = performance.now();
+      }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-compiling'] });
+    };
+    requestAnimationFrame(look);
+    window.addEventListener('adjl:intro-done', () => (w.done = performance.now()));
+    window.addEventListener('click', (e) => e.target.closest?.('[data-intro-skip]') && (w.skipAt = performance.now()), true);
+    window.addEventListener('keydown', (e) => e.key === 'Escape' && (w.skipAt = performance.now()), true);
+  };
+  const introContext = async (opts = {}) => {
+    const ctx = await newContext({ viewport: { width: 1440, height: 900 }, ...opts }, { intro: true });
+    await ctx.addInitScript(WATCH);
+    return ctx;
+  };
+  const showing = (p) =>
+    p.evaluate(() => {
+      const el = document.querySelector('[data-intro-overlay]');
+      if (!el) return false;
+      const cs = getComputedStyle(el);
+      return cs.display !== 'none' && cs.visibility !== 'hidden';
+    });
+  const handedOff = (p, timeout) =>
+    p
+      .waitForFunction(() => document.documentElement.dataset.intro === 'done' && !document.querySelector('[data-intro-overlay]'), null, { timeout })
+      .then(() => true, () => false);
+
+  /* It plays, over the first paint, and hands off: both viewports. */
+  for (const vp of VIEWPORTS) {
+    const ctx = await introContext({ viewport: { width: vp.width, height: vp.height }, isMobile: vp.isMobile ?? false, hasTouch: vp.hasTouch ?? false });
+    const { p, errors } = await open(ctx, '/');
+    const first = await p.evaluate(() => window.__intro.first);
+    if (first) ok(`intro ${vp.name}: the overlay is up in the first frame`);
+    else fail(`intro ${vp.name}: the overlay wasn't showing in the first frame that had the h1`);
+
+    /* Locked while it plays: a wheel and a Page Down move nothing. */
+    await p.mouse.move(vp.width / 2, vp.height / 2);
+    await p.mouse.wheel(0, 600);
+    await p.keyboard.press('PageDown');
+    await p.waitForTimeout(150);
+    const scrolled = await p.evaluate(() => window.scrollY);
+    if ((await showing(p)) && scrolled > 0) fail(`intro ${vp.name}: the page scrolled ${scrolled}px under the overlay`);
+
+    if (!(await handedOff(p, HANDOFF_MAX))) fail(`intro ${vp.name}: no hand-off within ${HANDOFF_MAX}ms of load (html[data-intro="done"], overlay removed)`);
+    else {
+      await p.waitForTimeout(2600); // past compile's start and the graph's idle-time init
+      const r = await p.evaluate(() => {
+        const el = window.__vitals?.lcpEl;
+        return {
+          ...window.__intro,
+          tier: document.documentElement.dataset.motion,
+          lcp: Math.round(window.__vitals?.lcp ?? 0),
+          lcpText: !!el && (!!el.closest('h1') || (!!el.closest('.hero, #top') && !el.closest('figure, svg, canvas') && el.tagName !== 'IMG')),
+          lcpTag: el ? el.tagName.toLowerCase() : null,
+          seen: sessionStorage.getItem('adjl:intro'),
+        };
+      });
+      if (!r.done) fail(`intro ${vp.name}: handed off, but "adjl:intro-done" never fired on window`);
+      else ok(`intro ${vp.name}: handed off ${(r.done / 1000).toFixed(2)}s after navigation`);
+      if (r.lcpTag === null) skip(`intro ${vp.name}: LCP not reported by this browser`);
+      else if (!r.lcpText) fail(`intro ${vp.name}: with the intro playing, LCP is <${r.lcpTag}>, not the hero text`);
+      else ok(`intro ${vp.name}: LCP is still the hero's <${r.lcpTag}>, at ${r.lcp}ms, under the overlay`);
+      if (r.seen !== 'seen') fail(`intro ${vp.name}: the session wasn't marked as having seen it`);
+      if (!r.compile) fail(`intro ${vp.name}: the h1's compile effect never ran after the hand-off`);
+      else if (r.compile < r.done) fail(`intro ${vp.name}: the h1's compile effect began ${Math.round(r.done - r.compile)}ms before the hand-off`);
+      else ok(`intro ${vp.name}: the h1's compile effect began ${Math.round(r.compile - r.done)}ms after the hand-off`);
+      if (r.tier === 'full') {
+        if (!r.lattice) fail(`intro ${vp.name}: the hero graph never started after the hand-off`);
+        else if (r.lattice < r.done) fail(`intro ${vp.name}: the hero graph started ${Math.round(r.done - r.lattice)}ms before the hand-off`);
+        else ok(`intro ${vp.name}: the hero graph started ${Math.round(r.lattice - r.done)}ms after the hand-off`);
+      }
+    }
+    if (errors.length) fail(`intro ${vp.name}: console: ${errors.slice(0, 3).join(' | ')}`);
+
+    /* A second visit in the same session goes straight to the page. */
+    await p.reload({ waitUntil: 'load' });
+    if ((await p.evaluate(() => document.documentElement.dataset.intro ?? null)) || (await showing(p))) fail(`intro ${vp.name}: it played again on a second visit in the session`);
+    else ok(`intro ${vp.name}: a second visit in the session goes straight to the page`);
+    await ctx.close();
+  }
+
+  /* Skip (a real click on the button, at phone size) and Escape. */
+  for (const [how, opts] of [
+    ['Skip', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }],
+    ['Escape', {}],
+  ]) {
+    const ctx = await introContext(opts);
+    const { p } = await open(ctx, '/');
+    await p.waitForTimeout(500); // the module that adds Skip loads after the first frame
+    if (!(await showing(p))) fail(`intro ${how}: the overlay had already gone 0.5s after load`);
+    else {
+      if (how === 'Skip') await p.click('[data-intro-skip]', { timeout: 2000 }).catch((e) => fail(`intro Skip: the button couldn't be clicked (${String(e).split('\n')[0]})`));
+      else await p.keyboard.press('Escape');
+      const gone = await handedOff(p, 1500);
+      const ms = await p.evaluate(() => window.__intro.done - window.__intro.skipAt);
+      if (!gone) fail(`intro ${how}: no hand-off within 1.5s`);
+      else if (ms > SKIP_MAX) fail(`intro ${how}: took ${Math.round(ms)}ms to end (max ${SKIP_MAX}ms)`);
+      else ok(`intro ${how}: ended and handed off in ${Math.round(ms)}ms`);
+    }
+    await ctx.close();
+  }
+
+  /* And where it must never appear. */
+  const never = async (label, opts, route, before) => {
+    const ctx = opts.javaScriptEnabled === false ? await browser.newContext({ viewport: { width: 1440, height: 900 }, ...opts }) : await introContext(opts);
+    const p = await ctx.newPage();
+    if (before) await before(p);
+    else await p.goto(BASE + route, { waitUntil: 'domcontentloaded' });
+    const at = [await showing(p)];
+    await p.waitForTimeout(400);
+    at.push(await showing(p));
+    const attr = await p.evaluate(() => document.documentElement.dataset.intro ?? null);
+    if (at.some(Boolean) || attr === 'play') fail(`intro: it appeared ${label}`);
+    else ok(`intro: never appears ${label}`);
+    await ctx.close();
+  };
+  await never('under prefers-reduced-motion', { reducedMotion: 'reduce' }, '/');
+  await never('with JavaScript off', { javaScriptEnabled: false }, '/');
+  await never('on /#contact', {}, '/#contact');
+  await never('on /services/', {}, '/services/');
+  await never('with motion paused', {}, '/', async (p) => {
+    await p.addInitScript(() => localStorage.setItem('adjl:motion', 'off'));
+    await p.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
+  });
+  await never('when the visitor arrives from another page of this site', {}, '/', async (p) => {
+    await p.goto(BASE + '/services/', { waitUntil: 'load' });
+    await Promise.all([p.waitForURL(BASE + '/'), p.click('a.wordmark, .nav a[href="/"]')]);
+  });
 }
 
 /* ── JavaScript off ──────────────────────────────────────────────────

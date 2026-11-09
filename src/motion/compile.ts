@@ -2,8 +2,9 @@
  * Compile: the h1 shows its own markup for a moment, then builds.
  *
  * Markup contract: [data-compile] on every h1 (displayHeadline()). Full and
- * lite tiers, once, after `load`, `document.fonts.ready` and one frame, so
- * the h1 has painted as the LCP long before anything here touches it:
+ * lite tiers, once, after `load`, `document.fonts.ready` and one frame (on
+ * the home page, after the opening sequence has handed off), so the h1 has
+ * painted as the LCP long before anything here touches it:
  *
  *   0ms     the em loses its copper (colour only: no reflow, no new LCP
  *           entry) and `{em}` / `{/em}` appear in the line gap, above-left
@@ -24,7 +25,11 @@ export function initCompile(): void {
   const h1 = document.querySelector<HTMLElement>('h1[data-compile]');
   if (!h1 || tier === 'reduced') return;
   const go = () => void document.fonts.ready.then(() => requestAnimationFrame(() => run(h1)));
-  if (document.readyState === 'complete') go();
+  /* While the opening sequence covers the page (html[data-intro="play"],
+     home only), wait for its hand-off, so the effect plays where the
+     visitor can see it. motion/intro.ts dispatches the event. */
+  if (document.documentElement.dataset.intro === 'play') window.addEventListener('adjl:intro-done', go, { once: true });
+  else if (document.readyState === 'complete') go();
   else window.addEventListener('load', go, { once: true });
 }
 
