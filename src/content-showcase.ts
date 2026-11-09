@@ -11,9 +11,10 @@
  *
  *   - A preview shows what a system DOES, never what it returned. Every
  *     value is the mask below. No tickers, no figures, no client names.
- *   - Labels are lowercase and short. They're set in the mono face at 10px
- *     inside a frame that can be 280px wide, so the lengths noted on each
- *     line are limits, not suggestions.
+ *   - Labels are lowercase and short. They're set in the mono face at 11px
+ *     inside a frame that can be 240px wide, where a full line is 32
+ *     characters. The lengths noted on each line are limits, not
+ *     suggestions: a longer label collides with its neighbor on a phone.
  *   - `bar` is the caption in the frame's title bar. It sits beside the
  *     provenance chip, so keep it to 18 characters.
  *
@@ -36,43 +37,54 @@ export const showcase = {
     /* The pasted link. example is a reserved name: it can't be a real listing. */
     url: `listing.example/${MASK}`,
     pasted: 'pasted',
-    /* One row of the file each: the line, and the source it names (13
-       characters at most). Teal for a record someone else keeps, violet
-       for a figure the engine modeled. Exactly one row is `flag`: the one
-       nobody has verified, which says so in amber. */
+    /* The file's column heads: 6 characters at most. */
+    cols: ['line', 'value', 'source'],
+    /* One row of the file each: the line (8 characters at most) and the
+       source it names (13 at most). Teal for a record someone else keeps,
+       violet for a figure the engine modeled. Exactly one row is `flag`:
+       the one nobody has verified, which says so in amber. `step` is when
+       the row arrives, 2 to 6: rows that come from one source share one. */
     rows: [
-      { name: 'parcel', source: 'county record', tone: 'data' },
-      { name: 'rents', source: 'live listing', tone: 'data' },
-      { name: 'tax', source: 'estimate', tone: 'model' },
-      { name: 'expenses', source: 'unaudited', tone: 'warn', flag: true },
-    ] as { name: string; source: string; tone: ShowcaseTone; flag?: boolean }[],
+      { name: 'parcel', source: 'county record', tone: 'data', step: 2 },
+      { name: 'rents', source: 'live listing', tone: 'data', step: 3 },
+      { name: 'comps', source: 'live listing', tone: 'data', step: 3 },
+      { name: 'history', source: 'public record', tone: 'data', step: 4 },
+      { name: 'tax', source: 'modeled', tone: 'model', step: 5 },
+      { name: 'expenses', source: 'unaudited', tone: 'warn', step: 6, flag: true },
+    ] as { name: string; source: string; tone: ShowcaseTone; step: number; flag?: boolean }[],
   },
 
   '/work/trading-infrastructure/': {
     bar: 'feed/brief',
+    /* Column heads, left to right: 5, 9 and 13 characters at most. */
     feeds: 'feeds',
     normalize: 'normalize',
-    stream: 'one stream',
     brief: 'evening brief',
+    /* Under the line between them: 10 characters at most. */
+    stream: 'one stream',
   },
 
   '/work/mobile-app/': {
     bar: 'iOS · Android',
+    /* On the phone's screen: 10 characters at most. */
     offline: 'offline',
-    /* Left of the phone: 10 characters at most. */
-    net: 'no network',
     slider: 'assumption',
     result: 'result',
-    /* Right of the phone: 10 characters at most. */
+    /* The notes beside the phone, top to bottom: 12 characters at most. */
+    net: 'no network',
+    moved: 'input moved',
     done: 'recomputed',
   },
 
   '/work/private-site/': {
     bar: 'edge/session',
+    /* Column heads, left to right: 7, 10 and 5 characters at most. */
+    request: 'request',
     edge: 'edge check',
+    page: 'page',
+    /* The two requests, and what the second one gets: 7 characters at most. */
     signed: 'signed',
     unknown: 'unknown',
-    page: 'page',
     refused: 'refused',
   },
 
@@ -87,9 +99,11 @@ export const showcase = {
 
   '/work/ai-implementation/': {
     bar: 'workflow/review',
+    /* Column heads, left to right: 8, 6 and 11 characters at most. */
     doc: 'document',
     fields: 'fields',
     gate: 'review gate',
+    /* 4 and 8 characters at most. */
     held: 'held',
     approved: 'approved',
   },

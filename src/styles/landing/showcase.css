@@ -3,71 +3,77 @@
 
    A card is still a .sys.panel.bracket (sections.css, base.css): that's
    where its padding, its panel-2 hover and its corner brackets come from.
-   This file adds the layout (one wide feature card, then three, then two),
-   the preview's device frame, and the drawing inside it.
+   This file adds the layout (the feature across a whole row, then three
+   cards, then two), the preview's device frame, and the drawing inside it.
 
    A PREVIEW IS PRERENDERED FINISHED. Everything that moves hangs off
    [data-playing='true'], which motion/scenes.ts sets only while the frame
    is on screen, the tab is visible and motion isn't paused. So reduced
    motion, Pause and JavaScript-off all show the same complete still. */
 
-/* ── The grid ──────────────────────────────────────────────────────── */
-
-/* The /work/ filter hides cards with the hidden attribute. Stated at this
-   weight so no display rule below can show one again. */
+/* ── The grid ──────────────────────────────────────────────────────
+   Rows that wrap, not tracks: a card asks for a share of the row and the
+   cards in a row grow to fill it. So five cards after the feature make
+   three and two with no hole, and whatever the /work/ filter leaves
+   re-flows the same way. Cards in a row are as tall as the tallest. */
+.sys-grid.sc-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+/* The filter hides cards with the hidden attribute. Stated at this weight
+   so no display rule can show one again. */
 .sc-grid .sc-card[hidden] {
   display: none;
+}
+.sc-card {
+  flex: 1 1 100%;
+  min-width: 0;
+  container-type: inline-size;
 }
 .sc-card:focus-within {
   border-color: var(--rule-3);
   background-color: var(--panel-2);
 }
+/* Two to a row, then three. The share only has to be more than a third
+   (or a quarter) of the row: growing does the rest. */
 @media (min-width: 760px) {
-  .sc-feature {
-    grid-column: 1 / -1;
-  }
-}
-/* Two columns: five cards after the feature, so the last takes the row. */
-@media (min-width: 760px) and (max-width: 1099.98px) {
-  .sc-card:last-child {
-    grid-column: 1 / -1;
-  }
-}
-/* The feature card: its preview beside its copy, the preview as tall as
-   the copy makes the card. */
-@media (min-width: 900px) {
-  .sc-card.sc-feature {
-    display: grid;
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-    grid-template-rows: auto auto 1fr auto;
-    column-gap: var(--s-6);
-  }
-  .sc-feature .sc-shot {
-    grid-row: 1 / -1;
-    margin: 0;
-  }
-}
-/* Six tracks: the feature across all of them, three cards at two each,
-   then two at three each, so five cards leave no hole. */
-@media (min-width: 1100px) {
-  .sys-grid.sc-grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
   .sc-card {
-    grid-column: span 2;
+    flex-basis: 40%;
   }
-  .sc-card:nth-child(n + 5) {
-    grid-column: span 3;
+  .sc-card.sc-feature {
+    flex-basis: 100%;
+  }
+}
+@media (min-width: 1100px) {
+  .sc-card {
+    flex-basis: 30%;
   }
 }
 
+/* ── A card ────────────────────────────────────────────────────────
+   The preview on top, at one height in every card, so a row's previews
+   line up; the copy under it, its link pushed to the bottom (.sys-link),
+   so a row's links line up too. */
+.sc-lay {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  min-width: 0;
+}
+.sc-copy {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  min-width: 0;
+}
 /* ── The device frame ──────────────────────────────────────────────
    A window cut into the card: the page's ground showing through, a title
    bar (browser dots, a caption, the provenance chip) and the drawing. */
 .sc-shot {
   display: flex;
   flex-direction: column;
-  margin-bottom: var(--s-2);
   border: 1px solid var(--rule-2);
   border-radius: var(--r-2);
   background: var(--ground);
@@ -134,21 +140,38 @@ html[data-motion='reduced'] :is(.sc-shot, .sc-bar::after) {
 }
 
 /* ── The drawing ───────────────────────────────────────────────────
-   No viewBox: x is a share of the frame's width or pixels from an anchor
-   (a nested svg), y is pixels from the middle. Labels stay 10px at every
-   width. Shapes take currentColor, so one class says what a thing is
-   (.sc-o an outline, .sc-f an opaque box, .sc-sk a line of text nobody
-   needs to read) and another what it means. */
+   No viewBox: a length is a share of the frame or pixels from a point of
+   it (a nested svg), so the drawing fills any frame and its labels stay
+   one size. Text is centered on its y. Shapes take currentColor, so one
+   class says what a thing is (.sc-o an outline, .sc-f an opaque box,
+   .sc-sk a line of text nobody needs to read) and another what it means. */
 .sc-art {
-  flex: 1 0 164px;
+  flex: 1 0 208px;
+  display: block;
   width: 100%;
-  height: 164px;
-  font: 10px var(--font-mono);
+  font: 11px var(--font-mono);
   color: var(--fg-3);
   fill: currentColor;
 }
 .sc-art svg {
   overflow: visible;
+}
+.sc-art text {
+  dominant-baseline: central;
+}
+/* A column head. */
+.sc-cp {
+  font-size: 0.91em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+/* The one large value: the answer on the phone. */
+.sc-lg {
+  font-size: 1.45em;
+}
+/* The plate behind a label that sits on a line. */
+.sc-g {
+  fill: var(--ground);
 }
 .sc-ln {
   fill: none;
@@ -167,6 +190,21 @@ html[data-motion='reduced'] :is(.sc-shot, .sc-bar::after) {
 }
 .sc-sk {
   fill: var(--rule-3);
+}
+/* Drawn on a grid that's stretched to its panel: the strokes aren't.
+   .sc-pt is a point (a zero-length line with a square cap). */
+.sc-ns,
+.sc-pt {
+  fill: none;
+  stroke: currentColor;
+  vector-effect: non-scaling-stroke;
+}
+.sc-ns {
+  stroke-opacity: 0.6;
+}
+.sc-pt {
+  stroke-width: 7;
+  stroke-linecap: square;
 }
 .sc-hi {
   color: var(--fg);
@@ -187,20 +225,49 @@ html[data-motion='reduced'] :is(.sc-shot, .sc-bar::after) {
   color: var(--fail);
 }
 
+/* ── A card on its side ────────────────────────────────────────────
+   A card with a row to itself (the feature, or the last one the filter
+   left) is wide enough to turn: the preview at a generous size, as tall
+   as the card, its labels a size up, and the copy beside it a size up
+   too. After the rules above on purpose: it overrides them. */
+@container (min-width: 700px) {
+  .sc-lay {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: var(--s-6);
+  }
+  .sc-art {
+    flex-basis: 340px;
+    font-size: 13px;
+  }
+  .sc-copy {
+    padding: var(--s-3) var(--s-3) 0 0;
+  }
+  .sc-copy .h3 {
+    font-size: clamp(1.75rem, 1.1rem + 1.4vw, 2.25rem);
+    line-height: 1.1;
+    text-wrap: balance;
+  }
+  .sc-copy p {
+    font-size: var(--t-body);
+  }
+}
+
 /* ── Motion ────────────────────────────────────────────────────────
    One 9s loop, six steps. A .sc-k* element is off until its step and then
    stays, so one pass (the lite tier, --scene-iter: 1) ends on the finished
-   picture, and each new loop starts by clearing it. How it arrives is the
-   second class: drawn, slid in, landed, or grown from its left end. */
+   picture. On the full tier the action layer blinks out between loops.
+   How a thing arrives is its second class: drawn, slid in, landed, or
+   grown from its left end. */
 .sc-dr {
   --s: 1;
   stroke-dasharray: 1;
 }
-.sc-in {
-  --t: translateX(-12px);
+.sc-sl {
+  --t: translateX(-10px);
 }
 .sc-up {
-  --t: translateY(-12px);
+  --t: translateY(-10px);
 }
 .sc-gx {
   --t: scaleX(0);
@@ -258,6 +325,9 @@ html[data-motion='reduced'] :is(.sc-shot, .sc-bar::after) {
 }
 [data-playing='true'] .sc-rs {
   animation: sc-rs 9s steps(1) var(--scene-iter, infinite);
+}
+html[data-motion='full'] [data-playing='true'] .sc-act {
+  animation: sc-loop 9s linear infinite;
 }
 
 @keyframes sc-k1 {
@@ -344,6 +414,18 @@ html[data-motion='reduced'] :is(.sc-shot, .sc-bar::after) {
     stroke-dashoffset: 0;
   }
 }
+@keyframes sc-loop {
+  0%,
+  4%,
+  99%,
+  to {
+    opacity: 0;
+  }
+  5%,
+  96% {
+    opacity: 1;
+  }
+}
 @keyframes sc-tmp {
   0%,
   7%,
@@ -367,13 +449,13 @@ html[data-motion='reduced'] :is(.sc-shot, .sc-bar::after) {
   50%,
   75%,
   to {
-    opacity: 1;
+    fill-opacity: 1;
   }
   12%,
   37%,
   62%,
   87% {
-    opacity: 0.3;
+    fill-opacity: 0.3;
   }
 }
 @keyframes sc-nb {
@@ -385,7 +467,7 @@ html[data-motion='reduced'] :is(.sc-shot, .sc-bar::after) {
   }
   30%,
   52% {
-    transform: translateX(-22px);
+    transform: translateX(-24px);
   }
 }
 @keyframes sc-rs {
