@@ -66,7 +66,7 @@ export const csp: { directive: string; note: string }[] = [
 
 /** #telemetry carries a <dl> with its own caption. `dlLabel` isn't on
  *  Section yet, so the section is typed with it here. */
-const telemetry: Section & { dlLabel: string } = {
+const telemetry: Section = {
   id: 'telemetry',
   eyebrow: 'Telemetry',
   headline: ['Measured on', '{em}your visit.{/em}'],

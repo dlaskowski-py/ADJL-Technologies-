@@ -1,1 +1,32 @@
-/* Instrument styles: transitions. Owned by its workstream (see the rebuild ownership map). */
+/* Cross-document view transitions. Pure CSS: browsers that support them
+   wipe the new page down over the old one while the nav and the status bar
+   (view-transition-name: nav / status, set in chrome.css) stay put, which
+   is what makes moving between pages feel like one instrument changing
+   sheets. Browsers that don't simply navigate. Off under reduced motion,
+   and off when the visitor has pressed Pause. */
+
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+
+::view-transition-old(root) {
+  animation: none;
+}
+::view-transition-new(root) {
+  animation: vt-wipe 320ms var(--ease-out) both;
+}
+@keyframes vt-wipe {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+html[data-motion='reduced']::view-transition-new(root),
+html[data-motion='reduced']::view-transition-old(root) {
+  animation: none;
+}

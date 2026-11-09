@@ -28,7 +28,7 @@ const body = `<section class="sec hero" id="top">
     <div class="wrap hero-grid">
       <div class="hero-text">
         <p class="eyebrow">404 · not found</p>
-        <h1 class="display"><span class="hl-line">This page doesn’t</span><span class="hl-line"><em>exist.</em></span></h1>
+        <h1 class="display"><span class="hl-line">This page doesn’t</span> <span class="hl-line"><em>exist.</em></span></h1>
         <p class="lead hero-lead">The link may be old, or the address may have a typo in it. Everything the site has is one click from here.</p>
         <div class="actions">
           <a class="btn btn--primary" href="/"><span>Go to the home page</span><span class="arw" aria-hidden="true">→</span></a>

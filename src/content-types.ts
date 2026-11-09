@@ -81,6 +81,8 @@ export type Section = {
   list?: string[];
   table?: { head: string[]; rows: string[][] };
   dl?: Spec[];
+  /** Caption above the definition list. */
+  dlLabel?: string;
   instrument?: Instrument;
   /** The section's content is hatched: "deliberately not shown". The
    *  string is the hatch label, e.g. "Withheld from this page". */

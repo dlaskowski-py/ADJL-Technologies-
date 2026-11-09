@@ -102,7 +102,7 @@
   --s-10: 128px;
   --gut: clamp(16px, 4vw, 40px);
   --col-gap: clamp(16px, 2vw, 24px);
-  --sec: clamp(72px, 9vw, 136px);
+  --sec: clamp(64px, 7.5vw, 112px);
   --max: 1320px;
   --measure: 68ch;
 

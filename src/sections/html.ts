@@ -36,9 +36,13 @@ export function plain(s: string): string {
 
 /** h2: each authored line its own block, each line decoding on entry. */
 export function headline(lines: string[], cls = 'h2'): string {
+  /* Lines are joined with a SPACE. They're spans styled as blocks, so
+     the space is invisible on screen, but every text reader (llms.txt,
+     the search index, Machine View's outline, a screen reader's text
+     model) sees inline spans and would otherwise read "crawlergets". */
   return `<h2 class="${cls}" data-reveal>${lines
     .map((l) => `<span class="hl-line" data-decode>${rich(l)}</span>`)
-    .join('')}</h2>`;
+    .join(' ')}</h2>`;
 }
 
 /** The page's one h1. Never animates in: it's the LCP and it paints at
@@ -47,7 +51,7 @@ export function headline(lines: string[], cls = 'h2'): string {
 export function displayHeadline(lines: string[]): string {
   return `<h1 class="display" data-compile>${lines
     .map((l) => `<span class="hl-line">${rich(l)}</span>`)
-    .join('')}</h1>`;
+    .join(' ')}</h1>`;
 }
 
 export function eyebrow(text: string, reveal = true): string {

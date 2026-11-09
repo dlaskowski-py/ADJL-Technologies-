@@ -3,21 +3,11 @@
  * block. Names only: what each one stops is prose and lives in the
  * content module's table.
  */
+import { guards } from '../../content-case-this-site';
 import { chip, esc } from '../html';
 
-export const GUARDS = [
-  'check-css',
-  'check-links',
-  'check-claims',
-  'check-contact',
-  'check-motion',
-  'check-markers',
-  'check-usage',
-  'check-voice',
-  'check-seo',
-  'check-provenance',
-  'check-budget',
-];
+/** One list of guards: the this-site table and this terminal both read it. */
+export const GUARDS = guards.map((g) => g.name);
 
 export function renderGuards(): string {
   return `<div class="panel term guards" data-chrome>

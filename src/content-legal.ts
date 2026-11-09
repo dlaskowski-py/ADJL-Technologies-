@@ -39,6 +39,7 @@ export const privacy: LegalDoc = {
   title: 'Privacy',
   updated: UPDATED,
   labels: LABELS,
+  secondary: { label: 'Talk to Daniel', href: '/#contact' },
   intro:
     'This site doesn’t track you. There’s no analytics script, no advertising pixel and no cookie set by us, and no form to fill in. Unless you email us, we learn nothing about you at all.',
   sections: [
@@ -126,6 +127,7 @@ export const terms: LegalDoc = {
   title: 'Terms of use',
   updated: UPDATED,
   labels: LABELS,
+  secondary: { label: 'Talk to Daniel', href: '/#contact' },
   intro:
     'These terms cover this website and nothing else. Actual work is governed by a written agreement signed for that engagement. Where the two ever disagree, the agreement wins.',
   sections: [

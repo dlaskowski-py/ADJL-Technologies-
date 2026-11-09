@@ -8,6 +8,7 @@
  */
 
 import type { CaseFoot, Hero, Instrument, Section } from '../content-types';
+import { SITE_PAGES } from '../site-pages';
 import {
   chip,
   displayHeadline,
@@ -33,25 +34,9 @@ import { renderHeaders } from './instruments/headers';
 import { renderGuards } from './instruments/guards';
 import { renderWeights } from './instruments/weights';
 
-/** Route → breadcrumb label and parent. Mirrors scripts/pages.mjs, which
- *  check-seo holds to the BreadcrumbList it emits. */
-const CRUMBS: Record<string, { label: string; parent?: string }> = {
-  '/': { label: 'Home' },
-  '/services/': { label: 'Services', parent: '/' },
-  '/services/ai-engineering/': { label: 'AI Engineering', parent: '/services/' },
-  '/services/seo/': { label: 'SEO & AI Search', parent: '/services/' },
-  '/services/software/': { label: 'Websites & Apps', parent: '/services/' },
-  '/work/': { label: 'Work', parent: '/' },
-  '/work/real-estate-intelligence/': { label: 'Real Estate Intelligence', parent: '/work/' },
-  '/work/trading-infrastructure/': { label: 'Trading Infrastructure', parent: '/work/' },
-  '/work/ai-implementation/': { label: 'AI Implementation', parent: '/work/' },
-  '/work/mobile-app/': { label: 'Mobile App', parent: '/work/' },
-  '/work/private-site/': { label: 'Private Site', parent: '/work/' },
-  '/work/this-site/': { label: 'This Site', parent: '/work/' },
-  '/approach/': { label: 'Approach', parent: '/' },
-  '/legal/privacy/': { label: 'Privacy', parent: '/' },
-  '/legal/terms/': { label: 'Terms', parent: '/' },
-};
+const CRUMBS: Record<string, { label: string; parent?: string }> = Object.fromEntries(
+  SITE_PAGES.map((p) => [p.route, { label: p.label, parent: p.parent }]),
+);
 
 export function breadcrumbs(route: string): string {
   const trail: { href: string; label: string }[] = [];
@@ -203,9 +188,9 @@ function table(t: Section['table']): string {
   </table></div>`;
 }
 
-function defs(dl: Section['dl']): string {
+function defs(dl: Section['dl'], label?: string): string {
   if (!dl?.length) return '';
-  return `<dl class="defs" data-reveal>${dl
+  return `${label ? `<p class="label defs-label" data-reveal>${esc(label)}</p>` : ''}<dl class="defs" data-reveal>${dl
     .map((d) => `<div class="def"><dt>${rich(d.label)}</dt><dd>${rich(d.value)}</dd></div>`)
     .join('')}</dl>`;
 }
@@ -225,12 +210,29 @@ export function renderSection(
   const instHtml = inst ? renderInstrument(inst, opts.ctx) : '';
   const wide = !inst || WIDE.has(inst) || Boolean(s.items?.length || s.table);
 
-  const copy = `<div class="sec-copy">
+  /* A section that is only words reads as an editorial spread: the
+     headline on the left, the argument on the right. Anything with an
+     instrument, a grid or a table keeps the stacked layout it needs. */
+  const textOnly = !inst && !s.items?.length && !s.table && !s.hatch;
+  const copy = textOnly
+    ? `<div class="sec-copy sec-copy--split">
+      <div class="sec-head">
+        ${eyebrow(s.eyebrow)}
+        ${headline(s.headline)}
+      </div>
+      <div class="sec-main">
+        ${prose(s.body, 'prose')}
+        ${bullets(s.list)}
+        ${defs(s.dl, s.dlLabel)}
+        ${linkRow(s.links)}
+      </div>
+    </div>`
+    : `<div class="sec-copy">
       ${eyebrow(s.eyebrow)}
       ${headline(s.headline)}
       ${prose(s.body, 'prose sec-body')}
       ${bullets(s.list)}
-      ${defs(s.dl)}
+      ${defs(s.dl, s.dlLabel)}
     </div>`;
 
   const extras = `${items(s.items)}${table(s.table)}`;
@@ -252,7 +254,7 @@ export function renderSection(
     <div class="wrap">
       ${rail(n, s.id, instChip)}
       ${layout}
-      ${linkRow(s.links)}
+      ${textOnly ? '' : linkRow(s.links)}
     </div>
   </section>`;
 }

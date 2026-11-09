@@ -48,8 +48,14 @@ export function renderFaq(f: Faq, n: number, src: string): string {
  * replacement, because clipboard access is refused more often than people
  * expect.
  */
-export function renderContact(n: number): string {
-  const c = CTA;
+export function renderContact(
+  n: number,
+  override?: { eyebrow: string; headline: string[]; body: string },
+): string {
+  /* A page may say its own first line about getting in touch (the
+     approach page does); the address, buttons and note are always the
+     shared ones. */
+  const c = { ...CTA, ...(override ?? {}) };
   return `${sectionOpen({
     id: 'contact',
     src: 'content.ts#cta',

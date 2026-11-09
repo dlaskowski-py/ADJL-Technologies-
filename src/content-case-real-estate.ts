@@ -109,7 +109,7 @@ export const content: CaseContent = {
     title: "Real Estate Underwriting Software | ADJL Technology",
     description: "A property underwriting scanner. Paste a listing URL and it resolves the parcel, pulls live market data, reads public records and models the full carry.",
     ogTitle: "Paste a listing. Get the underwriting.",
-    ogDescription: "A property underwriting scanner that takes a listing URL and returns a structured underwriting file: rent roll, operating statement, tax and insurance build-up, debt service and the resulting yield. It resolves the address to a parcel, pulls live market data, reads years of public record, and models the tax, insurance, hazard, operating cost and financing that decide whether the deal works."
+    ogDescription: "A property underwriting scanner. Paste a listing URL and it resolves the parcel, pulls live market data, reads years of public record and models the full carry, with a source on every figure."
   },
   problem: {
     eyebrow: "Manual Property Underwriting",

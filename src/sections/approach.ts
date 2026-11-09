@@ -146,6 +146,6 @@ export function renderApproachPage(c: ApproachContent): { navHtml: string; pageH
     </div>
   </section>`);
 
-  parts.push(renderContact(++n), renderFooter());
+  parts.push(renderContact(++n, c.cta), renderFooter());
   return { navHtml: renderNav('/approach/'), pageHtml: parts.join('') };
 }

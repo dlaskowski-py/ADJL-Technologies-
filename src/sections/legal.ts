@@ -15,6 +15,8 @@ export type LegalDoc = {
   intro: string;
   /** "Last updated" and "On this page", kept with the copy. */
   labels?: { updated: string; toc: string };
+  /** "Talk to Daniel" → /#contact. */
+  secondary?: { label: string; href: string };
   sections: {
     id: string;
     heading: string;
@@ -37,6 +39,11 @@ export function renderLegalPage(doc: LegalDoc): { navHtml: string; pageHtml: str
       <h1 class="display legal-title" data-compile><span class="hl-line">${esc(doc.title)}</span></h1>
       <p class="label legal-updated">${esc(labels.updated)} ${esc(doc.updated)}</p>
       <p class="lead legal-intro">${rich(doc.intro)}</p>
+      ${
+        doc.secondary
+          ? `<div class="actions"><a class="btn btn--ghost" href="${esc(doc.secondary.href)}"><span>${esc(doc.secondary.label)}</span></a></div>`
+          : ''
+      }
 
       <div class="legal-layout">
         <nav class="legal-toc panel" aria-label="${esc(labels.toc)}">
