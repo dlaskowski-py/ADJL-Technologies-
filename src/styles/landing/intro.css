@@ -18,7 +18,11 @@
      --t5  the mark folds into its copper bar, which becomes the seam
      --t6  the two halves part on the page
      --t7  gone
-   Only transform, opacity, visibility, stroke-dashoffset and color move. */
+   Only transform, opacity, visibility, stroke-dashoffset and color move.
+
+   The drawing's geometry lives in the renderer; the lengths below that
+   repeat it (a character is 6.9 wide, a line 15 tall, the pane body
+   360×308, the mark's two positions) are marked "twin". */
 
 /* Off unless the head script says play. (The markup also carries
    `hidden`, so it stays off if this file never arrives.) */
@@ -82,6 +86,13 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
   width: min(100% - 32px, 600px, (100vh - 136px) * 0.968);
   height: auto;
   overflow: visible;
+  /* Not painted for the first 80ms (nothing in it has started yet: --t1
+     is later). The first frame is the one the h1 under the curtain is
+     timed in as the LCP, so it carries the curtain and nothing else. In a
+     software-rendered Chromium, painting the drawing in that frame put the
+     LCP 25 to 35ms later; held back, it measures the same as the page
+     without the sequence. */
+  animation: intro-out 80ms backwards;
 }
 .intro-svg text {
   font: 11.5px var(--font-mono);
@@ -132,8 +143,8 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
    line begins, and the last step is taken inside the animation, so a
    rounding error at its end can't leave the last character covered. */
 .intro-code rect {
-  /* One line pitch tall, so the covers abut: a descender can't show under
-     its own cover, in the mono face or in its fallback. */
+  /* One line pitch tall (twin), so the covers abut: a descender can't show
+     under its own cover, in the mono face or in its fallback. */
   width: 344px;
   height: 15px;
   fill: var(--panel);
@@ -160,7 +171,7 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
 .intro-wipe {
   fill: var(--panel);
   stroke-width: 1.5px;
-  stroke-dasharray: 0 668 360 308;
+  stroke-dasharray: 0 668 360 308; /* twin: the body is 360×308 */
   transform-box: fill-box;
   animation: intro-wipe 0.3s var(--ease-io) var(--t3) backwards, intro-lit 0.3s var(--t3);
 }
@@ -211,7 +222,8 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
 /* ── The mark ────────────────────────────────────────────────────── */
 
 /* The three bars of .wm-mark (5×19, 2.5 apart, the middle one copper):
-   first where the wireframe's nav has them, then grown to the middle. */
+   first where the wireframe's nav has them (twin: a quarter size, at 25,
+   32.6), then grown to the middle of the drawing (intro-grow). */
 .intro-mk {
   transform: translate(25px, 32.6px) scale(0.25);
   animation: intro-in 1ms calc(var(--t3) + 0.12s) backwards,
@@ -331,7 +343,7 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
 }
 @keyframes intro-type {
   to {
-    transform: translateX(calc(var(--n) * 6.9px));
+    transform: translateX(calc(var(--n) * 6.9px)); /* twin: one character */
   }
 }
 @keyframes intro-wipe {
@@ -351,7 +363,7 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
 }
 @keyframes intro-set {
   to {
-    transform: translateX(260px);
+    transform: translateX(260px); /* twin: the name cover's own width */
   }
 }
 @keyframes intro-fold {

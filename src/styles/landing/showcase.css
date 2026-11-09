@@ -1,1 +1,399 @@
-/* Landing styles: showcase. Home-page only; owned by its workstream. */
+/* Landing styles: the portfolio (sections/landing/showcase.ts). Linked on
+   the home page and on /work/. Owner: WS-C.
+
+   A card is still a .sys.panel.bracket (sections.css, base.css): that's
+   where its padding, its panel-2 hover and its corner brackets come from.
+   This file adds the layout (one wide feature card, then three, then two),
+   the preview's device frame, and the drawing inside it.
+
+   A PREVIEW IS PRERENDERED FINISHED. Everything that moves hangs off
+   [data-playing='true'], which motion/scenes.ts sets only while the frame
+   is on screen, the tab is visible and motion isn't paused. So reduced
+   motion, Pause and JavaScript-off all show the same complete still. */
+
+/* ── The grid ──────────────────────────────────────────────────────── */
+
+/* The /work/ filter hides cards with the hidden attribute. Stated at this
+   weight so no display rule below can show one again. */
+.sc-grid .sc-card[hidden] {
+  display: none;
+}
+.sc-card:focus-within {
+  border-color: var(--rule-3);
+  background-color: var(--panel-2);
+}
+@media (min-width: 760px) {
+  .sc-feature {
+    grid-column: 1 / -1;
+  }
+}
+/* Two columns: five cards after the feature, so the last takes the row. */
+@media (min-width: 760px) and (max-width: 1099.98px) {
+  .sc-card:last-child {
+    grid-column: 1 / -1;
+  }
+}
+/* The feature card: its preview beside its copy, the preview as tall as
+   the copy makes the card. */
+@media (min-width: 900px) {
+  .sc-card.sc-feature {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    grid-template-rows: auto auto 1fr auto;
+    column-gap: var(--s-6);
+  }
+  .sc-feature .sc-shot {
+    grid-row: 1 / -1;
+    margin: 0;
+  }
+}
+/* Six tracks: the feature across all of them, three cards at two each,
+   then two at three each, so five cards leave no hole. */
+@media (min-width: 1100px) {
+  .sys-grid.sc-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .sc-card {
+    grid-column: span 2;
+  }
+  .sc-card:nth-child(n + 5) {
+    grid-column: span 3;
+  }
+}
+
+/* ── The device frame ──────────────────────────────────────────────
+   A window cut into the card: the page's ground showing through, a title
+   bar (browser dots, a caption, the provenance chip) and the drawing. */
+.sc-shot {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--s-2);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-2);
+  background: var(--ground);
+  overflow: hidden;
+  transition: border-color var(--d-2) var(--ease-out);
+}
+.sc-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 30px;
+  padding: 3px 4px 3px 10px;
+  border-bottom: 1px solid var(--rule);
+  font: 11px var(--font-mono);
+  color: var(--fg-3);
+}
+/* Three dots from one element: the box and two shadows of it. */
+.sc-dots {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin-right: 20px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 10px 0, 20px 0;
+  opacity: 0.6;
+}
+.sc-addr {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Active: the card is hovered, or focus is on its link. The frame takes
+   the copper of an interface in use, and a rule draws under its bar. */
+.sc-bar::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 1px;
+  background: var(--signal);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--d-3) var(--ease-out);
+}
+.sc-card:is(:hover, :focus-within) .sc-shot {
+  border-color: var(--signal);
+}
+.sc-card:is(:hover, :focus-within) .sc-bar::after {
+  transform: none;
+}
+.sc-card:is(:hover, :focus-within) .sc-dots {
+  color: var(--signal-hi);
+  opacity: 1;
+}
+.sc-card:is(:hover, :focus-within) :is(.sc-addr, .sc-art) {
+  color: var(--fg-2);
+}
+html[data-motion='reduced'] :is(.sc-shot, .sc-bar::after) {
+  transition: none;
+}
+
+/* ── The drawing ───────────────────────────────────────────────────
+   No viewBox: x is a share of the frame's width or pixels from an anchor
+   (a nested svg), y is pixels from the middle. Labels stay 10px at every
+   width. Shapes take currentColor, so one class says what a thing is
+   (.sc-o an outline, .sc-f an opaque box, .sc-sk a line of text nobody
+   needs to read) and another what it means. */
+.sc-art {
+  flex: 1 0 164px;
+  width: 100%;
+  height: 164px;
+  font: 10px var(--font-mono);
+  color: var(--fg-3);
+  fill: currentColor;
+}
+.sc-art svg {
+  overflow: visible;
+}
+.sc-ln {
+  fill: none;
+  stroke: var(--rule-3);
+}
+.sc-o {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sc-f {
+  fill: var(--panel);
+  stroke: var(--rule-3);
+}
+.sc-sk {
+  fill: var(--rule-3);
+}
+.sc-hi {
+  color: var(--fg);
+}
+.sc-c {
+  color: var(--signal-hi);
+}
+.sc-d {
+  color: var(--data);
+}
+.sc-m {
+  color: var(--model);
+}
+.sc-w {
+  color: var(--warn);
+}
+.sc-x {
+  color: var(--fail);
+}
+
+/* ── Motion ────────────────────────────────────────────────────────
+   One 9s loop, six steps. A .sc-k* element is off until its step and then
+   stays, so one pass (the lite tier, --scene-iter: 1) ends on the finished
+   picture, and each new loop starts by clearing it. How it arrives is the
+   second class: drawn, slid in, landed, or grown from its left end. */
+.sc-dr {
+  --s: 1;
+  stroke-dasharray: 1;
+}
+.sc-in {
+  --t: translateX(-12px);
+}
+.sc-up {
+  --t: translateY(-12px);
+}
+.sc-gx {
+  --t: scaleX(0);
+}
+.sc-gx,
+.sc-rs {
+  transform-box: fill-box;
+  transform-origin: 0 50%;
+}
+/* Not part of the finished picture: the flash of a paste. */
+.sc-tmp {
+  opacity: 0;
+}
+/* A dashed line that flows. Its dash pattern is on the element and
+   divides 180px, so the loop closes without a jump. */
+.sc-fw {
+  fill: none;
+  stroke: currentColor;
+}
+
+[data-playing='true'] [class*='sc-k'] {
+  animation: 9s var(--ease-out) var(--scene-iter, infinite);
+}
+[data-playing='true'] .sc-k1 {
+  animation-name: sc-k1;
+}
+[data-playing='true'] .sc-k2 {
+  animation-name: sc-k2;
+}
+[data-playing='true'] .sc-k3 {
+  animation-name: sc-k3;
+}
+[data-playing='true'] .sc-k4 {
+  animation-name: sc-k4;
+}
+[data-playing='true'] .sc-k5 {
+  animation-name: sc-k5;
+}
+[data-playing='true'] .sc-k6 {
+  animation-name: sc-k6;
+}
+[data-playing='true'] .sc-tmp {
+  animation: sc-tmp 9s linear var(--scene-iter, infinite);
+}
+[data-playing='true'] .sc-fw {
+  animation: sc-fw 9s linear var(--scene-iter, infinite);
+}
+[data-playing='true'] .sc-tk {
+  animation: sc-tk 9s steps(1) var(--d, 0s) var(--scene-iter, infinite);
+}
+/* The phone: the slider's knob travels, and the result snaps to the new
+   answer the moment it lands. */
+[data-playing='true'] .sc-nb {
+  animation: sc-nb 9s var(--ease-io) var(--scene-iter, infinite);
+}
+[data-playing='true'] .sc-rs {
+  animation: sc-rs 9s steps(1) var(--scene-iter, infinite);
+}
+
+@keyframes sc-k1 {
+  0%,
+  6% {
+    opacity: 0;
+    transform: var(--t, none);
+    stroke-dashoffset: var(--s, 0);
+  }
+  11%,
+  to {
+    opacity: 1;
+    transform: none;
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes sc-k2 {
+  0%,
+  18% {
+    opacity: 0;
+    transform: var(--t, none);
+    stroke-dashoffset: var(--s, 0);
+  }
+  23%,
+  to {
+    opacity: 1;
+    transform: none;
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes sc-k3 {
+  0%,
+  30% {
+    opacity: 0;
+    transform: var(--t, none);
+    stroke-dashoffset: var(--s, 0);
+  }
+  35%,
+  to {
+    opacity: 1;
+    transform: none;
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes sc-k4 {
+  0%,
+  42% {
+    opacity: 0;
+    transform: var(--t, none);
+    stroke-dashoffset: var(--s, 0);
+  }
+  47%,
+  to {
+    opacity: 1;
+    transform: none;
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes sc-k5 {
+  0%,
+  54% {
+    opacity: 0;
+    transform: var(--t, none);
+    stroke-dashoffset: var(--s, 0);
+  }
+  59%,
+  to {
+    opacity: 1;
+    transform: none;
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes sc-k6 {
+  0%,
+  66% {
+    opacity: 0;
+    transform: var(--t, none);
+    stroke-dashoffset: var(--s, 0);
+  }
+  71%,
+  to {
+    opacity: 1;
+    transform: none;
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes sc-tmp {
+  0%,
+  7%,
+  22%,
+  to {
+    opacity: 0;
+  }
+  9%,
+  15% {
+    opacity: 1;
+  }
+}
+@keyframes sc-fw {
+  to {
+    stroke-dashoffset: -180px;
+  }
+}
+@keyframes sc-tk {
+  0%,
+  25%,
+  50%,
+  75%,
+  to {
+    opacity: 1;
+  }
+  12%,
+  37%,
+  62%,
+  87% {
+    opacity: 0.3;
+  }
+}
+@keyframes sc-nb {
+  0%,
+  20%,
+  62%,
+  to {
+    transform: none;
+  }
+  30%,
+  52% {
+    transform: translateX(-22px);
+  }
+}
+@keyframes sc-rs {
+  0%,
+  62% {
+    transform: none;
+  }
+  31% {
+    transform: scaleX(0.45);
+  }
+}

@@ -16,6 +16,7 @@
  *          command and the build's ticks share one clock)
  *   --end  that clock's last value, on the root: when the build is done
  *   --i    order within the wireframe
+ *   --x    which way an outer bar of the mark folds
  * motion/intro.ts adds Skip, the scroll lock and the hand-off; if it never
  * loads, the CSS still ends with the overlay hidden and click-through.
  *
@@ -34,13 +35,17 @@ import { chip, esc } from '../html';
 
 const n1 = (v: number) => +v.toFixed(1);
 
-/* ── Geometry, in viewBox units ─────────────────────────────────────── */
+/* ── Geometry, in viewBox units ─────────────────────────────────────────
+   intro.css repeats a few of these where an animation needs a length (the
+   character and line size, the pane body, where the mark starts and ends)
+   and marks each one "twin". Change them together. */
 const W = 360;
 const HEAD = 27; // the pane's title strip; the body's own viewport starts under it
 const BODY = 308;
 const H = W + 12; // the pane, plus the beat rail under it
 const PAD = 16;
-const CW = 6.9; // 11.5px mono: every advance is 0.6em
+const CW = 6.9; // code, 11.5px mono: every advance is 0.6em
+const CW_LOG = 6; // the build's ticks, 10px mono
 const LH = 15;
 /* The clock, in characters: a pause after each line, after the code, and
    between ticks. intro.css turns characters into time (--cps). */
@@ -121,7 +126,7 @@ export function renderIntro(): string {
   const steps = I.build.steps.map((s) => {
     const label = s.replace('{n}', String(SITE_PAGES.length));
     const t = tick(label, sx, ty + 18);
-    sx += (label.length + 4) * 6;
+    sx += (label.length + 4) * CW_LOG;
     return t;
   });
   const checks = guards.map((g, i) => tick(g.name, PAD + (COLS[i % COLS.length] ?? 0), ty + 36 + Math.floor(i / COLS.length) * 14));
