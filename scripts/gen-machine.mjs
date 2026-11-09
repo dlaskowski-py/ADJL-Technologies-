@@ -322,15 +322,9 @@ for (const pg of pages) {
       ? C.ask.groups.items.map((g) => ({ q: g.q, expect: g.expect, label: g.label }))
       : C.ask.chips.map((q) => ({ q, expect: 'answer', label: 'Home chip' }));
   const articles = qs.map((item, i) => {
-    const res = bm.ask(engine, item.q, bm.FLOOR);
+    const res = bm.run(engine, item.q, bm.FLOOR);
     const { cited } = res.answer;
-    const secs = new Set(cited.map((h) => bm.sectionOf(h.p)));
-    const ok =
-      item.expect === 'abstain'
-        ? cited.length === 0
-        : item.expect === 'answer-2'
-          ? cited.length >= 2 && secs.size >= 2
-          : cited.length >= 1;
+    const ok = bm.meets(item.expect, res.answer);
     for (const h of cited) {
       if (!idsOf.get(h.p.route)?.has(h.p.anchor)) fail(`citation ${h.p.route}#${h.p.anchor} doesn't resolve`);
     }
@@ -359,7 +353,7 @@ if (EXPLAIN) {
       );
     }
   }
-  console.log(`\n${index.N} passages (${dupes} duplicates dropped), avgdl ${index.avgdl}, ${Object.keys(index.df).length} terms, ${kb(indexJson.length)} raw, ${kb(indexGz)} gz`);
+  console.log(`\n${index.N} passages (${dupes} duplicates dropped), avgdl ${index.avgdl}, ${engine.post.size} terms, ${kb(indexJson.length)} raw, ${kb(indexGz)} gz`);
 }
 
 const broken = results.filter((r) => !r.ok);
