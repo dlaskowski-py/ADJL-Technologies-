@@ -300,7 +300,10 @@ function buildScene(count: number) {
   };
 }
 
-function mount(host: HTMLElement): void {
+function mount(figure: HTMLElement): void {
+  /* Draw inside the fixed-ratio art box, never the figure itself: sizing a
+     canvas from a box that grows to fit the canvas is a feedback loop. */
+  const host = figure.querySelector<HTMLElement>('.hero-fig-art') ?? figure;
   const canvas = document.createElement('canvas');
   canvas.className = 'lattice-canvas';
   canvas.setAttribute('aria-hidden', 'true');
@@ -358,6 +361,8 @@ function mount(host: HTMLElement): void {
   gl.blendFunc(gl.ONE, gl.ONE);
 
   host.appendChild(canvas);
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
 
   let w = 0;
   let h = 0;
@@ -465,7 +470,7 @@ function mount(host: HTMLElement): void {
     () => {
       if (running) return;
       running = true;
-      host.classList.add('is-running');
+      figure.dataset.running = 'true';
       raf = requestAnimationFrame(frame);
     },
     () => {
@@ -481,7 +486,7 @@ function mount(host: HTMLElement): void {
     cancelAnimationFrame(raf);
     running = false;
     canvas.remove();
-    host.classList.remove('is-running');
+    figure.dataset.running = 'false';
   });
 }
 

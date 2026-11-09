@@ -1,92 +1,74 @@
-/** /work/ — a short index over the three case pages. */
+/**
+ * /work/ — every system we built, one card each, with a filter.
+ *
+ * The cards are the same objects the home page's "In production" section
+ * renders (content.ts systems), so the two can't drift. The filter is a
+ * row of radios that only a script can operate; without it every card is
+ * visible, which is the right failure.
+ */
 
-import { backdrop, esc, rich } from './html';
-import { renderCta, renderFooter } from './bottom';
+import type { Meta } from '../content-types';
+import { esc, rail, sectionOpen } from './html';
+import { renderContact, renderFooter } from './bottom';
 import { renderNav } from './nav';
+import { pageHero } from './kit';
+import { systemCards } from './home';
 
 export type WorkHubContent = {
-  meta: { title: string; description: string; ogTitle?: string; ogDescription?: string };
-  hero: { eyebrow: string; headline: string[]; body: string; back: { label: string; href: string } };
-  items: {
-    num: string;
-    kicker: string;
-    title: string[];
-    sub: string;
-    body: string;
-    points: string[];
-    linkLabel: string;
-    href: string;
-  }[];
-  cta: {
+  meta: Meta;
+  hero: {
     eyebrow: string;
     headline: string[];
-    body: string;
-    button: { label: string; href: string };
-    email: string;
+    lead?: string;
+    body?: string;
+    primary?: { label: string; href: string };
+    secondary?: { label: string; href: string };
   };
-};
-
-/** Which film belongs to which case page. Keyed by route so the hub and the
- *  case page itself cannot end up showing different films for the same work. */
-export const CASE_MEDIA: Record<string, string> = {
-  '/work/real-estate-intelligence/': 'survey',
-  '/work/trading-infrastructure/': 'latency',
-  '/work/ai-implementation/': 'mesh',
+  filter: { legend: string; options: { value: string; label: string }[] };
 };
 
 export function renderWorkHubPage(c: WorkHubContent): { navHtml: string; pageHtml: string } {
   const h = c.hero;
-
-  const hero = `<section class="chero is-clear" id="top" data-scrub>
-    ${backdrop('bloom', '', true)}
-    <div class="wrap chero-inner">
-      <a class="backlink" href="${esc(h.back.href)}"><span class="arw">&larr;</span><span>${esc(
-        h.back.label,
-      )}</span></a>
-      <p class="eyebrow" data-reveal>${esc(h.eyebrow)}</p>
-      <h1 class="display" data-reveal="mask">${h.headline
-        .map((l, i) => `<span style="--i:${i}"><span>${rich(l)}</span></span>`)
-        .join('')}</h1>
-      <p class="chero-body" data-reveal style="--i:3">${rich(h.body)}</p>
-    </div>
-  </section>`;
-
-  const list = `<section class="hublist sec-line" id="work">
-    <div class="hub-wrap">
-      ${c.items
+  const filter = `<fieldset class="filter" id="filter" data-filter data-js-only>
+      <legend class="label">${esc(c.filter.legend)}</legend>
+      <div class="filter-track">${c.filter.options
         .map(
-          (it, i) => `<article class="hcard" data-reveal style="--n:${i}">
-        <a class="hcard-link" href="${esc(it.href)}">
-          <div class="hcard-film">
-            ${backdrop(CASE_MEDIA[it.href] ?? 'mesh', 'backdrop--plate')}
-          </div>
-          <div class="hcard-body">
-            <div class="hcard-head">
-              <span class="hcard-num num">${esc(it.num)}</span>
-              <span class="label hcard-kicker">${esc(it.kicker)}</span>
-            </div>
-            <h2 class="hcard-title">${it.title.map((t) => `<span>${rich(t)}</span>`).join('')}</h2>
-            <p class="hcard-sub">${esc(it.sub)}</p>
-            <p class="hcard-text">${rich(it.body)}</p>
-            <ul class="checks">
-              ${it.points
-                .map(
-                  (p) =>
-                    `<li><span class="check" aria-hidden="true"></span><span>${rich(p)}</span></li>`,
-                )
-                .join('')}
-            </ul>
-            <span class="hcard-cta"><span>${esc(it.linkLabel)}</span><span class="arw">&rarr;</span></span>
-          </div>
-        </a>
-      </article>`,
+          (o, i) =>
+            `<label class="filter-opt"><input type="radio" name="work-filter" value="${esc(o.value)}"${
+              i === 0 ? ' checked' : ''
+            } /><span>${esc(o.label)}</span></label>`,
         )
-        .join('')}
+        .join('')}</div>
+      <p class="sr-only" aria-live="polite" data-filter-announce></p>
+    </fieldset>`;
+
+  const list = `${sectionOpen({ id: 'systems', src: 'content.ts#systems', renderer: 'sections/workhub.ts#renderWorkHubPage', band: true })}
+    <div class="wrap">
+      ${rail(2, 'systems')}
+      ${filter}
+      ${systemCards()}
     </div>
   </section>`;
 
   return {
     navHtml: renderNav('/work/'),
-    pageHtml: [hero, list, renderCta(c.cta), renderFooter()].join(''),
+    pageHtml: [
+      pageHero({
+        route: '/work/',
+        hero: {
+          eyebrow: h.eyebrow,
+          headline: h.headline,
+          lead: h.lead ?? h.body ?? '',
+          primary: h.primary,
+          secondary: h.secondary ?? { label: 'Talk to Daniel', href: '#contact' },
+        },
+        src: 'content-work.ts#content.hero',
+        renderer: 'sections/workhub.ts#renderWorkHubPage',
+        figure: true,
+      }),
+      list,
+      renderContact(3),
+      renderFooter(),
+    ].join(''),
   };
 }

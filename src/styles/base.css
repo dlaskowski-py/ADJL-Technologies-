@@ -1,4 +1,5 @@
-/* ADJL Technology — reset, typography primitives, shared motion classes. */
+/* ADJL Technology — reset, ground, type roles, and the shared primitives
+   every section is built from: rails, panels, chips, hatching, buttons. */
 
 *,
 *::before,
@@ -9,29 +10,54 @@
 }
 
 html {
-  scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--nav-h) + 16px);
+  background: var(--ground);
+}
+html[data-motion='reduced'] {
+  scroll-behavior: auto;
 }
 
 body {
-  font-family: var(--sans);
+  font-family: var(--font-sans);
   font-size: var(--t-body);
-  line-height: 1.6;
-  color: var(--ink);
-  background: var(--paper);
+  line-height: 1.65;
+  color: var(--fg-2);
+  background: var(--ground);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  font-feature-settings: 'ss01' 0;
+}
+
+/* The drafting grid. One fixed layer behind everything, never repainted on
+   scroll: 64px majors on the column rhythm and 16px minors, masked so it
+   fades out below the fold instead of tiling the whole page at one value. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: linear-gradient(var(--grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px);
+  background-size: 64px 64px, 64px 64px, 16px 16px, 16px 16px;
+  background-position: -1px -1px;
+  -webkit-mask-image: radial-gradient(120% 80% at 50% 0%, #000 40%, transparent 85%);
+  mask-image: radial-gradient(120% 80% at 50% 0%, #000 40%, transparent 85%);
 }
 
 ::selection {
   background: var(--signal);
-  color: #fff;
+  color: var(--on-signal);
 }
 
 img,
-video,
-svg {
+svg,
+canvas {
   display: block;
   max-width: 100%;
 }
@@ -41,360 +67,547 @@ a {
   text-decoration: none;
 }
 
-button {
+button,
+input {
   font: inherit;
   color: inherit;
+}
+button {
   background: none;
   border: none;
   cursor: pointer;
 }
 
 :focus-visible {
-  outline: 2px solid var(--signal-deep);
+  outline: 2px solid var(--signal-hi);
   outline-offset: 3px;
-  border-radius: 3px;
+  border-radius: var(--r-1);
 }
 
 .skip-link {
   position: absolute;
-  left: 1rem;
-  top: 1rem;
+  left: var(--s-4);
+  top: var(--s-4);
   clip-path: inset(50%);
   z-index: 999;
-  padding: 0.8rem 1.4rem;
-  background: var(--signal-deep);
-  color: #fff;
+  padding: 12px 20px;
+  background: var(--signal);
+  color: var(--on-signal);
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: var(--r-2);
 }
 .skip-link:focus {
   clip-path: none;
 }
 
-/* ── Layout primitives ───────────────────────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Things only a script can operate are hidden until there's a script. */
+html:not(.js) [data-js-only] {
+  display: none !important;
+}
+
+/* ── Layout ──────────────────────────────────────────────────────── */
 
 .wrap {
   width: 100%;
-  max-width: var(--maxw);
+  max-width: var(--max);
   margin-inline: auto;
   padding-inline: var(--gut);
   position: relative;
-  z-index: 1;
 }
 
-.wrap--narrow {
-  max-width: 960px;
-}
-
-section {
+.sec {
   position: relative;
-  padding-block: var(--sec-y);
-  scroll-margin-top: 5rem;
+  padding-block: var(--sec);
+  scroll-margin-top: var(--nav-h);
+}
+.sec--band {
+  background: var(--ground-2);
+  border-block: 1px solid var(--rule);
 }
 
-.sec-line {
-  border-top: 1px solid var(--line);
+/* Two-column section: the copy on the left, an instrument on the right. */
+.split {
+  display: grid;
+  gap: var(--s-7) var(--col-gap);
+}
+@media (min-width: 1100px) {
+  .split {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: start;
+  }
+  .split--even {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-/* Alternating ground. On a white site the sections need a reason to read
-   as separate, and a hairline alone is not enough over a long page — so
-   every other band steps one value down onto --paper-3. */
-.sec-tint {
-  background: var(--paper-3);
-}
-
-/* ── Typography primitives ───────────────────────────────────────── */
-
-.eyebrow {
-  font-family: var(--sans);
-  font-size: var(--t-label);
-  font-weight: var(--w-label);
-  letter-spacing: var(--tr-label);
-  text-transform: uppercase;
-  color: var(--ink-3);
+/* ── Section head rail ─────────────────────────────────────────────
+   §03 · /machine ──────────────── [chip]. The number and path are
+   decoration (aria-hidden); the chip, when there is one, is real text. */
+.rail {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  margin-bottom: 1.5rem;
+  gap: var(--s-3);
+  margin-bottom: var(--s-6);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.06em;
+  color: var(--fg-3);
+}
+.rail-num {
+  color: var(--fg-faint);
+}
+.rail-path {
+  color: var(--fg-3);
+}
+.rail-line {
+  flex: 1;
+  height: 1px;
+  background: var(--rule-2);
+  transform-origin: left;
+}
+.js .rail-line {
+  transform: scaleX(0);
+  transition: transform var(--d-4) var(--ease-out);
+}
+.js .rail.is-in .rail-line,
+html[data-motion='reduced'] .rail-line {
+  transform: none;
 }
 
-/* The rule before an eyebrow is the one place the three spectrum colours
-   appear together, and it is how the palette introduces itself. */
+/* ── Type roles ──────────────────────────────────────────────────── */
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  margin-bottom: var(--s-5);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+/* A copper tick before every eyebrow: the one warm mark in a column of
+   mono, and the signal that a new argument starts here. */
 .eyebrow::before {
   content: '';
-  width: 2.2rem;
-  height: 2px;
-  border-radius: 2px;
   flex: none;
-  background: linear-gradient(90deg, var(--signal) 0%, var(--teal) 55%, var(--violet) 100%);
+  width: 18px;
+  height: 2px;
+  background: var(--signal);
 }
 
 .display,
 .h2 {
-  font-family: var(--sans);
-  font-weight: var(--w-display);
-  line-height: 1.03;
-  letter-spacing: var(--tr-display);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--fg);
   text-wrap: balance;
-  color: var(--ink);
 }
-
-/* Each authored line is its own block — otherwise adjacent array entries
-   run together with no space between them. */
-.display .hl-line,
-.h2 .hl-line {
-  display: block;
-}
-
 .display {
   font-size: var(--t-display);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  position: relative;
 }
 .h2 {
   font-size: var(--t-h2);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
 }
-
-/* Emphasis is weight and colour, never italic — Capital's rule, kept.
-   --signal at 3.8:1 is used here and only here: these glyphs are never
-   below 32px, which is the size at which 3:1 is the applicable floor.
-   Anything smaller takes --signal-deep. */
-.h2 em,
-.display em {
+.hl-line {
+  display: block;
+}
+/* Emphasis is weight and colour, never italic — Capital's rule. At these
+   sizes --signal clears the 3:1 large-text floor on every surface. */
+.display em,
+.h2 em {
   font-style: normal;
   font-weight: 300;
+  letter-spacing: -0.03em;
   color: var(--signal);
 }
 
-/* Emphasis sitting ON FILM takes the deeper copper. Measured, not assumed:
-   --signal against the actual frames of these six clips came back at
-   2.44–2.93:1 against a 3:1 floor, and no veil that leaves the film visible
-   closes that gap.
-
-   Selected by the sibling combinator rather than :has(), deliberately. Every
-   filmed section renders .backdrop immediately before the .wrap holding its
-   copy, so this says exactly "emphasis over film" with no list of section
-   classes to fall out of date. :has() would read better, is nowhere else in
-   this stylesheet, and a selector that fails to parse drops the rule and
-   silently returns the text to the value that measured 2.44. */
-.backdrop ~ .wrap .h2 em,
-.backdrop ~ .wrap .display em {
-  color: var(--signal-film);
-}
-
-/* The quiet tiers over film take one step darker for the same reason. The
-   veil holds the copy column at about 0.93, which puts --ink-3 at 4.51:1 —
-   inside the floor by a hundredth, which is not a margin. --ink-2 has real
-   room and the hierarchy still reads, because it is the tier immediately
-   above and the surrounding text over film is heading-sized anyway. */
-.backdrop ~ .wrap .eyebrow,
-.backdrop ~ .wrap .cta-note,
-.backdrop ~ .wrap .copy-btn {
-  color: var(--ink-2);
-}
-
 .h3 {
-  font-family: var(--sans);
+  font-family: var(--font-sans);
   font-size: var(--t-h3);
-  font-weight: var(--w-head);
-  letter-spacing: var(--tr-head);
-  line-height: 1.22;
-  color: var(--ink);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--fg);
 }
 
-.lede {
-  color: var(--ink-2);
+.lead {
+  font-size: var(--t-lead);
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+  color: var(--fg);
+  max-width: 60ch;
+}
+.h2 + .lead,
+.h2 + .prose {
+  margin-top: var(--s-5);
+}
+.prose {
   max-width: var(--measure);
-  font-size: clamp(1.05rem, 1.2vw, 1.24rem);
-  line-height: 1.58;
+}
+.prose p + p {
+  margin-top: var(--s-4);
+}
+.prose p {
+  color: var(--fg-2);
 }
 
-.h2 + .lede,
-.display + .lede {
-  margin-top: 1.7rem;
+/* A technical term in body copy: weight, never colour. */
+.kwd {
+  color: var(--fg);
+  font-weight: 600;
 }
 
 .label {
+  font-family: var(--font-mono);
   font-size: var(--t-label);
-  font-weight: var(--w-label);
-  letter-spacing: var(--tr-label);
+  font-weight: 500;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ink-3);
-}
-
-.num {
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum' 1;
+  color: var(--fg-3);
 }
 
 .mono {
-  font-family: var(--mono);
-  font-size: 0.86em;
-  letter-spacing: -0.01em;
+  font-family: var(--font-mono);
+}
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'zero' 1;
 }
 
-/* Inline prose link. --signal-deep, not --signal: this text is body-sized,
-   so it needs 4.5:1 and gets 4.8. */
+.numeral {
+  font-family: var(--font-sans);
+  font-size: var(--t-numeral);
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--fg-faint);
+}
+
+/* Inline prose link. */
 .tlink {
-  color: var(--signal-deep);
-  font-weight: 500;
-  border-bottom: 1px solid rgba(194, 69, 28, 0.35);
-  transition: border-color 0.2s var(--ease), color 0.2s var(--ease);
+  color: var(--signal-hi);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--signal-hi) 45%, transparent);
+  transition: text-decoration-color var(--d-2) var(--ease-out);
 }
 .tlink:hover {
-  border-bottom-color: var(--signal-deep);
+  text-decoration-color: var(--signal-hi);
 }
 
-/* ── Buttons ─────────────────────────────────────────────────────── */
-
-.btn {
+/* Arrow link: a mono label that points somewhere. */
+.alink {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.95rem 1.6rem;
-  border-radius: 999px;
+  gap: var(--s-2);
+  min-height: 44px;
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  color: var(--signal-hi);
+  position: relative;
+}
+.alink .arw {
+  transition: transform var(--d-2) var(--ease-out);
+}
+.alink:hover .arw {
+  transform: translateX(4px);
+}
+
+/* ── Buttons, with the bracket treatment ───────────────────────────
+   Four 8px L-marks snap in at the corners on hover (grey) and on keyboard
+   focus (copper). Drawn on ::before so ::after stays free for Machine
+   view's link annotations. */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  min-height: 44px;
+  padding: 0 22px;
+  border-radius: var(--r-2);
+  font-family: var(--font-sans);
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1;
-  /* 44px minimum touch target, measured rather than assumed. */
-  min-height: 44px;
-  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease),
-    background-color 0.25s var(--ease), border-color 0.25s var(--ease), color 0.25s var(--ease);
-  will-change: transform;
+  white-space: nowrap;
+  transition: background-color var(--d-2) var(--ease-out), border-color var(--d-2) var(--ease-out),
+    color var(--d-2) var(--ease-out);
 }
-
-/* White on --signal-deep is 5.0:1. White on --signal would be 4.0:1, which
-   is under the floor for text at this size — which is the entire reason
-   the copper ships in two values. */
-.btn--solid {
-  background: var(--signal-deep);
-  color: #fff;
-  box-shadow: var(--lift-1);
+.btn--primary {
+  background: var(--signal);
+  color: var(--on-signal);
 }
-.btn--solid:hover {
-  background: #ab3c17;
-  box-shadow: var(--lift-2);
+.btn--primary:hover {
+  background: var(--signal-hi);
 }
-
 .btn--ghost {
-  background: var(--paper-2);
-  color: var(--ink);
-  border: 1px solid var(--line-2);
-  box-shadow: var(--lift-1);
+  border: 1px solid var(--rule-3);
+  color: var(--fg);
 }
 .btn--ghost:hover {
-  border-color: var(--line-3);
-  box-shadow: var(--lift-2);
+  border-color: var(--fg-3);
 }
-
 .btn .arw {
-  transition: transform 0.3s var(--ease);
+  transition: transform var(--d-2) var(--ease-out);
 }
 .btn:hover .arw {
-  transform: translateX(4px);
+  transform: translateX(3px);
 }
 
-/* ── Reveal on scroll ────────────────────────────────────────────── */
+.btn::before,
+.bracket::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.92);
+  transition: opacity var(--d-1) var(--ease-out), transform var(--d-1) var(--ease-out);
+  --bc: var(--fg-3);
+  background: linear-gradient(var(--bc), var(--bc)) top left / 8px 1.5px,
+    linear-gradient(var(--bc), var(--bc)) top left / 1.5px 8px,
+    linear-gradient(var(--bc), var(--bc)) top right / 8px 1.5px,
+    linear-gradient(var(--bc), var(--bc)) top right / 1.5px 8px,
+    linear-gradient(var(--bc), var(--bc)) bottom left / 8px 1.5px,
+    linear-gradient(var(--bc), var(--bc)) bottom left / 1.5px 8px,
+    linear-gradient(var(--bc), var(--bc)) bottom right / 8px 1.5px,
+    linear-gradient(var(--bc), var(--bc)) bottom right / 1.5px 8px;
+  background-repeat: no-repeat;
+}
+.btn:hover::before,
+.bracket:hover::before {
+  opacity: 1;
+  transform: none;
+}
+.btn:focus-visible::before,
+.bracket:focus-visible::before,
+.bracket:focus-within::before {
+  --bc: var(--signal-hi);
+  opacity: 1;
+  transform: none;
+}
+html[data-motion='reduced'] .btn::before,
+html[data-motion='reduced'] .bracket::before {
+  transition: none;
+}
 
-/* GATED ON .js, and that gate is the whole point. Hiding used to be the
-   default, so without scripting the prerendered page was in the DOM and
-   invisible — 58 of 59 elements on the home page at opacity 0. Nothing is
-   hidden unless something is running that can bring it back. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+  margin-top: var(--s-6);
+}
+
+/* ── Panels with registration marks ────────────────────────────────
+   Four 6px L-ticks at the corners, drawn as background gradients so the
+   panel's pseudo-elements stay free. */
+.panel {
+  position: relative;
+  background-color: var(--panel);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-2);
+  box-shadow: var(--e1-shadow);
+  --tick: var(--rule-3);
+  background-image: linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick));
+  background-size: 6px 1px, 1px 6px, 6px 1px, 1px 6px, 6px 1px, 1px 6px, 6px 1px, 1px 6px;
+  background-position: 6px 6px, 6px 6px, calc(100% - 6px) 6px, calc(100% - 6px) 6px,
+    6px calc(100% - 6px), 6px calc(100% - 6px), calc(100% - 6px) calc(100% - 6px),
+    calc(100% - 6px) calc(100% - 6px);
+  background-repeat: no-repeat;
+}
+
+/* An instrument's header strip: a mono title on the left, its provenance
+   chip on the right. */
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.06em;
+  color: var(--fg-3);
+}
+.panel-title {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ── Provenance chips ──────────────────────────────────────────────
+   Every figure says what it is: Live (measured in your browser, now),
+   Build (measured from this page's HTML at build), Recorded (a replay of
+   a real run) or Illustration (drawn to explain). */
+.prov {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px;
+  border-radius: var(--r-1);
+  border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.prov i {
+  font-style: normal;
+}
+.prov[data-prov='live'] {
+  color: var(--data);
+}
+.prov[data-prov='build'] {
+  color: var(--model);
+}
+.prov[data-prov='recorded'] {
+  color: var(--signal-hi);
+}
+.prov[data-prov='illustration'] {
+  color: var(--fg-3);
+}
+
+/* ── Hatching: deliberately not shown ──────────────────────────────
+   One meaning only, and always labeled. */
+.hatch {
+  position: relative;
+  background-image: repeating-linear-gradient(135deg, var(--rule-2) 0 1px, transparent 1px 7px);
+  border: 1px dashed var(--rule-3);
+  border-radius: var(--r-2);
+}
+.hatch-label {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  background: var(--ground);
+  padding: 2px 8px;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-1);
+}
+
+/* ── Checklist ───────────────────────────────────────────────────── */
+.checks {
+  list-style: none;
+  display: grid;
+  gap: var(--s-3);
+}
+.checks li {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: var(--s-3);
+  align-items: baseline;
+  font-size: var(--t-small);
+  color: var(--fg-2);
+}
+.check {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  color: var(--ok);
+}
+
+/* ── Reveal on scroll ──────────────────────────────────────────────
+   GATED ON .js: without scripting nothing is hidden, so the prerendered
+   page is a complete page. Elements fade and rise 12px; rules draw. */
 .js [data-reveal] {
   opacity: 0;
-  transform: translateY(18px);
-  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
-  transition-delay: calc(var(--i, 0) * 70ms);
+  transform: translateY(12px);
+  transition: opacity var(--d-3) var(--ease-out), transform var(--d-3) var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 60ms);
 }
 .js [data-reveal].is-in {
   opacity: 1;
   transform: none;
 }
-
-/* A headline whose lines wipe up from a clipped box rather than fading. */
-[data-reveal='mask'] {
-  opacity: 1;
-  transform: none;
-}
-[data-reveal='mask'] > span {
-  display: block;
-  overflow: hidden;
-}
-.js [data-reveal='mask'] > span > span {
-  display: block;
-  transform: translateY(105%);
-  transition: transform 0.9s var(--ease);
-  transition-delay: calc(var(--i, 0) * 90ms);
-}
-.js [data-reveal='mask'].is-in > span > span {
-  transform: none;
+html[data-motion='reduced'] [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-  .js [data-reveal],
-  .js [data-reveal='mask'] > span > span {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
-/* ── Film ────────────────────────────────────────────────────────── */
-
-.backdrop {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-.backdrop video,
-.backdrop .bd-poster {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.backdrop::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--veil-hero);
-}
-/* Film shown inside a frame, with no text on top: barely veiled. */
-.backdrop--plate::after {
-  background: var(--veil-plate);
-}
-
-/* The point field, behind everything. */
-#field {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.85;
-}
-
-/* Sections paint their own ground over the fixed canvas; the ones that
-   want it visible opt in. */
-body > .page > section {
-  background: var(--paper);
-}
-body > .page > section.sec-tint {
-  background: var(--paper-3);
-}
-body > .page > section.is-clear {
-  background: transparent;
+/* ── Print ───────────────────────────────────────────────────────── */
+@media print {
+  :root {
+    color-scheme: light;
+  }
+  html,
+  body {
+    background: var(--paper) !important;
+    color: var(--ink) !important;
+  }
+  body::before,
+  canvas,
+  .status,
+  .nav,
+  [data-js-only],
+  [data-pause] {
+    display: none !important;
+  }
+  .display,
+  .h2,
+  .h3,
+  .lead,
+  .prose p {
+    color: var(--ink) !important;
+  }
+  .display em,
+  .h2 em,
+  .tlink {
+    color: var(--ink-link) !important;
+  }
+  a[href^='http']::after,
+  a[href^='/']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.8em;
+  }
+  .panel,
+  .hatch {
+    background: none !important;
+    border: 1px solid var(--ink) !important;
+  }
+  .js [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }

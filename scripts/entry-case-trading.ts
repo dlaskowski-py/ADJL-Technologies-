@@ -1,5 +1,2 @@
-import { renderCasePage } from '../src/sections/case';
-import { content } from '../src/content-case-trading';
-
-export const render = () => renderCasePage(content, '/work/trading-infrastructure/', 'latency');
-export const meta = content.meta;
+/* Prerender entry for /work/trading-infrastructure/: bundled and run in Node by scripts/prerender.mjs. */
+export * from '../src/pages/case-trading';

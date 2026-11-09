@@ -17,10 +17,16 @@
  * The one live external link points at ADJL Capital, a firm that raises
  * money, so "adjlcapital.com" becoming "Invest with ADJL Capital →", or the
  * href sliding to /invest/, is the exact regression worth failing on.
+ *
+ * Since the rebuild it also covers the machine-readable files (a link to
+ * /llms.txt or a page's index.md must point at a file the build wrote) and
+ * every passage in Ask's search index, whose `route#anchor` citations become
+ * links the moment someone asks a question.
  */
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { ORIGIN, PAGES } from './pages.mjs';
+import { existsSync, readFileSync } from 'node:fs';
+import { ORIGIN, PAGES, slugOf } from './pages.mjs';
+import { twinOf } from './seo.mjs';
+import { pass } from './lib/report.mjs';
 
 const ROUTES = new Set(PAGES.map((p) => p.route));
 const ids = new Map();
@@ -32,9 +38,27 @@ for (const page of PAGES) {
   ids.set(page.route, set);
 }
 
-/* Static files an anchor may legitimately point at. Short by design: if a
-   link here is not a page, it should be a deliberate exception. */
-const assets = new Set(['/sitemap.xml', '/robots.txt', '/favicon.svg', '/llms.txt', '/llms-full.txt']);
+/* Files an anchor may legitimately point at that aren't pages: the
+   machine-readable surfaces the footer and Machine View link to. Short by
+   design: if a link here isn't a page, it should be a deliberate exception.
+   Each one must exist in dist/, except build-report.json, which is the last
+   thing the build writes (after this guard has run). */
+const assets = new Map([
+  ['/sitemap.xml', true],
+  ['/robots.txt', true],
+  ['/favicon.svg', true],
+  ['/llms.txt', true],
+  ['/llms-full.txt', true],
+  ['/search-index.json', true],
+  ['/.well-known/security.txt', true],
+  ['/build-report.json', false],
+]);
+for (const page of PAGES) {
+  assets.set(twinOf(page.route), true);
+  assets.set(`/source/${slugOf(page.route)}.json`, true);
+}
+const assetFile = (path) => `dist${path}`;
+const linkedAssets = new Set();
 
 let bad = 0;
 
@@ -59,7 +83,14 @@ for (const page of PAGES) {
     }
 
     const [path, frag] = href.split('#');
-    if (assets.has(path)) continue;
+    if (assets.has(path)) {
+      linkedAssets.add(path);
+      if (assets.get(path) && !existsSync(assetFile(path))) {
+        console.error(`check-links: ${page.route} → ${href} (the build didn't write ${assetFile(path)})`);
+        bad++;
+      }
+      continue;
+    }
 
     if (!ROUTES.has(path)) {
       console.error(`check-links: ${page.route} → ${href} (not a built page)`);
@@ -190,7 +221,49 @@ for (const route of ROUTES) {
   }
 }
 
+/* ── Ask's search index ────────────────────────────────────────────────
+   Every passage in /search-index.json cites `route#anchor`, and the live
+   Ask panel turns each into a link. They're validated here exactly like
+   anchors in the markup, so a citation can't point at a section that was
+   renamed. (The prerendered answers are ordinary <a> tags and were checked
+   above.) */
+let passages = 0;
+if (existsSync('dist/search-index.json')) {
+  let index = null;
+  try {
+    index = JSON.parse(readFileSync('dist/search-index.json', 'utf8'));
+  } catch (e) {
+    console.error(`check-links: dist/search-index.json doesn't parse: ${e.message}`);
+    bad++;
+  }
+  const found = [];
+  const collect = (v) => {
+    if (Array.isArray(v)) v.forEach(collect);
+    else if (v && typeof v === 'object') {
+      if (typeof v.route === 'string' && 'anchor' in v) found.push(v);
+      else Object.values(v).forEach(collect);
+    }
+  };
+  collect(index);
+  for (const p of found) {
+    passages++;
+    const where = `search-index passage ${p.id ?? passages}`;
+    if (!ROUTES.has(p.route)) {
+      console.error(`check-links: ${where} cites ${p.route}, which isn't a built page`);
+      bad++;
+    } else if (p.anchor && !ids.get(p.route).has(String(p.anchor).replace(/^#/, ''))) {
+      console.error(`check-links: ${where} cites ${p.route}#${p.anchor}, and there's no such id on that page`);
+      bad++;
+    }
+  }
+  if (index && !found.length) {
+    console.error('check-links: dist/search-index.json has no passages with {route, anchor}');
+    bad++;
+  }
+}
+
 if (bad) process.exit(1);
-console.log(
-  `check-links: ${PAGES.length} pages, every internal link and fragment resolves, ${linkedHosts.size} outbound host allowed`,
+pass(
+  'check-links',
+  `${PAGES.length} pages, every internal link and fragment resolves${passages ? `, ${passages} search passages cite real anchors` : ''}, ${linkedAssets.size} machine-readable files linked, ${linkedHosts.size} outbound host allowed`,
 );

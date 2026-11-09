@@ -1,10 +1,12 @@
 /**
- * ADJL Technology — /work/ai-implementation/ — the consulting-and-build practice.
+ * ADJL Technology: /work/ai-implementation/, the consulting-and-build practice.
  *
- * The rule this page has to hold is scope: describe the workflow being changed and the mechanism that changes it, never a client, an outcome, or a figure that has not happened.
+ * The rule this page has to hold is scope: describe the workflow being
+ * changed and the mechanism that changes it, never a client, an outcome, or
+ * a figure that hasn't happened.
  *
  * Same conventions as src/content.ts: headlines are arrays of lines,
- * {em}…{/em} marks one emphasised phrase per headline, and {k}…{/k} marks a
+ * {em}…{/em} marks one emphasized phrase per headline, and {k}…{/k} marks a
  * technical term in body copy. Edit words here, never in a renderer.
  */
 
@@ -12,10 +14,10 @@ import type { CaseContent } from './sections/case';
 
 export const content: CaseContent = {
   meta: {
-    title: "AI Implementation Consulting — ADJL Technology",
+    title: "AI Implementation Consulting | ADJL Technology",
     description: "AI implementation for businesses that already run: retrieval over your documents, extraction from unstructured records, classification and routing.",
-    ogTitle: "AI Implementation — ADJL Technology",
-    ogDescription: "Find the steps where a person is reading, sorting and routing. Build the narrow thing that does one of them. Put a human where being wrong is expensive, instrument it, hand it over running."
+    ogTitle: "We start at the workflow, not the model.",
+    ogDescription: "This is the AI implementation practice: folding AI into a business that already works, starting at the workflow instead of the model. The revenue exists."
   },
   hero: {
     eyebrow: "AI Implementation Consulting",
@@ -24,9 +26,9 @@ export const content: CaseContent = {
       "not the {em}model.{/em}"
     ],
     body: "This is the AI implementation practice: folding AI into a business that already works, starting at the workflow instead of the model. The revenue exists. The process exists. Somewhere inside it, competent people spend their best hours reading documents and moving them along. We find those steps. Then we build the narrow thing that does one of them and put it into production with a way to tell whether it’s helping.",
-    back: {
-      label: "All work",
-      href: "/work/"
+    secondary: {
+      label: "Talk to Daniel",
+      href: "#contact"
     },
     specs: [
       {
@@ -35,7 +37,7 @@ export const content: CaseContent = {
       },
       {
         label: "Runs on",
-        value: "Your data, in your environment — your cloud or your own machines"
+        value: "Your data, in your own cloud or on your own machines"
       },
       {
         label: "Output",
@@ -79,7 +81,7 @@ export const content: CaseContent = {
         num: "02",
         tag: "shortlist",
         title: "Find the reading, sorting and routing",
-        body: "The candidates tend to be the same shape. A person is reading, extracting, classifying, routing or summarizing. We rank them by how repetitive the step is and how tolerant it is of an error. High volume and cheap to correct goes first. Rare and expensive to get wrong stays with a person, who gets better tooling instead."
+        body: "The candidates tend to be the same shape. A person is reading, extracting, classifying, routing or summarizing. We rank them by how repetitive the step is and how well it tolerates an error. High volume and cheap to correct goes first. Rare and expensive to get wrong stays with a person, who gets better tooling instead."
       },
       {
         num: "03",
@@ -114,7 +116,7 @@ export const content: CaseContent = {
       },
       {
         title: "Retrieval before training",
-        body: "The default is grounded {k}retrieval{/k} against your own documents, with citations. We don’t start by training a model on your data. Training is expensive to repeat and hard to correct one fact at a time, and it hides where an answer came from. With retrieval, a wrong answer traces back to a wrong document. That’s a file someone can correct without retraining anything. We move off that default when the same task runs thousands of times a week and the definition of a right answer has stopped changing."
+        body: "The default is grounded {k}retrieval{/k} against your own documents, with citations. We don’t start by training a model on your data. Training is expensive to repeat and hard to correct one fact at a time, and it hides where an answer came from. With retrieval, a wrong answer traces back to a wrong document. Someone can fix that document without retraining anything. We move off that default when the same task runs thousands of times a week and the definition of a right answer has stopped changing."
       },
       {
         title: "Buy it where buying works",
@@ -122,18 +124,11 @@ export const content: CaseContent = {
       }
     ]
   },
-  cta: {
-    eyebrow: "Contact",
-    headline: [
-      "Name the step",
-      "that’s {em}eating hours.{/em}"
+  foot: {
+    builtUnder: [
+      { label: "AI engineering", href: "/services/ai-engineering/" }
     ],
-    body: "That step is enough to start with. No plan required, no budget line. The first conversation is with Daniel Laskowski, who scopes the work and stays on it. The team builds it, and the person you brief doesn’t change. Send the workflow and what it costs you now.",
-    button: {
-      label: "Start a conversation",
-      href: "mailto:daniel@adjlcapital.com"
-    },
-    email: "daniel@adjlcapital.com"
+    next: { label: "How the underwriting engine works", href: "/work/real-estate-intelligence/" }
   }
 };
 

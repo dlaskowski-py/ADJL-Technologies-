@@ -1,5 +1,2 @@
-import { renderApproachPage } from '../src/sections/approach';
-import { content } from '../src/content-approach';
-
-export const render = () => renderApproachPage(content);
-export const meta = content.meta;
+/* Prerender entry for /approach/: bundled and run in Node by scripts/prerender.mjs. */
+export * from '../src/pages/approach';

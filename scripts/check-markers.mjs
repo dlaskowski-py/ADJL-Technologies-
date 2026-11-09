@@ -11,17 +11,25 @@
  * file that used em() correctly two functions above and two functions below.
  * It was invisible to every other guard: the markup was well-formed, the link
  * resolved, the class was styled, the words were on the page.
+ *
+ * It also checks the copy itself, before any renderer touches it: every
+ * headline array in every content module carries exactly one {em}, and no
+ * headline carries {k}. That's the convention content-types.ts states, and
+ * the Compile effect on every h1 depends on there being one emphasis to
+ * draw markers around.
  */
 import { readFileSync } from 'node:fs';
 import { PAGES } from './pages.mjs';
+import { headlineProblems } from './lib/ts.mjs';
+import { pass } from './lib/report.mjs';
 
 const MARKERS = /\{\/?(em|k)\}/g;
 let bad = 0;
 
 for (const page of PAGES) {
   const html = readFileSync(page.out, 'utf8');
-  // Strip the JSON transcript: the console demo's script is data, and its
-  // lines legitimately pass through unrendered.
+  // Strip script contents: JSON data blocks (the replay data, Source view's
+  // content objects) legitimately carry the raw markers.
   const visible = html.replace(/<script[\s\S]*?<\/script>/g, '');
 
   const hits = [...visible.matchAll(MARKERS)];
@@ -35,7 +43,11 @@ for (const page of PAGES) {
 }
 
 if (bad) {
-  console.error(`\ncheck-markers: ${bad} unrendered marker(s). A renderer is using esc() where it needs em() or kw().`);
-  process.exit(1);
+  console.error(`\ncheck-markers: ${bad} unrendered marker(s). A renderer is using esc() where it needs rich().`);
 }
-console.log(`check-markers: ${PAGES.length} pages, every {em} and {k} was rendered`);
+
+const headlines = await headlineProblems();
+for (const h of headlines) console.error(`check-markers: ${h}`);
+
+if (bad || headlines.length) process.exit(1);
+pass('check-markers', `${PAGES.length} pages, every {em} and {k} rendered, every headline has exactly one {em}`);

@@ -4,19 +4,47 @@
  * The section modules are pure string functions with no DOM dependency, so
  * they run in Node. Crawlers and no-JS visitors get the whole page, and the
  * browser gets real content on first paint instead of an empty shell — the
- * client script then only wires up interaction.
+ * client script then only wires up interaction and motion.
  *
- * The title and social tags are filled from the page's own content module,
- * not typed into the shell. Capital shipped a page whose <title> still said
- * "TDPS Trading System" months after the page had been rewritten, because
- * the shell was the copy nobody edited. The shell here holds slots; the
- * content module is the source, and a missing slot fails the build rather
- * than silently leaving the placeholder in production.
+ * Per page, in order:
+ *   1. render the nav and page markup into the shell's mount points
+ *   2. fill the title and social slots from the page's own content module
+ *   3. append the head: canonical, share card, markdown alternate, JSON-LD
+ *   4. run the build passes over the FINISHED page (src/lib/prerender-hooks):
+ *      the structure poster and the Machine View readout, both measured
+ *      from exactly what ships
+ *
+ * A missing slot fails the build rather than leaving a placeholder in
+ * production. Capital once shipped a page whose <title> still named a page
+ * that had been rewritten months earlier, because the shell was the copy
+ * nobody edited.
  */
 import { build } from 'esbuild';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { ORIGIN, PAGES } from './pages.mjs';
 import { buildHead } from './seo.mjs';
+import { DEFINE } from './build-stamp.mjs';
+
+async function load(entry) {
+  const bundle = await build({
+    entryPoints: [entry],
+    bundle: true,
+    format: 'esm',
+    platform: 'node',
+    write: false,
+    logLevel: 'silent',
+    define: DEFINE,
+    // Section modules import stylesheets through boot.ts's siblings; the
+    // prerender needs none of them, so CSS is stubbed, not parsed.
+    external: ['*.css'],
+  });
+  return import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
+}
+
+const hooks = await load('src/lib/prerender-hooks.ts');
+
+const enc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+const plain = (s) => s.replace(/\{\/?(em|k)\}/g, '');
 
 let bytes = 0;
 
@@ -26,22 +54,11 @@ for (const page of PAGES) {
     process.exit(1);
   }
 
-  const bundle = await build({
-    entryPoints: [page.entry],
-    bundle: true,
-    format: 'esm',
-    platform: 'node',
-    write: false,
-    logLevel: 'silent',
-    // The entry pulls a section module, which imports the stylesheets
-    // through boot.ts's sibling — nothing here needs CSS, so it is stubbed
-    // rather than parsed.
-    external: ['*.css'],
-  });
-
-  const mod = await import(
-    'data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64')
-  );
+  const mod = await load(page.entry);
+  if (!mod.meta) {
+    console.error(`prerender: ${page.entry} exports no meta`);
+    process.exit(1);
+  }
 
   const { navHtml, pageHtml } = mod.render();
 
@@ -55,7 +72,6 @@ for (const page of PAGES) {
     process.exit(1);
   }
 
-  const enc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
   const swap = (re, value) => {
     if (!value) return;
     if (!re.test(after)) {
@@ -65,41 +81,34 @@ for (const page of PAGES) {
     after = after.replace(re, value);
   };
 
-  if (!mod.meta) {
-    console.error(`prerender: ${page.entry} exports no meta`);
-    process.exit(1);
-  }
-
   swap(/<title>[\s\S]*?<\/title>/, `<title>${enc(mod.meta.title)}</title>`);
-  swap(
-    /<meta name="description"[\s\S]*?\/>/,
-    `<meta name="description" content="${enc(mod.meta.description)}" />`,
-  );
+  swap(/<meta name="description"[\s\S]*?\/>/, `<meta name="description" content="${enc(mod.meta.description)}" />`);
   swap(
     /<meta property="og:title"[\s\S]*?\/>/,
     `<meta property="og:title" content="${enc(mod.meta.ogTitle ?? mod.meta.title)}" />`,
   );
   swap(
     /<meta property="og:description"[\s\S]*?\/>/,
-    `<meta property="og:description" content="${enc(
-      mod.meta.ogDescription ?? mod.meta.description,
-    )}" />`,
+    `<meta property="og:description" content="${enc(mod.meta.ogDescription ?? mod.meta.description)}" />`,
   );
 
-  /* The canonical URL, the share card, and the structured data. All of it
-     derives from the page's own content module and its entry in pages.mjs,
-     so none of it can disagree with what the page actually says. */
-  const head = buildHead({ origin: ORIGIN, page, pages: PAGES, meta: mod.meta, faq: mod.faq });
+  /* The h1's text, for the TechArticle headline. Read from the rendered
+     page, so it's always the headline the reader actually sees. */
+  const h1 = /<h1\b[^>]*>([\s\S]*?)<\/h1>/
+    .exec(pageHtml)?.[1]
+    ?.replace(/<[^>]+>/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const head = buildHead({ origin: ORIGIN, page, pages: PAGES, meta: mod.meta, faq: mod.faq, h1: h1 && plain(h1) });
   after = after.replace('</head>', `${head}\n  </head>`);
 
-  /* The og:image placeholder in the shell is a relative path and would be
-     ignored by every scraper. buildHead emits the absolute one; this removes
-     the decoy so there is exactly one og:image on the page. */
-  after = after.replace(/\n?\s*<meta property="og:image" content="\/media\/[^"]*" \/>/, '');
+  after = hooks.afterRender(after, page.route, ORIGIN);
 
   writeFileSync(page.out, after);
   bytes += after.length;
-  console.log(`prerender: ${page.out.padEnd(48)} ${(after.length / 1024).toFixed(1)} kB`);
+  console.log(`prerender: ${page.out.padEnd(52)} ${(after.length / 1024).toFixed(1)} kB`);
 }
 
 console.log(`prerender: ${PAGES.length} pages, ${(bytes / 1024).toFixed(0)} kB of HTML`);

@@ -19,7 +19,7 @@
  * scales to illegibility or scrolls sideways, and neither is worth it.
  */
 
-import { esc, eyebrow, headline, rich } from './html';
+import { esc, rich } from './html';
 
 export type Stage = { num: string; tag: string; title: string; body: string };
 
@@ -82,25 +82,4 @@ export function renderFlowDiagram(stages: Stage[], title: string): string {
         .join('')}
     </ol>
   </div>`;
-}
-
-/** The whole home-page section around the diagram. */
-export function renderFlowSection(f: {
-  eyebrow: string;
-  headline: string[];
-  intro: string;
-  stages: Stage[];
-  foot: string;
-}): string {
-  return `<section class="flowsec sec-line sec-tint" id="process">
-    <div class="wrap">
-      ${eyebrow(f.eyebrow)}
-      ${headline(f.headline)}
-      <p class="lede" data-reveal style="--i:1">${rich(f.intro)}</p>
-    </div>
-    <div class="wrap flow-wrap">
-      ${renderFlowDiagram(f.stages, f.headline.join(' ').replace(/\{\/?em\}/g, ''))}
-      <p class="flow-foot" data-reveal>${rich(f.foot)}</p>
-    </div>
-  </section>`;
 }

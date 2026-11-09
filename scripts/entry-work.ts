@@ -1,5 +1,2 @@
-import { renderWorkHubPage } from '../src/sections/workhub';
-import { content } from '../src/content-work';
-
-export const render = () => renderWorkHubPage(content);
-export const meta = content.meta;
+/* Prerender entry for /work/: bundled and run in Node by scripts/prerender.mjs. */
+export * from '../src/pages/work';

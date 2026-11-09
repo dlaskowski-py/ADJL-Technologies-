@@ -5,14 +5,8 @@
 [build.environment]
   NODE_VERSION = "22"
 
-# The films and the font are versioned by content, not by filename, so they
-# are cached hard and busted by a redeploy renaming nothing. Vite's own
-# assets are hashed and can be cached forever.
-[[headers]]
-  for = "/media/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
+# Vite's assets are hashed and can be cached forever. The fonts never
+# change name, and a redeploy that changes one ships a new filename.
 [[headers]]
   for = "/assets/*"
   [headers.values]
@@ -53,9 +47,13 @@
     #                        as well as elements. There is no session token
     #                        on this origin for style injection to reach.
     #   frame-ancestors      No reason for this site to be framed by anyone.
+    #   media-src 'none'     There's no video or audio on the site at all.
+    #   connect-src 'self'   The live readouts (Machine View, Ask, the
+    #                        headers panel) fetch this site's own files and
+    #                        nothing else.
     #   form-action 'none'   There is no form. If one is ever added, this
     #                        line has to change, which is the point.
-    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'self'; connect-src 'self'; frame-src 'none'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'none'; connect-src 'self'; frame-src 'none'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests"
 
 # Canonical host. The build's every canonical, og:url and sitemap entry names
 # adjltechnology.com, but Netlify keeps the project reachable at its own
@@ -73,12 +71,73 @@
   force = true
 
 # Trailing-slash canonical: /work and /work/ must not both be live pages.
+# Every route has one, including the case pages, so no URL answers twice.
+[[redirects]]
+  from = "/services"
+  to = "/services/"
+  status = 301
+
+[[redirects]]
+  from = "/services/ai-engineering"
+  to = "/services/ai-engineering/"
+  status = 301
+
+[[redirects]]
+  from = "/services/seo"
+  to = "/services/seo/"
+  status = 301
+
+[[redirects]]
+  from = "/services/software"
+  to = "/services/software/"
+  status = 301
+
 [[redirects]]
   from = "/work"
   to = "/work/"
   status = 301
 
 [[redirects]]
+  from = "/work/real-estate-intelligence"
+  to = "/work/real-estate-intelligence/"
+  status = 301
+
+[[redirects]]
+  from = "/work/trading-infrastructure"
+  to = "/work/trading-infrastructure/"
+  status = 301
+
+[[redirects]]
+  from = "/work/ai-implementation"
+  to = "/work/ai-implementation/"
+  status = 301
+
+[[redirects]]
+  from = "/work/mobile-app"
+  to = "/work/mobile-app/"
+  status = 301
+
+[[redirects]]
+  from = "/work/private-site"
+  to = "/work/private-site/"
+  status = 301
+
+[[redirects]]
+  from = "/work/this-site"
+  to = "/work/this-site/"
+  status = 301
+
+[[redirects]]
   from = "/approach"
   to = "/approach/"
+  status = 301
+
+[[redirects]]
+  from = "/legal/privacy"
+  to = "/legal/privacy/"
+  status = 301
+
+[[redirects]]
+  from = "/legal/terms"
+  to = "/legal/terms/"
   status = 301

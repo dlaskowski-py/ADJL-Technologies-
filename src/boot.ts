@@ -1,63 +1,108 @@
 /**
  * Everything that runs on every page, in one place.
  *
- * Each page's entry module renders its own markup and then calls boot(). The
- * alternative — every entry listing eleven init calls — is eleven lists to
- * keep in step, and Capital's site has a scar from exactly that.
- *
- * Order matters in one respect only: initReveal() assigns the stagger indices
- * that CSS reads, so it runs before anything that could reveal an element
- * early.
+ * Statically imported (small, needed at once): interaction, reveal, scroll
+ * progress, the wordmark, the h1 compile effect, h2 decode, telemetry and
+ * the view switch. Everything heavier loads lazily, only on pages that
+ * carry its markup and only when that markup nears the viewport.
  */
 
 import './styles/fonts.css';
 import './styles/tokens.css';
 import './styles/base.css';
+import './styles/chrome.css';
 import './styles/sections.css';
+import './styles/pages.css';
+import './styles/instruments/index.css';
 
+import { capturePristine } from './pristine';
+import { allowCanvas, lazyOn } from './motion/prefs';
 import { initReveal } from './motion/reveal';
 import { initScrub } from './motion/scrub';
-import { initField } from './motion/field';
-import { initVideo } from './motion/video';
 import { initFlow } from './motion/flow';
-import { initMarquee } from './motion/marquee';
-import { initConsole } from './motion/typeline';
 import { initWordmark } from './motion/wordmark';
-import { initMagnetic, initTilt } from './motion/tilt';
-import { initCopyMail, initFaq, initMenu, initNav } from './ui';
+import { initCompile } from './motion/compile';
+import { initDecode } from './motion/decode';
+import { initTelemetry } from './motion/telemetry';
+import { initViews } from './motion/views';
+import { initCopyMail, initFaq, initFilter, initMenu, initNav, initPause } from './ui';
+
+type Render = () => { navHtml: string; pageHtml: string };
 
 /**
- * Mount prerendered markup, or render it if the shell is empty.
- *
- * In production the build has already written the markup into the HTML, so
- * there is nothing to do — bailing out here is what keeps the first paint
- * from being thrown away and re-done.
+ * Mount the page if the shell is empty (the dev server). In production the
+ * build has already written the markup into the HTML, so there's nothing to
+ * do, and bailing out is what keeps first paint from being thrown away.
  */
-export function mount(render: () => { navHtml: string; pageHtml: string }): void {
+export function mount(render: Render): void {
   const nav = document.getElementById('nav-root');
   const page = document.getElementById('page');
-  if (!nav || !page) return;
-  if (page.children.length > 0) return;
-
+  if (!nav || !page || page.children.length > 0) return;
   const { navHtml, pageHtml } = render();
   nav.innerHTML = navHtml;
   page.innerHTML = pageHtml;
 }
 
+function idle(fn: () => void, timeout = 1500): void {
+  const ric = (window as Window & { requestIdleCallback?: (cb: () => void, o?: object) => number })
+    .requestIdleCallback;
+  if (ric) ric(fn, { timeout });
+  else window.setTimeout(fn, 300);
+}
+
 export function boot(): void {
+  /* FIRST, before any module touches the DOM: the lattice draws the page
+     as it arrived, not the page after decode and reveals have run. */
+  capturePristine();
+
   initNav();
   initMenu();
   initFaq();
   initCopyMail();
+  initPause();
+  initFilter();
   initWordmark();
 
   initReveal();
   initScrub();
-  initVideo();
   initFlow();
-  initMarquee();
-  initConsole();
-  initTilt();
-  initMagnetic();
-  initField();
+  initCompile();
+  initDecode();
+  initTelemetry();
+  initViews();
+
+  lazyOn('[data-machine]', () => import('./motion/machine').then((m) => m.initMachine()), '400px');
+  lazyOn('[data-ask]', () => import('./motion/ask').then((m) => m.initAsk()));
+  lazyOn('[data-pipeline]', () => import('./motion/pipeline').then((m) => m.initPipeline()));
+  lazyOn('[data-replay]', () => import('./motion/replay').then((m) => m.initReplay()));
+  lazyOn('[data-leaders]', () => import('./motion/leaders').then((m) => m.initLeaders()));
+  lazyOn('[data-headers]', () => import('./motion/headers').then((m) => m.initHeaders()));
+
+  /* The hero graph: full tier only, after load and at idle, so the h1
+     paints and settles as the LCP before a shader compiles. */
+  if (allowCanvas && document.querySelector('[data-lattice]')) {
+    const go = () => idle(() => void import('./motion/lattice').then((m) => m.initLattice()));
+    if (document.readyState === 'complete') go();
+    else window.addEventListener('load', go, { once: true });
+  }
+
+  /* ⌘K / Ctrl K, and the nav button: the palette chunk loads on first use. */
+  const openPalette = () => void import('./motion/palette').then((m) => m.initPalette());
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      openPalette();
+    }
+  });
+  document.querySelectorAll('[data-palette]').forEach((b) => b.addEventListener('click', openPalette));
+}
+
+/** Entry point: mount in dev (empty shell) or go straight to boot. */
+export async function start(load: () => Promise<{ render: Render }>): Promise<void> {
+  const page = document.getElementById('page');
+  if (page && page.children.length === 0) {
+    const m = await load();
+    mount(m.render);
+  }
+  boot();
 }

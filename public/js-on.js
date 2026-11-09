@@ -1,15 +1,38 @@
-/* Sets the flag the reveal animations are gated on.
+/* Runs in the head, before first paint. Two jobs.
  *
- * The reveal styles used to hide [data-reveal] unconditionally and wait for
- * IntersectionObserver to add .is-in. With scripting off — or with the main
- * bundle simply failing to load — 58 of 59 elements on the home page stayed
- * at opacity 0. The prerendered markup was all in the DOM and none of it was
- * on the screen, which is the exact opposite of what prerendering is for.
+ * 1. Set html.js. Reveal styles hide content only under .js, so with
+ *    scripting off (or this file failing to load) nothing is hidden.
  *
- * So hiding is opt-in now: no flag, nothing hidden. This is a classic script
- * in the head rather than part of the module bundle because module scripts
- * are deferred, and a deferred flag paints the content first and then hides
- * it — a flash of the whole page disappearing. It is ~120 bytes on the same
- * origin, and if it is the request that fails, everything is visible, which
- * is the safe direction to fail in. */
-document.documentElement.className += ' js';
+ * 2. Resolve the motion tier ONCE, before any CSS paints, so the first frame
+ *    already matches it: 'reduced' (prefers-reduced-motion, or the visitor
+ *    pressed Pause motion on an earlier page), 'lite' (save-data, 2g, low
+ *    memory or a coarse pointer) or 'full'. A module bundle can't do this:
+ *    module scripts are deferred, so the page would paint once in the wrong
+ *    tier and then change under the reader.
+ *
+ * A classic script on the same origin, so script-src 'self' covers it. */
+(function () {
+  var d = document.documentElement;
+  d.className += ' js';
+  var paused = false;
+  try {
+    paused = localStorage.getItem('adjl:motion') === 'off';
+  } catch (e) {}
+  var t = 'full';
+  var n = navigator;
+  var c = n.connection || {};
+  var mq = function (q) {
+    return window.matchMedia && window.matchMedia(q).matches;
+  };
+  if (mq('(prefers-reduced-motion: reduce)')) t = 'reduced';
+  else if (
+    c.saveData ||
+    /(^|-)(2g|slow-2g)$/.test(c.effectiveType || '') ||
+    (typeof n.deviceMemory === 'number' && n.deviceMemory < 4) ||
+    mq('(pointer: coarse)')
+  )
+    t = 'lite';
+  d.setAttribute('data-motion-detected', t);
+  d.setAttribute('data-motion', paused ? 'reduced' : t);
+  if (paused) d.setAttribute('data-paused', 'true');
+})();

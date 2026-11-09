@@ -1,246 +1,132 @@
-/* ADJL Technology — design tokens.
+/* ADJL Technology — design tokens. "Glass Box".
    =====================================================================
-   The Capital kit, daylit.
+   One dark graphite ground, blue-shifted so it reads as a different room
+   from ADJL Capital's neutral black, with the same house kit carried over:
+   Manrope, the copper signal and the three-bar mark.
 
-   ADJL Capital is a black site: #0A0A0B ground, bone text, one copper
-   signal. That reads the way a fund should read — closed, quiet, serious.
-   A technology practice is selling the opposite posture, so this is the
-   same house on a white ground, and the single copper signal has grown
-   into a three-colour spectrum that the data and AI work is drawn in.
+   EVERY PAIRING BELOW IS MEASURED, NOT PICKED. Ratios are WCAG relative
+   luminance against the four surfaces, in the order
+       ground / ground-2 / panel / panel-2
+   and `npm run check:contrast` re-measures them on the built site in
+   Render, Machine and Source views.
 
-   Two things carry over untouched, because they are what makes this
-   legible as an ADJL company: Manrope, and the copper.
-
-   EVERY COLOUR PAIRING BELOW IS MEASURED, NOT PICKED. The ratios in the
-   comments are computed against the actual grounds these colours are used
-   on, and `npm run check:contrast` re-measures them against the built
-   site. A light site is where contrast quietly fails — mid-tone brand
-   colours look fine on white to a designer and measure 3:1 — so each
-   accent ships in two versions: a bright one for large type and
-   decoration, and a deepened one that is safe for body text.
+   Colour carries meaning here, and the meaning is fixed:
+     copper  people, interfaces, output, our action. The {em}, the primary
+             button, the human-layer plane of the hero figure.
+     teal    data, measurement and the paths it travels. LIVE, crawl paths.
+     violet  models and machine-readable structure. JSON-LD, BUILD,
+             inference steps.
+     amber   unverified, or waiting on a person.
+   A status colour never stands alone: it always comes with a glyph and a
+   word, so nothing on this site is communicated by colour only.
    ===================================================================== */
 
 :root {
-  /* ── Ground ────────────────────────────────────────────────────────
-     Porcelain rather than pure white. #FFFFFF as a page ground makes
-     every raised card need a shadow to separate from it; starting one
-     step down means a card can simply be white and read as lifted. */
-  --paper: #fafafc;
-  --paper-2: #ffffff;
-  --paper-3: #f1f2f6;
-  --paper-4: #e8eaf1;
+  color-scheme: dark;
 
-  /* ── Type ──────────────────────────────────────────────────────────
-     Three tiers, all measured against --paper (L = 0.9571):
+  /* ── Surfaces ─────────────────────────────────────────────────────── */
+  --ground: #0a0c10; /* page */
+  --ground-2: #0e1015; /* alternating band */
+  --panel: #12151b; /* instrument panels, cards */
+  --panel-2: #1a1e26; /* raised, hover, inputs, dialogs */
 
-       --ink    #0E1117   18.1:1   headlines, body
-       --ink-2  #3D4453    9.4:1   secondary copy, card body
-       --ink-3  #616978    5.3:1   labels, eyebrows, captions, meta
+  /* ── Text ─────────────────── ground / ground-2 / panel / panel-2 ──── */
+  --fg: #e8ecf2; /* 16.51 / 16.05 / 15.42 / 14.08  headlines, lead */
+  --fg-2: #aab2bf; /*  9.16 /  8.91 /  8.56 /  7.82  body, card copy */
+  --fg-3: #808999; /*  5.55 /  5.40 /  5.18 /  4.74  labels, captions, readouts, input borders */
+  /* ≥24px numerals, grid coordinates and aria-hidden decoration ONLY. */
+  --fg-faint: #6a7282; /*  4.05 /  3.93 /  3.78 /  3.45 */
 
-     --ink-3 is the tier that decides whether a light site is readable,
-     because it carries every label and caption — the text that is small
-     AND quiet at the same time. 5.3:1 leaves real headroom over the 4.5
-     floor; a lighter grey would look more elegant in a mockup and fail
-     on a phone in daylight, which is where this site is actually read. */
+  /* ── Signal: the brand copper ─────────────────────────────────────
+     On porcelain this copper measured 3.8:1 and could only carry large
+     type. On this ground it's 4.89:1. Small copper text still takes
+     --signal-hi, which clears 4.5 on every surface including panel-2. */
+  --signal: #d9542a; /* 4.89 / 4.76 / 4.57 / 4.18  display {em}, fills, rules, marks */
+  --signal-hi: #ec6e44; /* 6.41 / 6.23 / 5.99 / 5.47  ALL small copper text, links, focus */
+  --on-signal: #0a0c10; /* label on copper: 4.89 on --signal, 6.41 on --signal-hi */
+
+  /* ── Spectrum (semantic) ──────────────────────────────────────────── */
+  --data: #3cc8c0; /* 9.52 / 8.12  teal: data, measurement, LIVE */
+  --data-dim: #0fa3a3; /* 6.33 / 5.40  teal strokes and plots */
+  --model: #a08cff; /* 7.17 / 6.11  violet text: models, structured data, BUILD */
+  --model-dim: #6c4bf5; /* 3.69 / 3.15  violet strokes and fills; graphics only, never text */
+
+  /* ── States: always paired with a glyph and a word ────────────────── */
+  --ok: #4cc38a; /* 8.84 / 7.54 */
+  --warn: #e0a53a; /* 8.96 / 7.64  unaudited, needs review, held */
+  --fail: #f2705e; /* 6.76 / 5.77 */
+
+  /* ── Lines ───────────────────────────────────────────────────────── */
+  --rule: rgba(232, 236, 242, 0.08); /* resting hairline */
+  --rule-2: rgba(232, 236, 242, 0.14); /* panel border, hatching stroke */
+  --rule-3: rgba(232, 236, 242, 0.24); /* active border, registration ticks */
+
+  /* Drafting grid. Worst-case line intersection in Render view composites
+     to #191D23, where --fg-3 still measures 4.80. Machine view raises it to
+     major .09 / minor .04 and no higher (--fg-3 ≥ 4.6 at intersections). */
+  --grid-major: rgba(150, 170, 200, 0.07);
+  --grid-minor: rgba(150, 170, 200, 0.035);
+
+  /* Print only. */
+  --paper: #ffffff;
   --ink: #0e1117;
-  --ink-2: #3d4453;
-  --ink-3: #616978;
+  --ink-link: #c2451c; /* 18.9 / 5.05 */
 
-  /* The decorative numeral tier — the big step numbers and principle indices.
-     It was --paper-4, which measured 1.15:1 and was, in practice, invisible:
-     the numbers are the only thing marking the sequence, so "decorative" was
-     not a defence. #858CA0 is close to the lightest value that still clears
-     3:1 for text this size (3.22:1 on --paper, 3.36:1 on white). Do not
-     lighten it back toward the surface colour. */
-  --ink-faint: #858ca0;
+  /* ── Type ─────────────────────────────────────────────────────────── */
+  --font-sans: 'Manrope', 'Manrope Fallback', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'JetBrains Mono Fallback', ui-monospace, monospace;
 
-  /* ── Signal — copper, from the Capital kit ────────────────────────
-     Capital's --signal is #D9663C on black. On white that same colour
-     measures 3.4:1, so the hue is kept and the value is re-cut for a
-     light ground.
-
-       --signal       #D9542A   3.8:1 on paper   large type, rules, art
-       --signal-deep  #C2451C   4.8:1 on paper   body links, small text
-                                5.0:1 under white — button backgrounds
-
-     The split is not fussiness. --signal at 3.8 is legal for a 40px
-     headline and illegal for a 14px link, and the same token being used
-     for both is exactly how a light site ends up with unreadable links.
-     Anything set below 24px, or any button that puts white on top, takes
-     --signal-deep. */
-  --signal: #d9542a;
-  --signal-deep: #c2451c;
-  --signal-soft: #fceee8;
-
-  /* Copper that has to survive over film, and nowhere else.
-     Emphasis in a hero headline sits on a moving picture, and --signal at
-     3.8:1 against paper measured 2.44–2.93:1 against the actual frames — the
-     veil cannot be closed far enough to fix that without putting the film
-     out entirely. #B33F19 clears 3:1 across every sampled frame of all six
-     clips with room for a re-render. Measured by scripts/check-contrast.mjs,
-     which samples the real pixels behind the real glyphs; do not adjust it
-     by eye. */
-  --signal-film: #b33f19;
-
-  /* ── Spectrum — the new half of the kit ───────────────────────────
-     Teal and violet are what Capital does not have, and they are how the
-     technology arm reads as its own company rather than a recoloured
-     fund. They are assigned, not decorative: teal is data and
-     measurement, violet is inference and models. That mapping holds
-     across the diagrams, the network canvas and the pipeline animation,
-     so a reader learns it without being told.
-
-       --teal        #0FA3A3   3.0:1   art, strokes, canvas only
-       --teal-deep   #0A7070   5.7:1   safe for any text
-       --violet      #6C4BF5   5.1:1   safe for text as-is
-       --viridian    #1F5E4E   7.3:1   carried from Capital, for prose
-
-     Note that teal is the one accent with NO text-safe bright version.
-     #0FA3A3 is 3.0:1 — under the floor for body copy and only barely at
-     the floor for a large heading. It is a stroke colour. Every teal
-     word on this site is --teal-deep. */
-  --teal: #0fa3a3;
-  --teal-deep: #0a7070;
-  --teal-soft: #e3f5f5;
-  --violet: #6c4bf5;
-  --violet-deep: #5333e0;
-  --violet-soft: #eeeaff;
-  --viridian: #1f5e4e;
-
-  /* Semantic */
-  --good: #1f7a5e;
-  --warn: #a86a12;
-  --bad: #b8402f;
-
-  /* ── Lines & surfaces ─────────────────────────────────────────────
-     Hairlines on a light ground come from the ink, not from a grey: a
-     grey line has its own hue and fights the accents sitting beside it.
-     --line is the resting rule, --line-2 is a border that has to be seen
-     (inputs, cards you can click, the current tab). */
-  --line: rgba(14, 17, 23, 0.09);
-  --line-2: rgba(14, 17, 23, 0.16);
-  --line-3: rgba(14, 17, 23, 0.26);
-
-  /* Elevation. Three steps and no more — a light UI degrades into
-     mush when every surface floats at a slightly different height.
-     Tinted toward the ink rather than pure black so shadows read as
-     shade rather than as grime. */
-  --lift-1: 0 1px 2px rgba(14, 17, 23, 0.04), 0 2px 8px rgba(14, 17, 23, 0.04);
-  --lift-2: 0 2px 4px rgba(14, 17, 23, 0.04), 0 12px 32px rgba(14, 17, 23, 0.07);
-  --lift-3: 0 4px 12px rgba(14, 17, 23, 0.06), 0 28px 64px rgba(14, 17, 23, 0.1);
-
-  /* ── Veils ────────────────────────────────────────────────────────
-     Capital scrims its films DOWN with black so bone text survives on
-     top. This site scrims UP with paper so ink text does.
-
-     Same trap, mirrored: every point of alpha here is film the reader
-     never sees, so the wash is spent where the words are and released
-     where they are not. --veil-hero holds the left half, where the
-     headline sits, and lets the right half of the frame play. */
-  /* These numbers are load-bearing in BOTH directions and were arrived at by
-     measurement, not by eye. Weaken the hold and check-contrast fails;
-     strengthen it much further and the film stops being visible at all,
-     which is the only reason it is there.
-
-     The tilt matters more than it looks. At 100deg the gradient axis runs
-     down as well as across, so copy lower in the hero — the second headline
-     line, the body — met the falloff EARLIER than the first line did and sat
-     on open film. 96deg is nearly upright, and the hold now runs to 56%
-     rather than 34%, which is where the copy column actually ends. */
-  --veil-hero: linear-gradient(
-      96deg,
-      rgba(250, 250, 252, 0.985) 0%,
-      rgba(250, 250, 252, 0.975) 40%,
-      rgba(250, 250, 252, 0.93) 56%,
-      rgba(250, 250, 252, 0.66) 70%,
-      rgba(250, 250, 252, 0.28) 84%,
-      rgba(250, 250, 252, 0) 100%
-    ),
-    linear-gradient(
-      180deg,
-      rgba(250, 250, 252, 0.5) 0%,
-      rgba(250, 250, 252, 0) 26%,
-      rgba(250, 250, 252, 0) 70%,
-      rgba(250, 250, 252, 0.55) 100%
-    );
-
-  /* Film shown as an object rather than as a ground — inside a framed
-     panel with no text on it — needs only enough wash to keep it from
-     vibrating against the page. */
-  --veil-plate: linear-gradient(
-    180deg,
-    rgba(250, 250, 252, 0.16) 0%,
-    rgba(250, 250, 252, 0) 30%,
-    rgba(250, 250, 252, 0) 70%,
-    rgba(250, 250, 252, 0.3) 100%
-  );
-
-  /* ── Type system ──────────────────────────────────────────────────
-     One family, same as Capital. Emphasis is weight and colour, never
-     italic — a rule inherited deliberately, because the italic in a
-     geometric sans is a slant rather than a cut and it shows. */
-  --sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Fira Code', Menlo, Consolas, monospace;
-
-  --w-display: 600;
-  --w-head: 600;
-  --w-body: 400;
-  --w-label: 600;
-  --tr-display: -0.035em;
-  --tr-head: -0.025em;
-  --tr-label: 0.16em;
-
-  /* Scale. Slightly tighter at the top than Capital: a black page can
-     carry a 7rem headline because the ground absorbs it, and the same
-     size on white shouts. */
-  --t-display: clamp(2.7rem, 7vw, 6rem);
-  --t-h2: clamp(2rem, 4.6vw, 3.9rem);
-  --t-h3: clamp(1.3rem, 2.3vw, 1.85rem);
-  --t-body: clamp(1rem, 1.05vw, 1.12rem);
-  --t-small: 0.86rem;
-
-  /* 12px floor, same reasoning as Capital: this token carries every
-     eyebrow, stat label and caption, and uppercase at 0.16em tracking
-     reads a size smaller than it is. Do not nudge it down. */
+  --t-display: clamp(2.75rem, 1.4rem + 5.6vw, 6.5rem);
+  --t-h2: clamp(2rem, 1.1rem + 3.4vw, 3.75rem);
+  --t-h3: clamp(1.25rem, 1rem + 0.9vw, 1.6rem);
+  --t-lead: clamp(1.125rem, 1rem + 0.4vw, 1.3rem);
+  --t-body: 1.0625rem;
+  --t-small: 0.9375rem;
+  /* 12px floor: this carries every eyebrow, chip and label, and uppercase
+     mono at +.1em reads a size smaller than it is. Don't nudge it down. */
   --t-label: 0.75rem;
+  --t-readout: 0.8125rem;
+  --t-code: 0.875rem;
+  --t-numeral: clamp(2.5rem, 4vw, 4rem);
 
-  /* Rhythm */
-  --gut: clamp(1.25rem, 4vw, 3.5rem);
-  --sec-y: clamp(5rem, 11vh, 9rem);
-  --maxw: 1280px;
-  --measure: 60ch;
-  --radius: 14px;
-  --radius-lg: 22px;
+  /* ── Space (4px base) ─────────────────────────────────────────────── */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+  --s-9: 96px;
+  --s-10: 128px;
+  --gut: clamp(16px, 4vw, 40px);
+  --col-gap: clamp(16px, 2vw, 24px);
+  --sec: clamp(72px, 9vw, 136px);
+  --max: 1320px;
+  --measure: 68ch;
 
-  /* Motion */
-  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  /* ── Radii ────────────────────────────────────────────────────────── */
+  --r-1: 2px; /* spans, chips, timeline bars */
+  --r-2: 6px; /* panels, buttons, inputs, dialogs */
+  --r-pill: 999px; /* only the view switch track */
+
+  /* ── Elevation ────────────────────────────────────────────────────
+     e0 is the ground. e1 a panel, e2 raised, e3 a dialog. No other
+     shadows, no blur, no backdrop-filter anywhere. */
+  --e1-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --e3-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+
+  /* ── Motion ───────────────────────────────────────────────────────
+     Lines draw, text types or resolves, things snap. No springs. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
-  --dur: 0.8s;
-}
+  --d-1: 120ms;
+  --d-2: 240ms;
+  --d-3: 480ms;
+  --d-4: 900ms;
 
-/* Phone rhythm — same argument Capital reached: --sec-y applied top and
-   bottom costs ~200px of empty space per section, and this site has
-   fourteen of them on the home page. Generous on a wide screen is
-   scrolling through nothing on a phone. */
-@media (max-width: 760px) {
-  :root {
-    --sec-y: clamp(2.9rem, 7vh, 4.75rem);
-  }
-}
-
-/* Phone veils. The hero veil is a diagonal holding the left half,
-   because desktop copy occupies the left half. Phone copy spans the
-   full width and runs straight off the end of that protection, so it
-   collapses to a full-width wash. Any veil added above needs a line
-   here — Capital shipped a bug that was exactly this omission. */
-@media (max-width: 900px) {
-  :root {
-    --veil-hero: linear-gradient(
-      180deg,
-      rgba(250, 250, 252, 0.86) 0%,
-      rgba(250, 250, 252, 0.95) 30%,
-      rgba(250, 250, 252, 0.96) 62%,
-      rgba(250, 250, 252, 0.9) 100%
-    );
-  }
+  /* Fixed status bar height (≥1024px), reserved on body. */
+  --status-h: 32px;
+  --nav-h: 64px;
 }

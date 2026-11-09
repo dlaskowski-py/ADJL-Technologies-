@@ -1,5 +1,2 @@
-import { renderCasePage } from '../src/sections/case';
-import { content } from '../src/content-case-ai';
-
-export const render = () => renderCasePage(content, '/work/ai-implementation/', 'mesh');
-export const meta = content.meta;
+/* Prerender entry for /work/ai-implementation/: bundled and run in Node by scripts/prerender.mjs. */
+export * from '../src/pages/case-ai';

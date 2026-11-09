@@ -1,0 +1,14 @@
+/* One file per instrument, owned by the module that renders it, so the
+   workstreams building them never edit the same stylesheet. Vite inlines
+   these @imports into the single bundled stylesheet. */
+@import './lattice.css';
+@import './machine.css';
+@import './telemetry.css';
+@import './views.css';
+@import './headers.css';
+@import './ask.css';
+@import './pipeline.css';
+@import './replay.css';
+@import './leaders.css';
+@import './palette.css';
+@import './transitions.css';

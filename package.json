@@ -5,22 +5,22 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build && node scripts/prerender.mjs && node scripts/gen-sitemap.mjs && node scripts/gen-404.mjs && node scripts/gen-wellknown.mjs && node scripts/gen-llms.mjs && node scripts/check-css.mjs && node scripts/check-links.mjs && node scripts/check-claims.mjs && node scripts/check-contact.mjs && node scripts/check-media.mjs && node scripts/check-motion.mjs && node scripts/check-markers.mjs && node scripts/check-usage.mjs && node scripts/check-voice.mjs && node scripts/check-seo.mjs",
+    "build": "tsc --noEmit && vite build && node scripts/prerender.mjs && node scripts/gen-machine.mjs && node scripts/gen-sitemap.mjs && node scripts/gen-404.mjs && node scripts/gen-wellknown.mjs && node scripts/gen-llms.mjs && node scripts/stamp-sizes.mjs && node scripts/check-css.mjs && node scripts/check-links.mjs && node scripts/check-claims.mjs && node scripts/check-contact.mjs && node scripts/check-motion.mjs && node scripts/check-markers.mjs && node scripts/check-usage.mjs && node scripts/check-voice.mjs && node scripts/check-seo.mjs && node scripts/check-provenance.mjs && node scripts/check-budget.mjs && node scripts/gen-report.mjs",
     "preview": "vite preview --port 4173",
     "verify": "node scripts/verify.mjs",
     "check:css": "node scripts/check-css.mjs",
     "check:links": "node scripts/check-links.mjs",
     "check:claims": "node scripts/check-claims.mjs",
     "check:contact": "node scripts/check-contact.mjs",
-    "check:media": "node scripts/check-media.mjs",
     "check:motion": "node scripts/check-motion.mjs",
-    "media": "node scripts/encode-media.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
     "check:markers": "node scripts/check-markers.mjs",
     "check:usage": "node scripts/check-usage.mjs",
     "check:voice": "node scripts/check-voice.mjs",
     "og": "node scripts/gen-og.mjs",
-    "check:seo": "node scripts/check-seo.mjs"
+    "check:seo": "node scripts/check-seo.mjs",
+    "check:provenance": "node scripts/check-provenance.mjs",
+    "check:budget": "node scripts/check-budget.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.24.0",

@@ -8,6 +8,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { PAGES } from './pages.mjs';
+import { pass } from './lib/report.mjs';
 
 const EXPECTED = 'daniel@adjlcapital.com';
 /** Addresses that would mean the move was done halfway. */
@@ -38,4 +39,4 @@ for (const page of PAGES) {
 }
 
 if (bad) process.exit(1);
-console.log(`check-contact: ${EXPECTED} on all ${PAGES.length} pages, ${seen} occurrences`);
+pass('check-contact', `${EXPECTED} on all ${PAGES.length} pages, linked, ${seen} occurrences`);

@@ -1,12 +1,28 @@
-/** /approach/ — the principles, the engagement shapes, and who owns what. */
+/** /approach/ — the six steps in long form, the principles, the engagement
+ *  shapes, and who owns what when it ends. */
 
-import { backdrop, esc, eyebrow, headline, rich } from './html';
-import { renderCta, renderFooter } from './bottom';
+import { esc, eyebrow, headline, rail, rich, sectionOpen } from './html';
+import { renderContact, renderFooter } from './bottom';
 import { renderNav } from './nav';
+import { pageHero } from './kit';
 
 export type ApproachContent = {
   meta: { title: string; description: string; ogTitle?: string; ogDescription?: string };
-  hero: { eyebrow: string; headline: string[]; body: string; back: { label: string; href: string } };
+  hero: {
+    eyebrow: string;
+    headline: string[];
+    body: string;
+    back?: { label: string; href: string };
+    primary?: { label: string; href: string };
+    secondary?: { label: string; href: string };
+  };
+  /** The home page's six build steps, static, as long form. */
+  steps?: {
+    eyebrow: string;
+    headline: string[];
+    intro?: string;
+    items: { num: string; title: string; body: string }[];
+  };
   principles: {
     eyebrow: string;
     headline: string[];
@@ -20,50 +36,42 @@ export type ApproachContent = {
     items: { tag: string; title: string; body: string; points: string[]; best: string }[];
   };
   ownership: { eyebrow: string; headline: string[]; body: string; points: string[] };
-  cta: {
+  /** Kept for the approach page's own contact copy. */
+  cta?: {
     eyebrow: string;
     headline: string[];
     body: string;
     button: { label: string; href: string };
     email: string;
   };
+  /** Label for the engagement cards' "suits" line. */
+  bestLabel?: string;
 };
 
-export function renderApproachPage(c: ApproachContent): { navHtml: string; pageHtml: string } {
-  const h = c.hero;
-  const p = c.principles;
-  const e = c.engage;
-  const o = c.ownership;
+const FILE = 'content-approach.ts';
 
-  const hero = `<section class="chero is-clear" id="top" data-scrub>
-    ${backdrop('weave', '', true)}
-    <div class="wrap chero-inner">
-      <a class="backlink" href="${esc(h.back.href)}"><span class="arw">&larr;</span><span>${esc(
-        h.back.label,
-      )}</span></a>
-      <p class="eyebrow" data-reveal>${esc(h.eyebrow)}</p>
-      <h1 class="display" data-reveal="mask">${h.headline
-        .map((l, i) => `<span style="--i:${i}"><span>${rich(l)}</span></span>`)
-        .join('')}</h1>
-      <p class="chero-body" data-reveal style="--i:3">${rich(h.body)}</p>
-    </div>
-  </section>`;
-
-  /* The principles are numbered and full-width rather than gridded into
-     cards. Each one is an argument several sentences long, and three of
-     those side by side in equal columns is a wall nobody reads. */
-  const principles = `<section class="principles sec-line" id="principles">
+function numbered(
+  id: string,
+  n: number,
+  src: string,
+  band: boolean,
+  b: { eyebrow: string; headline: string[]; intro?: string; items: { num: string; title: string; body: string }[] },
+): string {
+  return `${sectionOpen({ id, src, renderer: 'sections/approach.ts#numbered', band })}
     <div class="wrap">
-      ${eyebrow(p.eyebrow)}
-      ${headline(p.headline)}
-      <p class="lede" data-reveal style="--i:1">${rich(p.intro)}</p>
-      <ol class="prin-list" data-stagger>
-        ${p.items
+      ${rail(n, id)}
+      <div class="sec-copy">
+        ${eyebrow(b.eyebrow)}
+        ${headline(b.headline)}
+        ${b.intro ? `<p class="lead sec-intro" data-reveal>${rich(b.intro)}</p>` : ''}
+      </div>
+      <ol class="prin-list">
+        ${b.items
           .map(
-            (it) => `<li class="prin" data-reveal>
-          <span class="prin-num num">${esc(it.num)}</span>
+            (it, i) => `<li class="prin" data-reveal style="--i:${i % 3}">
+          <span class="numeral" aria-hidden="true">${esc(it.num)}</span>
           <div class="prin-body">
-            <h3 class="prin-title h3">${esc(it.title)}</h3>
+            <h3 class="h3">${esc(it.title)}</h3>
             <p>${rich(it.body)}</p>
           </div>
         </li>`,
@@ -72,49 +80,72 @@ export function renderApproachPage(c: ApproachContent): { navHtml: string; pageH
       </ol>
     </div>
   </section>`;
+}
 
-  const engage = `<section class="engage sec-line sec-tint" id="engage">
+export function renderApproachPage(c: ApproachContent): { navHtml: string; pageHtml: string } {
+  const h = c.hero;
+  const e = c.engage;
+  const o = c.ownership;
+  let n = 1;
+  const parts: string[] = [
+    pageHero({
+      route: '/approach/',
+      hero: {
+        eyebrow: h.eyebrow,
+        headline: h.headline,
+        lead: h.body,
+        primary: h.primary,
+        secondary: h.secondary ?? { label: 'Talk to Daniel', href: '#contact' },
+      },
+      src: `${FILE}#content.hero`,
+      renderer: 'sections/approach.ts#renderApproachPage',
+      figure: true,
+    }),
+  ];
+
+  if (c.steps) parts.push(numbered('steps', ++n, `${FILE}#content.steps`, true, c.steps));
+  parts.push(numbered('principles', ++n, `${FILE}#content.principles`, n % 2 === 0, c.principles));
+
+  parts.push(`${sectionOpen({ id: 'engage', src: `${FILE}#content.engage`, renderer: 'sections/approach.ts#renderApproachPage', band: ++n % 2 === 0 })}
     <div class="wrap">
-      ${eyebrow(e.eyebrow)}
-      ${headline(e.headline)}
-      <p class="lede" data-reveal style="--i:1">${rich(e.intro)}</p>
-      <div class="engage-grid" data-stagger>
+      ${rail(n, 'engage')}
+      <div class="sec-copy">
+        ${eyebrow(e.eyebrow)}
+        ${headline(e.headline)}
+        <p class="lead sec-intro" data-reveal>${rich(e.intro)}</p>
+      </div>
+      <div class="engage-grid">
         ${e.items
           .map(
-            (it) => `<article class="engage-card" data-reveal data-spotlight>
-          <span class="engage-tag label">${esc(it.tag)}</span>
-          <h3 class="engage-title h3">${esc(it.title)}</h3>
-          <p class="engage-body">${rich(it.body)}</p>
-          <ul class="engage-points">
-            ${it.points.map((pt) => `<li>${rich(pt)}</li>`).join('')}
-          </ul>
-          <p class="engage-best"><span class="label">Suits</span>${esc(it.best)}</p>
+            (it, i) => `<article class="engage-card panel bracket" data-reveal style="--i:${i}">
+          <span class="label">${esc(it.tag)}</span>
+          <h3 class="h3">${esc(it.title)}</h3>
+          <p>${rich(it.body)}</p>
+          <ul class="bullets">${it.points.map((pt) => `<li>${rich(pt)}</li>`).join('')}</ul>
+          <p class="engage-best"><span class="label">${esc(c.bestLabel ?? 'Suits')}</span> ${esc(it.best)}</p>
         </article>`,
           )
           .join('')}
       </div>
     </div>
-  </section>`;
+  </section>`);
 
-  const ownership = `<section class="ownership sec-line" id="ownership">
-    <div class="wrap wrap--narrow">
-      ${eyebrow(o.eyebrow)}
-      ${headline(o.headline)}
-      <p class="lede" data-reveal style="--i:1">${rich(o.body)}</p>
-      <ul class="own-list" data-stagger>
-        ${o.points
-          .map(
-            (pt) => `<li class="own" data-reveal>
-          <span class="check" aria-hidden="true"></span><span>${rich(pt)}</span>
-        </li>`,
-          )
-          .join('')}
-      </ul>
+  parts.push(`${sectionOpen({ id: 'ownership', src: `${FILE}#content.ownership`, renderer: 'sections/approach.ts#renderApproachPage', band: ++n % 2 === 0 })}
+    <div class="wrap">
+      ${rail(n, 'ownership')}
+      <div class="split split--even">
+        <div class="sec-copy">
+          ${eyebrow(o.eyebrow)}
+          ${headline(o.headline)}
+          <div class="prose sec-body" data-reveal><p>${rich(o.body)}</p></div>
+        </div>
+        <ul class="checks own-list" data-reveal>
+          ${o.points.map((pt) => `<li><span class="check" aria-hidden="true">✓</span><span>${rich(pt)}</span></li>`).join('')}
+        </ul>
+      </div>
     </div>
-  </section>`;
+  </section>`);
 
-  return {
-    navHtml: renderNav('/approach/'),
-    pageHtml: [hero, principles, engage, ownership, renderCta(c.cta), renderFooter()].join(''),
-  };
+  parts.push(renderContact(++n), renderFooter());
+  return { navHtml: renderNav('/approach/'), pageHtml: parts.join('') };
 }

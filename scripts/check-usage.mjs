@@ -13,8 +13,10 @@
  * attempt at a dictionary, and a word only belongs here when it has actually
  * appeared in the copy.
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 import { PAGES } from './pages.mjs';
+import { pass } from './lib/report.mjs';
 
 const SPELLINGS = [
   ['labelled', 'labeled'], ['labelling', 'labeling'],
@@ -118,10 +120,35 @@ for (const page of PAGES) {
   }
 }
 
+/* The machine-readable copies: llms.txt, llms-full.txt and every markdown
+   twin. They're generated from the pages, and they're the version an
+   answer engine quotes, so the house style applies to them too. */
+const surfaces = [];
+const collect = (dir) => {
+  if (!existsSync(dir)) return;
+  for (const e of readdirSync(dir)) {
+    const p = join(dir, e);
+    if (statSync(p).isDirectory()) collect(p);
+    else if (p.endsWith('.md') || /llms(-full)?\.txt$/.test(p)) surfaces.push(p);
+  }
+};
+collect('dist');
+for (const f of surfaces) {
+  const text = readFileSync(f, 'utf8');
+  for (const [wrong, right] of [...SPELLINGS, ...NAMES]) {
+    const hits = text.match(new RegExp(`\\b${wrong}\\b`, NAMES.some(([w]) => w === wrong) ? 'g' : 'gi'));
+    if (hits) {
+      console.error(`check-usage: ${f} says "${hits[0]}" ${hits.length} time(s); use "${right}"`);
+      bad += hits.length;
+    }
+  }
+}
+
 if (bad) {
   console.error(`\ncheck-usage: ${bad} problem(s).`);
   process.exit(1);
 }
-console.log(
-  `check-usage: ${PAGES.length} pages, US English throughout, name consistent, meta descriptions in range`,
+pass(
+  'check-usage',
+  `${PAGES.length} pages and ${surfaces.length} markdown files, US English throughout, name consistent, meta descriptions unique and in range`,
 );

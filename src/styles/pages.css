@@ -1,0 +1,19 @@
+/* ADJL Technology — page-specific adjustments. Kept small on purpose:
+   pages are assembled from the same sections, and a rule here means one
+   page needs something the kit doesn't give it. */
+
+/* Home: the practices sit directly under the hero, so the hero's own
+   bottom padding is enough separation. */
+#top + #practices {
+  border-top: 1px solid var(--rule);
+}
+
+/* /work/: the filter sits on the band, above the grid. */
+#systems .filter {
+  margin-bottom: 0;
+}
+
+/* The approach page's long-form steps read as a numbered document. */
+#steps .prin-list {
+  margin-top: var(--s-6);
+}

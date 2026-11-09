@@ -1,11 +1,16 @@
 /**
- * ADJL Technology — the legal pages.
+ * ADJL Technology: the legal pages.
  *
- * These are short because the site is genuinely simple, and that is worth
- * stating rather than padding around. It is static HTML on a CDN. There is
- * no form, no login, no analytics script, no advertising pixel and no
- * cookie — the only way to contact the firm is an email address, so the
- * only personal data involved is the message you choose to send.
+ * These are short because the site is genuinely simple, and that's worth
+ * stating instead of padding around. It's static HTML on a CDN. There's no
+ * form, no login, no analytics script, no advertising pixel and no cookie.
+ * The only way to contact the firm is an email address, so the only
+ * personal data involved is the message you choose to send.
+ *
+ * Three things the site does in the browser are described here because
+ * they ship with this page: the Pause motion preference (local storage),
+ * the same-origin measurement fetches, and Ask This Site, which never sends
+ * the question anywhere. If any of those changes, this page changes with it.
  *
  * A boilerplate policy listing cookie categories and third-party processors
  * this site does not have would be longer, more professional-looking, and
@@ -17,20 +22,23 @@
 import type { LegalDoc } from './sections/legal';
 import { CONTACT } from './content';
 
-const UPDATED = 'September 2026';
+const UPDATED = 'November 2026';
+const LABELS = { updated: 'Last updated', toc: 'On this page' };
 
 export const privacy: LegalDoc = {
   meta: {
-    title: 'Privacy — ADJL Technology',
+    title: 'Privacy | ADJL Technology',
     description:
       'What this site collects, which is almost nothing. No analytics, no cookies, no tracking. The only personal data involved is an email you choose to send.',
-    ogTitle: 'Privacy — ADJL Technology',
-    ogDescription: 'No analytics, no cookies, no tracking. What happens to an email you send.',
+    ogTitle: 'Privacy',
+    ogDescription:
+      'This site doesn’t track you. There’s no analytics script, no advertising pixel and no cookie set by us, and no form to fill in.',
   },
   route: '/legal/privacy/',
   eyebrow: 'Legal',
   title: 'Privacy',
   updated: UPDATED,
+  labels: LABELS,
   intro:
     'This site doesn’t track you. There’s no analytics script, no advertising pixel and no cookie set by us, and no form to fill in. Unless you email us, we learn nothing about you at all.',
   sections: [
@@ -39,7 +47,28 @@ export const privacy: LegalDoc = {
       heading: 'What this site collects',
       paragraphs: [
         'Nothing, through the site itself. These pages are static files served from a content delivery network. No script here reads or writes a cookie. No analytics or session-recording service is loaded, and no third-party embed appears on any page.',
-        'Your browser may keep the usual local cache of images, fonts and video so pages load faster on a second visit. That cache lives on your device. Your browser controls it, and we can’t read it.',
+        'Your browser may keep the usual local cache of images, fonts and scripts so pages load faster on a second visit. That cache lives on your device. Your browser controls it, and we can’t read it.',
+      ],
+    },
+    {
+      id: 'motion',
+      heading: 'Motion preference',
+      paragraphs: [
+        'If you press Pause motion, your browser remembers the choice in its own local storage so the next page stays still. It never leaves your device, and clearing your site data removes it.',
+      ],
+    },
+    {
+      id: 'measure',
+      heading: 'Measurements on the page',
+      paragraphs: [
+        'Some sections measure the page you’re reading. They use your browser’s own performance APIs, and they fetch this site’s files again from this site and nowhere else. The results are shown to you and aren’t sent anywhere. Those fetches are ordinary requests, so they appear in the host’s standard logs like any page view.',
+      ],
+    },
+    {
+      id: 'ask',
+      heading: 'Ask This Site',
+      paragraphs: [
+        'The question you type into Ask This Site is matched against an index of this site’s own text, inside your browser. It isn’t sent to us or to anyone else.',
       ],
     },
     {
@@ -53,7 +82,7 @@ export const privacy: LegalDoc = {
       id: 'email',
       heading: 'If you email us',
       paragraphs: [
-        `The only way to contact the firm from this site is the address ${CONTACT}, which opens your own mail client. We receive whatever you send. That’s your address, your name if you sign it, and the content of your message.`,
+        `The only way to contact the firm from this site is the address ${CONTACT}, which opens your own mail client. We receive whatever you send, which means your address, your name if you sign it, and the content of your message.`,
         'We use that message to reply to you, and to do the work if we end up working together. It isn’t added to a mailing list, fed to any sequence or drip campaign, or sold, rented or shared with anyone. If you’d like it deleted, ask, and it will be.',
       ],
     },
@@ -61,7 +90,7 @@ export const privacy: LegalDoc = {
       id: 'clients',
       heading: 'Client data during an engagement',
       paragraphs: [
-        'Work with a client is a separate matter from this website, and it is governed by the written agreement for that engagement rather than by this page.',
+        'Work with a client is a separate matter from this website, and it’s governed by the written agreement for that engagement, not by this page.',
         'Those agreements carry a standing position. Client data stays in the client’s own environment wherever that’s technically possible. Where some part of it has to leave, say to a model provider’s API, the client is told before anything is built exactly what leaves, where it goes, and how long it’s retained there. That disclosure happens during scoping, not in an appendix afterward.',
       ],
     },
@@ -85,16 +114,18 @@ export const privacy: LegalDoc = {
 
 export const terms: LegalDoc = {
   meta: {
-    title: 'Terms — ADJL Technology',
+    title: 'Terms | ADJL Technology',
     description:
       'The terms for using this website. What the content is, what it isn’t, and what governs an actual engagement.',
-    ogTitle: 'Terms — ADJL Technology',
-    ogDescription: 'Terms of use for the ADJL Technology website.',
+    ogTitle: 'Terms of use',
+    ogDescription:
+      'These terms cover this website and nothing else. Actual work is governed by a written agreement signed for that engagement.',
   },
   route: '/legal/terms/',
   eyebrow: 'Legal',
   title: 'Terms of use',
   updated: UPDATED,
+  labels: LABELS,
   intro:
     'These terms cover this website and nothing else. Actual work is governed by a written agreement signed for that engagement. Where the two ever disagree, the agreement wins.',
   sections: [
@@ -102,13 +133,13 @@ export const terms: LegalDoc = {
       id: 'site',
       heading: 'What this site is',
       paragraphs: [
-        'A description of a consulting and engineering practice, published so that someone deciding whether to make contact can find out what the firm does and how it works. It’s marketing material, written to be accurate. That still isn’t a contract.',
+        'A description of an AI engineering, SEO and software studio, published so that someone deciding whether to make contact can find out what the firm does and how it works. It’s marketing material, written to be accurate. That still isn’t a contract.',
         'Descriptions of systems on this site are general by design. Where a system is described, its parameters, thresholds and configuration are deliberately omitted. That restraint is carried from ADJL Capital. It isn’t an oversight.',
       ],
     },
     {
       id: 'not',
-      heading: 'What it is not',
+      heading: 'What it isn’t',
       paragraphs: ['Specifically, nothing on this site is any of the following.'],
       list: [
         'An offer to sell, or a solicitation of an offer to buy, any security or interest in any fund. ADJL Technology is an engineering practice and doesn’t offer securities.',
@@ -130,7 +161,7 @@ export const terms: LegalDoc = {
       id: 'ip',
       heading: 'Intellectual property',
       paragraphs: [
-        'The text, design, code and generated films on this site belong to ADJL Technology. You’re welcome to link to any page, quote it with attribution, and print it for your own use.',
+        'The text, design, code and diagrams on this site belong to ADJL Technology. You’re welcome to link to any page, quote it with attribution, and print it for your own use.',
         'Work produced during a client engagement is a different question, and it’s answered the other way around. The client owns the code, the prompts, the evaluation set and the documentation. That’s set out in the engagement agreement, and the Approach page describes it in plain terms.',
       ],
     },
@@ -138,7 +169,7 @@ export const terms: LegalDoc = {
       id: 'liability',
       heading: 'Liability',
       paragraphs: [
-        'To the extent the law allows, ADJL Technology is not liable for loss arising from use of this website or reliance on its content. Liability arising from actual work is dealt with in the agreement covering that work, where it belongs.',
+        'To the extent the law allows, ADJL Technology isn’t liable for loss arising from use of this website or reliance on its content. Liability arising from actual work is dealt with in the agreement covering that work, where it belongs.',
         'Nothing here limits liability for fraud, or for anything else that can’t lawfully be limited.',
       ],
     },

@@ -1,6 +1,6 @@
 /**
  * Everything a crawler or a share card reads, built from the page's own
- * content module.
+ * content module and its entry in pages.mjs.
  *
  * Three things were wrong before this file existed, and the first is the one
  * that actually cost traffic:
@@ -16,45 +16,146 @@
  *   There was no structured data at all. A search engine had to infer from
  *   prose that this is a company, who runs it, and what it sells.
  *
+ * The graph is one set of stable @ids across the whole site. The company,
+ * its founder, the site, each page and what each page is about all keep
+ * the same @id everywhere they appear, so a machine reading two pages knows
+ * they describe one company. check-seo resolves every reference: each
+ * `{"@id": …}` must point at a node defined on the page it names, and every
+ * `data-ld` in the markup must point at a node in its own page's graph.
+ *
  * On FAQ markup, honestly: Google restricted FAQ rich results in 2023 to
- * government and health sites, so the FAQPage block below will almost
- * certainly NOT produce the expandable questions in a Google result. It is
- * still correct, still parsed by other engines, and increasingly what answer
- * engines read to summarise a company. It is here for that, not for a
- * snippet we are not going to get.
+ * government and health sites, so the FAQPage type below will almost
+ * certainly NOT produce the expandable questions in a Google result. It's
+ * still correct, still parsed by other engines, and it's what answer engines
+ * read when they summarize a company. It's here for that, not for a snippet
+ * we aren't going to get.
  */
+import { execFileSync } from 'node:child_process';
+import { slugOf } from './pages.mjs';
+
+/** Re-exported from pages.mjs: route → share-card, source-sheet and twin
+ *  slug. gen-og and check-seo import it from here. */
+export { slugOf };
 
 const esc = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /** JSON-LD is script content, not markup: the only thing that can break out
- *  of it is a literal </script>, so that is the only thing escaped. */
+ *  of it is a literal </script>, so that's the only thing escaped. */
 const jsonld = (obj) =>
   `<script type="application/ld+json">${JSON.stringify(obj).replace(/</g, '\\u003c')}</script>`;
 
 const abs = (origin, path) => `${origin}${path}`;
 
-/** Route to share-card filename. Exported because scripts/gen-og.mjs writes
- *  the files this names, and a mismatch between the two is a broken preview
- *  that nothing on the page would reveal. */
-export const slugOf = (route) =>
-  route === '/' ? 'home' : route.replace(/^\/|\/$/g, '').replace(/\//g, '-');
+/** The markdown twin of a route, written by gen-llms.mjs. Home is /index.md. */
+export const twinOf = (route) => `${route}index.md`;
 
-export function buildHead({ origin, page, pages, meta, faq }) {
+/** A page's <title> without the firm suffix, for list entries. */
+export const shortTitle = (title) => String(title).replace(/\s*\|\s*ADJL Technology\s*$/, '').trim();
+
+/** This page's line in /llms.txt. Exported so Machine View's "Answer
+ *  engines" reader can quote the exact line gen-llms writes. */
+export const llmsLine = ({ origin, route, title, description }) =>
+  `- [${shortTitle(title)}](${origin}${route}): ${description}`;
+
+/** Resolve an `article.about` entry to an absolute @id. '#frag' is relative
+ *  to the page; '/path#frag' is relative to the origin. */
+export const resolveRef = (origin, route, ref) =>
+  ref.startsWith('#') ? `${origin}${route}${ref}` : ref.startsWith('/') ? `${origin}${ref}` : ref;
+
+/* ── dateModified ─────────────────────────────────────────────────────
+   The last commit that touched any of the page's content modules. Falls
+   back to the HEAD commit's date (a checkout with no history for the file,
+   such as one not yet committed), then to the build date (no git at all).
+   The same value is the page's TechArticle dateModified and its sitemap
+   <lastmod>, so the two can't disagree. */
+
+const git = (args) => {
+  try {
+    return execFileSync('git', args, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch {
+    return '';
+  }
+};
+
+const BUILD_TIME = new Date().toISOString().replace(/\.\d{3}Z$/, '+00:00');
+let headDate;
+const modified = new Map();
+
+/** ISO 8601 (with offset) of the last change to a page's content. */
+export function dateModifiedOf(page) {
+  const key = (page.content ?? []).join('\n');
+  if (modified.has(key)) return modified.get(key);
+  let date = page.content?.length ? git(['log', '-1', '--format=%cI', '--', ...page.content]) : '';
+  if (!date) {
+    headDate ??= git(['log', '-1', '--format=%cI']);
+    date = headDate || BUILD_TIME;
+  }
+  modified.set(key, date);
+  return date;
+}
+
+/* ── The firm ─────────────────────────────────────────────────────── */
+
+const ORG_DESCRIPTION =
+  'An AI engineering, technical SEO and software studio. Builds AI agents and automation, websites and native apps, and makes them readable to search engines and AI answer engines.';
+
+const KNOWS_ABOUT = [
+  'AI implementation',
+  'AI agents',
+  'Retrieval-augmented generation',
+  'LLM evaluation',
+  'Document extraction',
+  'Technical SEO',
+  'Structured data',
+  'AI search visibility',
+  'Core Web Vitals',
+  'Web performance',
+  'React Native',
+  'Expo',
+  'Edge functions',
+  'Custom software development',
+  'Real estate underwriting automation',
+  'Property data and public records',
+  'Trading infrastructure',
+  'Market data engineering',
+  'Order execution systems',
+  'Backtesting',
+];
+
+/**
+ * The <head> additions for one page: canonical, the markdown twin, share
+ * tags and the JSON-LD graph.
+ *
+ *   origin  ORIGIN from pages.mjs
+ *   page    this page's entry in PAGES
+ *   pages   all of PAGES (breadcrumbs, collections, cross-page @ids)
+ *   meta    the page's content `meta`
+ *   faq     the page's FAQ ({ items: [{q, a}] }), when page.faq
+ *   h1      the page's h1 as plain text, for TechArticle.headline. The
+ *           prerender passes it; without it, meta.ogTitle stands in.
+ */
+export function buildHead({ origin, page, pages, meta, faq, h1 }) {
   const url = abs(origin, page.route);
   const orgId = `${origin}/#organization`;
   const siteId = `${origin}/#website`;
+  const personId = `${origin}/#daniel`;
   const pageId = `${url}#webpage`;
+  const serviceId = `${url}#service`;
+  const articleId = `${url}#article`;
+  const listId = `${url}#itemlist`;
+  const appId = `${url}#app`;
   const image = abs(origin, `/og/${slugOf(page.route)}.jpg`);
+  const dateModified = dateModifiedOf(page);
+  const servicePages = pages.filter((p) => p.kind === 'service');
 
-  /* ── Meta tags ──────────────────────────────────────────────────── */
+  /* ── Tags ───────────────────────────────────────────────────────── */
   const tags = [
-    /* The LCP element on every page is its hero poster, and the shell cannot
-       name it because the shell is shared. pages.mjs already knows which
-       clip each page uses, so the preload is emitted here alongside the
-       canonical and can never point at another page's film. */
-    `<link rel="preload" as="image" href="/media/${page.film}.jpg" fetchpriority="high" />`,
     `<link rel="canonical" href="${url}" />`,
+    /* The same page as markdown, for answer engines and anything else that
+       would rather not parse our markup. gen-llms writes it; check-seo fails
+       if this points at a file that wasn't written. */
+    `<link rel="alternate" type="text/markdown" href="${twinOf(page.route)}" title="${esc(shortTitle(meta.title))} (markdown)" />`,
     `<meta property="og:url" content="${url}" />`,
     `<meta property="og:site_name" content="ADJL Technology" />`,
     `<meta property="og:locale" content="en_US" />`,
@@ -77,11 +178,10 @@ export function buildHead({ origin, page, pages, meta, faq }) {
     alternateName: 'ADJL Tech',
     url: `${origin}/`,
     email: 'daniel@adjlcapital.com',
-    description:
-      'An AI consulting and software engineering practice. Finds where AI belongs in a business that already runs, builds it, and hands over the code.',
+    description: ORG_DESCRIPTION,
     /* A raster logo on a plain ground. Google's Organization logo wants
        real pixel dimensions, and the favicon is a 32-unit SVG with no
-       intrinsic size — technically a URL, practically unusable. */
+       intrinsic size: technically a URL, practically unusable. */
     logo: {
       '@type': 'ImageObject',
       url: abs(origin, '/og/logo-512.png'),
@@ -89,27 +189,28 @@ export function buildHead({ origin, page, pages, meta, faq }) {
       height: 512,
     },
     /* Pinned, NOT the page's own card. The Organization node has one @id
-       across all eight pages; giving it the current page's image described
-       one entity eight different ways. */
+       across every page; giving it the current page's image would describe
+       one entity fifteen different ways. */
     image: abs(origin, '/og/home.jpg'),
     /* The two firms are siblings, not parent and subsidiary, so the join
        runs through the person who founded one and holds an interest in the
        other. `parentOrganization` used to sit here with a bare name, and it
-       was wrong twice over: it asserted corporate control that does not
+       was wrong twice over: it asserted corporate control that doesn't
        exist, and a bare name is a blank node no crawler can tell from any
        other firm sharing the word. schema.org has no property for a sibling
        company, and inventing a shape to imply one would be worse than this.
 
        The @id on the affiliation is the one ADJL Capital publishes in its
-       own @graph, so the two graphs resolve to a single entity rather than
-       to two strings that happen to match. Its legalName is deliberately
-       not copied across: that is Capital's assertion to make on Capital's
-       domain, and repeating it here buys nothing the @id does not. */
+       own @graph, so the two graphs resolve to a single entity instead of
+       two strings that happen to match. Its legalName is deliberately not
+       copied across: that's Capital's assertion to make on Capital's
+       domain. */
     founder: {
       '@type': 'Person',
-      '@id': `${origin}/#daniel`,
+      '@id': personId,
       name: 'Daniel Laskowski',
       jobTitle: 'Chief Executive Officer & Founder',
+      worksFor: { '@id': orgId },
       affiliation: {
         '@type': 'Organization',
         '@id': 'https://adjlcapital.com/#organization',
@@ -117,18 +218,19 @@ export function buildHead({ origin, page, pages, meta, faq }) {
         url: 'https://adjlcapital.com/',
       },
     },
-    knowsAbout: [
-      'AI implementation',
-      'AI consulting',
-      'Retrieval-augmented generation',
-      'Real estate underwriting automation',
-      'Property data and public records',
-      'Trading infrastructure',
-      'Market data engineering',
-      'Order execution systems',
-      'Backtesting',
-      'Custom software development',
-    ],
+    knowsAbout: KNOWS_ABOUT,
+    /* What the firm sells, by reference. Each item is the Service node on
+       its own page, so the catalog and the pages can't describe different
+       services. */
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'Services',
+      itemListElement: servicePages.map((p, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        item: { '@id': `${origin}${p.route}#service` },
+      })),
+    },
     /* No sameAs. It takes a list of profiles the company actually controls,
        and inventing one is how structured data becomes a liability. Add the
        LinkedIn and GitHub URLs here when they exist. */
@@ -144,15 +246,16 @@ export function buildHead({ origin, page, pages, meta, faq }) {
   });
 
   /* Breadcrumbs. Google shows these in place of the raw URL, so a case page
-     reads "ADJL Technology › Work › Real Estate Intelligence" instead of a
-     path. Home has no trail of its own. */
+     reads "ADJL Technology › Work › Mobile App" instead of a path. Home has
+     no trail of its own. The trail walks every parent, so a service page
+     reads Home › Services › AI Engineering. */
   if (page.parent !== undefined) {
-    const trail = [{ name: 'Home', item: `${origin}/` }];
-    if (page.parent !== '/') {
-      const parent = pages.find((p) => p.route === page.parent);
-      if (parent) trail.push({ name: parent.crumb, item: abs(origin, parent.route) });
+    const trail = [];
+    for (let p = page; p; p = p.parent !== undefined ? pages.find((q) => q.route === p.parent) : null) {
+      trail.unshift({ name: p.crumb, item: abs(origin, p.route) });
+      if (p.route === '/') break;
     }
-    trail.push({ name: page.crumb, item: url });
+    if (trail[0]?.item !== `${origin}/`) trail.unshift({ name: 'Home', item: `${origin}/` });
 
     graph.push({
       '@type': 'BreadcrumbList',
@@ -166,27 +269,75 @@ export function buildHead({ origin, page, pages, meta, faq }) {
     });
   }
 
-  graph.push({
-    '@type': 'WebPage',
+  /* The WebPage. It is never replaced: a hub is ['WebPage','CollectionPage']
+     and a page with an FAQ is ['WebPage','FAQPage'], with one @id, so the
+     page stays one entity whatever else it also is. */
+  const types = ['WebPage'];
+  if (page.collection) types.push('CollectionPage');
+  if (page.faq && faq?.items?.length) types.push('FAQPage');
+
+  const webpage = {
+    '@type': types.length === 1 ? 'WebPage' : types,
     '@id': pageId,
     url,
     name: meta.title,
     description: meta.description,
     isPartOf: { '@id': siteId },
-    about: { '@id': orgId },
+    about: { '@id': page.service && page.kind === 'service' ? serviceId : orgId },
     primaryImageOfPage: { '@type': 'ImageObject', url: image },
     inLanguage: 'en-US',
+    dateModified,
     ...(page.parent !== undefined ? { breadcrumb: { '@id': `${url}#breadcrumb` } } : {}),
-    /* Point at the page's subject. Without this the Service node sat in the
-       graph with nothing referencing it, which is a node a parser is free to
-       ignore. */
-    ...(page.service ? { mainEntity: { '@id': `${url}#service` } } : {}),
-  });
+  };
+  /* What the page is chiefly about. An FAQPage's mainEntity has to be its
+     Questions, so the Service on a service page is reached through `about`
+     instead. Elsewhere it points at the page's subject, so no node sits in
+     the graph with nothing referencing it. */
+  if (types.includes('FAQPage')) {
+    webpage.mainEntity = faq.items.map((it) => ({
+      '@type': 'Question',
+      name: it.q,
+      acceptedAnswer: { '@type': 'Answer', text: it.a },
+    }));
+  } else if (page.collection) webpage.mainEntity = { '@id': listId };
+  else if (page.article) webpage.mainEntity = { '@id': articleId };
+  else if (page.service) webpage.mainEntity = { '@id': serviceId };
+  graph.push(webpage);
+
+  /* Collections: the services hub lists the three service pages and the
+     work hub; the work hub lists the case pages. */
+  if (page.collection) {
+    const members =
+      page.collection === 'services'
+        ? [...servicePages, ...pages.filter((p) => p.route === '/work/')]
+        : pages.filter((p) => p.kind === 'case');
+    graph.push({
+      '@type': 'ItemList',
+      '@id': listId,
+      name: page.crumb,
+      numberOfItems: members.length,
+      itemListElement: members.map((p, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: p.crumb,
+        url: abs(origin, p.route),
+      })),
+    });
+  }
 
   if (page.service) {
+    /* A service page's Service is evidenced by the case pages whose
+       TechArticle is about it. Derived from pages.mjs, so adding a case
+       page with `about: ['/services/seo/#service']` links it here too. */
+    const evidence =
+      page.kind === 'service'
+        ? pages
+            .filter((p) => p.article?.about?.some((ref) => resolveRef(origin, p.route, ref) === serviceId))
+            .map((p) => ({ '@id': `${origin}${p.route}#article` }))
+        : [];
     graph.push({
       '@type': 'Service',
-      '@id': `${url}#service`,
+      '@id': serviceId,
       name: page.service.name,
       serviceType: page.service.serviceType,
       description: meta.description,
@@ -194,21 +345,38 @@ export function buildHead({ origin, page, pages, meta, faq }) {
       provider: { '@id': orgId },
       areaServed: { '@type': 'Country', name: 'United States' },
       mainEntityOfPage: { '@id': pageId },
+      ...(evidence.length ? { subjectOf: evidence } : {}),
     });
   }
 
-  /* Folded INTO the WebPage rather than added beside it. The first version
-     emitted a separate FAQPage node at #faq with no url, no name and nothing
-     in the graph referencing it — an orphan. A page carrying an FAQ is a
-     FAQPage, so it takes both types and keeps the one @id. */
-  if (page.faq && faq?.items?.length) {
-    const webpage = graph.find((n) => n['@id'] === pageId);
-    webpage['@type'] = ['WebPage', 'FAQPage'];
-    webpage.mainEntity = faq.items.map((it) => ({
-      '@type': 'Question',
-      name: it.q,
-      acceptedAnswer: { '@type': 'Answer', text: it.a },
-    }));
+  if (page.app) {
+    /* No offers and no ratings. It's privately distributed, so there's no
+       price to state, and there are no public reviews to count. */
+    graph.push({
+      '@type': 'SoftwareApplication',
+      '@id': appId,
+      name: page.app.name,
+      operatingSystem: page.app.operatingSystem,
+      applicationCategory: page.app.applicationCategory,
+      creator: { '@id': orgId },
+      mainEntityOfPage: { '@id': pageId },
+    });
+  }
+
+  if (page.article) {
+    graph.push({
+      '@type': 'TechArticle',
+      '@id': articleId,
+      headline: String(h1 ?? meta.ogTitle ?? meta.title).replace(/\s+/g, ' ').trim(),
+      description: meta.description,
+      author: { '@id': personId },
+      publisher: { '@id': orgId },
+      about: page.article.about.map((ref) => ({ '@id': resolveRef(origin, page.route, ref) })),
+      mainEntityOfPage: { '@id': pageId },
+      image,
+      dateModified,
+      inLanguage: 'en-US',
+    });
   }
 
   tags.push(jsonld({ '@context': 'https://schema.org', '@graph': graph }));

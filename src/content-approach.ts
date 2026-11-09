@@ -1,23 +1,39 @@
 /**
- * ADJL Technology — /approach/ — principles, engagement shapes, and who owns what.
+ * ADJL Technology: /approach/, principles, engagement shapes, and who owns what.
  *
- * The five principles are positions, not platitudes. Each one is something a competitor could genuinely disagree with. The ownership section is deliberately plain. You own the code and the data, and saying so clearly is itself the differentiator.
+ * The five principles are positions, not platitudes. Each one is something
+ * a competitor could genuinely disagree with. The ownership section is
+ * deliberately plain. You own the code and the data, and saying so clearly
+ * is itself the differentiator.
+ *
+ * #steps reuses the home page's pipeline steps (src/content.ts), as static
+ * cards with no motion, so the method can't be written two ways.
  *
  * Same conventions as src/content.ts: headlines are arrays of lines,
- * {em}…{/em} marks one emphasised phrase per headline, and {k}…{/k} marks a
+ * {em}…{/em} marks one emphasized phrase per headline, and {k}…{/k} marks a
  * technical term in body copy. Edit words here, never in a renderer.
  */
 
 import type { ApproachContent } from './sections/approach';
+import { pipeline } from './content';
+
+/** #steps, placed after the hero: the six build steps, long form, as
+ *  static cards (no pipeline module). Also on `content.steps`. */
+export const steps: NonNullable<ApproachContent['steps']> = {
+  eyebrow: 'The build sequence',
+  headline: ['The six steps,', '{em}long form.{/em}'],
+  items: pipeline.steps,
+};
 
 export const content: ApproachContent = {
+  steps,
   cta: {
     eyebrow: "Contact",
     headline: [
       "Send the problem",
       "before the {em}proposal.{/em}"
     ],
-    body: "A useful first message describes the process you want changed, who touches it, and what happens today when it goes wrong. If it is not a fit — wrong scale, wrong timing, or better solved with ordinary software and no model at all — you will be told that in the reply rather than after an invoice.",
+    body: "A useful first message describes the process you want changed, who touches it, and what happens today when it goes wrong. If it isn’t a fit, because of scale or timing or because ordinary software would solve it with no model at all, you’ll hear that in the reply. You won’t find out after an invoice.",
     button: {
       label: "Email Daniel",
       href: "mailto:daniel@adjlcapital.com"
@@ -35,7 +51,7 @@ export const content: ApproachContent = {
       {
         tag: "Assessment",
         title: "Where AI pays",
-        body: "A short, bounded engagement that goes through a business the way an underwriter goes through a file: what runs today, what it costs in hours, where the data lives, and who is allowed to touch it. It ends with a ranked list of candidates. Each one carries a build estimate and an honest note on what would make it fail. Some of those notes say don’t build this. That’s a legitimate result. It’s also why the exercise comes before the build.",
+        body: "A short, bounded engagement that goes through a business the way an underwriter goes through a file: what runs today, what it costs in hours, where the data lives, and who is allowed to touch it. It ends with a ranked list of candidates. Each one carries a build estimate and an honest note on what would make it fail. Some of those notes say don’t build this, and that’s a legitimate result. It’s also why the exercise comes before the build.",
         points: [
           "Walkthroughs at the desk with the people who do the work day to day",
           "A map of where the data sits, what state it’s in, and what access it would need",
@@ -76,17 +92,17 @@ export const content: ApproachContent = {
       "How the work runs,",
       "and where it {em}stops.{/em}"
     ],
-    body: "ADJL Technology is an AI consulting and software engineering practice — Daniel Laskowski and a small senior development team. We take engagements deliberately, not continuously, so the team on yours isn’t also carrying four others. That shape buys you one thing. The person who scopes the work is in the room for the whole of it. There’s no handover between the sale and the build, because the people who write the code were there when it was scoped. Nothing has to survive one.",
-    back: {
-      label: "Home",
-      href: "/"
+    body: "ADJL Technology is an AI engineering, SEO and software studio. It’s Daniel Laskowski and a small senior development team. We take engagements deliberately, not continuously, so the team on yours isn’t also carrying four others. That shape buys you one thing. The person who scopes the work is in the room for the whole of it. There’s no handover between the sale and the build, because the people who write the code were there when it was scoped. Nothing has to survive one.",
+    secondary: {
+      label: "Talk to Daniel",
+      href: "#contact"
     }
   },
   meta: {
-    title: "Engagement Model & Code Ownership — ADJL Technology",
+    title: "Engagement Model and Code Ownership | ADJL Technology",
     description: "How an ADJL Technology engagement is scoped, priced and delivered, and who owns the code, the data and the models when it ends. You do, in full.",
-    ogTitle: "Approach — ADJL Technology",
-    ogDescription: "Five operating positions, three shapes of engagement, and a plain answer on ownership. The client owns the code, the data and the right to leave."
+    ogTitle: "How the work runs, and where it stops.",
+    ogDescription: "ADJL Technology is an AI engineering, SEO and software studio. It’s Daniel Laskowski and a small senior development team."
   },
   ownership: {
     eyebrow: "Who Owns The Code",
@@ -99,7 +115,7 @@ export const content: ApproachContent = {
       "Source, prompts, evaluation sets and infrastructure code assigned to you in full",
       "Your data stays in your accounts. It isn’t retained here and it’s never reused for another client",
       "No proprietary runtime, no license to renew, no dependency that ends the system if the relationship ends",
-      "The one carve-out, stated plainly: any generic tooling not written for your project stays with ADJL. You get it under a perpetual license you never have to renew"
+      "One carve-out, stated plainly. Any generic tooling not written for your project stays with ADJL. You get it under a perpetual license you never have to renew"
     ]
   },
   principles: {
@@ -113,7 +129,7 @@ export const content: ApproachContent = {
       {
         num: "01",
         title: "AI goes where the work already is",
-        body: "A business that already works is full of processes that already work. A model that sits inside one of them can pay for itself without anything else changing. So the first build is narrow: one {k}intake step{/k}, one document pile, one report someone assembles by hand every Monday. Nothing looks impressive in month one. That’s the price of it. Rebuilding the surrounding system is a separate decision, and it gets made separately, on its own evidence."
+        body: "A business that already works is full of processes that already work. A model that sits inside one of them can pay for itself without anything else changing. So the first build is narrow: one {k}intake step{/k}, one document pile, one report someone assembles by hand every Monday. Nothing looks impressive in month one, and that’s the price of it. Rebuilding the surrounding system is a separate decision, and it gets made separately, on its own evidence."
       },
       {
         num: "02",
