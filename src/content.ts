@@ -122,7 +122,9 @@ export const status = {
 
 export const hero = {
   eyebrow: 'AI · Websites · Apps · SEO',
-  headline: ['AI, websites and apps,', 'built for {em}what’s next.{/em}'],
+  /* The no-break space keeps "what’s next." together, so a phone never
+     leaves "next." alone on a fourth line. */
+  headline: ['AI, websites and apps,', 'built for {em}what’s next.{/em}'],
   body: 'ADJL Technology builds AI that handles the busywork, websites people can find, and apps for iPhone and Android. Everything on this page was built by us. Scroll down and try it.',
   primary: { label: 'See what we’ve built', href: '#systems' },
   secondary: { label: 'Talk to Daniel', href: '#contact' },

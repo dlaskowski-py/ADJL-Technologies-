@@ -593,9 +593,16 @@
   .pl-map--pick .pl-box {
     padding: 0 10px;
   }
+  /* The box is 48% of the map, so what's left beside it is 52/48 of the
+     box: the reason gets that much and wraps inside it, instead of running
+     past the window's edge on a 360px phone. */
   .pl-note {
     left: calc(100% + 12px);
+    width: 108%;
     font-size: var(--t-label);
+  }
+  .pl-note .pl-type {
+    white-space: pre-wrap;
   }
   .pl-note::before {
     left: -12px;
@@ -603,6 +610,23 @@
   }
   .pl-note::after {
     left: -13.5px;
+  }
+}
+/* Narrower still: the review queue stacks, item first, so the approval
+   never has to fit beside it. */
+@container (max-width: 340px) {
+  .pl-queue {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pl-qitem {
+    grid-row: auto;
+  }
+  .pl-okrow {
+    grid-column: 1;
+    min-width: 0;
+  }
+  .pl-queue .pl-type {
+    white-space: pre-wrap;
   }
 }
 

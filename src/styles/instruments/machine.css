@@ -108,8 +108,15 @@
   outline: 2px solid var(--signal-hi);
   outline-offset: 2px;
 }
+/* The label is a sentence: on a 320px phone it wraps onto a second line
+   instead of pushing the page sideways. */
 .machine-open {
+  max-width: 100%;
+  padding-block: 10px;
   font-size: 0.875rem;
+  line-height: 1.25;
+  white-space: normal;
+  text-align: left;
 }
 .machine-foot {
   padding: var(--s-4);
