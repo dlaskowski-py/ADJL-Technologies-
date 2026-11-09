@@ -89,6 +89,17 @@ const skip = (el: El): boolean => SKIP_TAGS.has(el.name) || SKIP_ATTRS.some((a) 
 
 const squash = (s: string) => s.replace(/\s+/g, ' ').trim();
 
+/** Text inside a heading that no reader gets: under aria-hidden or
+ *  instrument chrome (an effect's overlay, a label). The heading's text is
+ *  what's left, as a screen reader or a crawler's text model has it. */
+const unread = (from: El | null, heading: El): boolean => {
+  for (let e = from; e; e = e.parent) {
+    if (e.attrs['aria-hidden'] === 'true' || 'data-chrome' in e.attrs) return true;
+    if (e === heading) break;
+  }
+  return false;
+};
+
 /** Words, counted one way everywhere (re-exported for callers that only
  *  have a string). */
 export function countWords(s: string): number {
@@ -193,7 +204,7 @@ export function measureHtml(html: string, origin = ''): Measure {
       text(t, info) {
         if (info.excluded || info.raw) return;
         if (inTitle) title += t;
-        if (open) open.parts.push(t);
+        if (open && !unread(info.parent, open.el)) open.parts.push(t);
       },
     },
     { skip },

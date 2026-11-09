@@ -1,1 +1,249 @@
-/* Instrument styles: telemetry. Owned by its workstream (see the rebuild ownership map). */
+/* Telemetry: the status-bar readouts and the large panel
+   (sections/instruments/telemetry.ts, motion/telemetry.ts), plus the
+   module-weights list on /work/this-site/#motion (weights.ts), which is
+   the same kind of reading taken at build. OWNER: WS2.
+
+   The status bar's layout is chrome.css. This file styles what a slot
+   holds: data-reading="build|live", data-state="nojs|nr|none|cached" and
+   data-rating="good|ok|poor" with the word beside the value. A rating is
+   never colour alone: the word is always there. Every slot keeps its
+   width (status bar) or its height (panel) whatever lands in it, so a
+   reading arriving moves nothing. */
+
+/* ── Slot states, everywhere a [data-metric] is ──────────────────── */
+
+[data-metric][data-state] {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--fg-3);
+}
+/* Not a value, a reason: dotted, and its title says why. */
+[data-metric]:is([data-state='nr'], [data-state='none']) {
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: help;
+}
+[data-metric][data-state='cached'] {
+  color: var(--data);
+}
+[data-rw] {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+[data-rw]::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  border-radius: 1px;
+  background: currentColor;
+  vertical-align: 0.08em;
+}
+[data-rw='good'] {
+  color: var(--ok);
+}
+[data-rw='ok'] {
+  color: var(--warn);
+}
+[data-rw='poor'] {
+  color: var(--fail);
+}
+
+/* ── Status bar: a fixed width per metric (mono, so ch is exact), wide
+   enough for its longest reading: "999 ms poor", "0.123 good". ────── */
+
+.status-readouts [data-metric] {
+  white-space: nowrap;
+}
+.status-readouts [data-metric='html'],
+.status-readouts [data-metric='css'],
+.status-readouts [data-metric='js'] {
+  min-width: 7ch;
+}
+.status-readouts [data-metric='thirdparty'] {
+  min-width: 2ch;
+}
+.status-readouts [data-metric='lcp'],
+.status-readouts [data-metric='inp'] {
+  min-width: 12ch;
+}
+.status-readouts [data-metric='cls'] {
+  min-width: 11ch;
+}
+.status-readouts [data-metric='tier'] {
+  min-width: 8ch;
+}
+.status-readouts [data-reading='live'] {
+  color: var(--fg);
+}
+/* The fixed bar keeps the readouts that matter most when it's short of
+   room. Every metric is always in the large panel and in Machine View. */
+@media (min-width: 1024px) and (max-width: 1499px) {
+  .status-readouts [data-pri='3'] {
+    display: none;
+  }
+}
+@media (min-width: 1024px) and (max-width: 1239px) {
+  .status-readouts [data-pri='2'] {
+    display: none;
+  }
+}
+
+/* ── The large panel ─────────────────────────────────────────────── */
+
+.tm-panel {
+  container: tm / inline-size;
+}
+.tm-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--rule);
+}
+@container tm (min-width: 560px) {
+  .tm-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@container tm (min-width: 980px) {
+  .tm-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.tm-tile {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: var(--s-3);
+  min-width: 0;
+  padding: var(--s-4);
+  background: var(--panel);
+}
+/* Label, then its chip: beside it when there's room, under it when not.
+   Values sit on the tile's floor, so a row's readings line up whatever
+   the labels above them do. */
+.tm-tile dt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px var(--s-2);
+  min-height: 22px;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.04em;
+  color: var(--fg-3);
+}
+.tm-tile dt > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.tm-chip {
+  flex: none;
+  display: inline-flex;
+}
+.tm-tile dd {
+  align-self: end;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  align-content: flex-start;
+  gap: 2px var(--s-2);
+  /* One value line plus one wrapped rating line, reserved up front. */
+  min-height: 3.6rem;
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+.tm-tile dd[data-state] {
+  padding-top: 0.45rem;
+}
+/* The tier closes the panel on one line: it's a setting, not a reading. */
+.tm-tile[data-key='tier'] {
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  padding-block: var(--s-3);
+}
+.tm-tile[data-key='tier'] dd {
+  min-height: 0;
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.tm-tile[data-key='tier'] dd[data-state] {
+  padding-top: 0;
+}
+
+/* ── Module weights, gz at build (/work/this-site/#motion) ──────── */
+
+.weights {
+  container: wt / inline-size;
+}
+.weights-list {
+  display: grid;
+  column-gap: var(--s-7);
+  padding: var(--s-2) var(--s-4) var(--s-4);
+}
+@container wt (min-width: 760px) {
+  .weights-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.weight {
+  display: grid;
+  grid-template-columns: minmax(0, 12ch) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 40px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+}
+.weight dt {
+  color: var(--fg-2);
+  overflow-wrap: anywhere;
+}
+.weight dd {
+  display: grid;
+  grid-template-columns: minmax(40px, 1fr) 7ch auto;
+  align-items: center;
+  gap: var(--s-3);
+}
+.weight-bar {
+  position: relative;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--rule);
+  overflow: hidden;
+}
+.weight-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--f, 0) * 100%);
+  background: var(--model-dim);
+}
+.weight-v {
+  text-align: right;
+  color: var(--fg);
+}
+.weight-of {
+  min-width: 8ch;
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+.weight-of b {
+  font-weight: 500;
+  color: var(--warn);
+}
+.weight[data-over] .weight-bar i {
+  background: var(--warn);
+}

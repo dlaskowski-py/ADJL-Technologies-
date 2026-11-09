@@ -228,7 +228,7 @@
 }
 @container mr (min-width: 640px) {
   [data-machine] [data-req] {
-    grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1.2fr) minmax(7ch, 0.5fr) minmax(0, 1fr) minmax(0, 1.5fr);
     align-items: end;
   }
   [data-machine] [data-req] > [data-path] {
@@ -427,22 +427,22 @@ html[data-motion='reduced'] [data-machine] [data-track] i {
 }
 
 /* The outline: h1 → h2 → h3 as a tree. Shared with the drawer. */
-:is([data-machine], [data-drawer]) [data-outline] {
+:is([data-machine], aside[data-drawer]) [data-outline] {
   list-style: none;
   font-size: 0.875rem;
   line-height: 1.45;
 }
-:is([data-machine], [data-drawer]) [data-outline] ol {
+:is([data-machine], aside[data-drawer]) [data-outline] ol {
   list-style: none;
   margin: 2px 0 2px 5px;
   padding-left: 14px;
   border-left: 1px solid var(--rule-2);
 }
-:is([data-machine], [data-drawer]) [data-outline] li {
+:is([data-machine], aside[data-drawer]) [data-outline] li {
   position: relative;
   padding: 3px 0;
 }
-:is([data-machine], [data-drawer]) [data-outline] ol > li::before {
+:is([data-machine], aside[data-drawer]) [data-outline] ol > li::before {
   content: '';
   position: absolute;
   left: -14px;
@@ -451,7 +451,7 @@ html[data-motion='reduced'] [data-machine] [data-track] i {
   height: 1px;
   background: var(--rule-2);
 }
-:is([data-machine], [data-drawer]) [data-outline] [data-tag] {
+:is([data-machine], aside[data-drawer]) [data-outline] [data-tag] {
   display: inline-block;
   min-width: 3ch;
   margin-right: 6px;
@@ -459,19 +459,19 @@ html[data-motion='reduced'] [data-machine] [data-track] i {
   font-size: var(--t-label);
   color: var(--model);
 }
-:is([data-machine], [data-drawer]) [data-outline] [data-num] {
+:is([data-machine], aside[data-drawer]) [data-outline] [data-num] {
   display: none;
 }
-:is([data-machine], [data-drawer]) [data-outline] [data-t],
-:is([data-machine], [data-drawer]) [data-outline] li > a {
+:is([data-machine], aside[data-drawer]) [data-outline] [data-t],
+:is([data-machine], aside[data-drawer]) [data-outline] li > a {
   color: var(--fg-2);
 }
-:is([data-machine], [data-drawer]) [data-outline] > li > [data-t],
-:is([data-machine], [data-drawer]) [data-outline] > li > a {
+:is([data-machine], aside[data-drawer]) [data-outline] > li > [data-t],
+:is([data-machine], aside[data-drawer]) [data-outline] > li > a {
   color: var(--fg);
   font-weight: 600;
 }
-:is([data-machine], [data-drawer]) [data-outline] [data-id] {
+:is([data-machine], aside[data-drawer]) [data-outline] [data-id] {
   margin-left: 8px;
   font-family: var(--font-mono);
   font-size: var(--t-label);
@@ -495,7 +495,7 @@ html[data-motion='reduced'] [data-machine] [data-track] i {
 [data-machine] [data-svg] {
   min-width: 0;
 }
-:is([data-machine], [data-drawer]) [data-ld-svg] {
+:is([data-machine], aside[data-drawer]) [data-ld-svg] {
   width: 100%;
   height: auto;
   overflow: visible;
@@ -574,11 +574,11 @@ html[data-motion='reduced'] [data-machine] [data-track] i {
 [data-machine] [data-ok='no'] {
   color: var(--fail);
 }
-:is([data-machine], [data-drawer]) [data-ld-list] {
+:is([data-machine], aside[data-drawer]) [data-ld-list] {
   list-style: none;
   display: grid;
 }
-:is([data-machine], [data-drawer]) [data-ld-list] li {
+:is([data-machine], aside[data-drawer]) [data-ld-list] li {
   display: grid;
   grid-template-columns: 2ch minmax(0, 1fr);
   column-gap: 8px;
@@ -587,26 +587,26 @@ html[data-motion='reduced'] [data-machine] [data-track] i {
   font-size: var(--mono-s, 0.8125rem);
   line-height: 1.45;
 }
-:is([data-machine], [data-drawer]) [data-ld-list] [data-glyph] {
+:is([data-machine], aside[data-drawer]) [data-ld-list] [data-glyph] {
   grid-row: span 3;
   color: var(--model);
 }
-:is([data-machine], [data-drawer]) [data-ld-list] [data-type] {
+:is([data-machine], aside[data-drawer]) [data-ld-list] [data-type] {
   font-family: var(--font-mono);
   color: var(--model);
 }
-:is([data-machine], [data-drawer]) [data-ld-list] [data-name] {
+:is([data-machine], aside[data-drawer]) [data-ld-list] [data-name] {
   grid-column: 2;
   color: var(--fg-2);
 }
-:is([data-machine], [data-drawer]) [data-ld-list] [data-id] {
+:is([data-machine], aside[data-drawer]) [data-ld-list] [data-id] {
   grid-column: 2;
   font-family: var(--font-mono);
   font-size: var(--t-label);
   color: var(--fg-3);
   overflow-wrap: anywhere;
 }
-:is([data-machine], [data-drawer]) [data-ld-list] li[data-far] :is([data-glyph], [data-type]) {
+:is([data-machine], aside[data-drawer]) [data-ld-list] li[data-far] :is([data-glyph], [data-type]) {
   color: var(--fg-3);
 }
 @container mcol (min-width: 600px) {
@@ -690,7 +690,7 @@ html[data-motion='reduced'] [data-machine] [data-track] i {
   font-size: var(--mono-s);
   color: var(--fg-2);
 }
-[data-machine] [data-people] [data-metric][data-prov='live'] {
+[data-machine] [data-people] [data-metric][data-reading='live'] {
   color: var(--data);
 }
 [data-machine] [data-people] [data-metric][data-state] {

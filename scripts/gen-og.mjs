@@ -1,134 +1,198 @@
 /**
- * Renders the social share cards — one per page, 1200x630.
+ * Renders the share cards: one per page, 1200×630, into public/og/.
  *
- * A LOCAL CHORE, not part of `npm run build`. It drives a real browser, and
- * Playwright is deliberately kept out of devDependencies so Netlify does not
- * install it on every deploy. The cards are committed, exactly like the film
- * renditions.
+ * Each card's art is that page's own structure drawing, the same poster SVG
+ * the hero ships (lib/poster.ts), on the site's ground and drafting grid,
+ * with the card copy beside it and a mono title block naming the page and
+ * the commit it was drawn from: "adjltechnology.com/services/seo/ · a1b2c3d".
+ * Legal pages have no hero figure, so their poster is drawn here, from their
+ * built HTML, by the same renderer. Nothing on a card is a picture of
+ * something the page doesn't contain.
  *
- * Why render rather than crop: the film posters are 3362x1440, which is
- * 2.33:1. A social card is 1.91:1, so cropping alone both wastes most of the
- * file and gives eight pages an unlabelled picture. Rendering puts the page's
- * own headline on it, in the site's own type, over the film that page
- * actually uses — so a link posted in Slack says what it is.
+ * A LOCAL CHORE, not part of `npm run build`: it reads a finished dist/ and
+ * drives a real browser, and Playwright is kept out of devDependencies so
+ * Netlify doesn't install it on every deploy. The cards are committed.
  *
- *   node scripts/gen-og.mjs        (needs: npm i --no-save playwright-core)
+ *   npx vite build && node scripts/prerender.mjs && node scripts/gen-og.mjs
+ *   (needs playwright-core or playwright: npm i --no-save playwright-core)
  */
-import { chromium } from 'playwright-core';
-import { mkdirSync, globSync, readFileSync, writeFileSync, statSync } from 'node:fs';
-import { ORIGIN, PAGES } from './pages.mjs';
-import { slugOf } from './seo.mjs';
+import { createRequire } from 'node:module';
+import { existsSync, globSync, mkdirSync, readFileSync, statSync } from 'node:fs';
+import { ORIGIN, PAGES, slugOf } from './pages.mjs';
+import { BUILD_SHA } from './build-stamp.mjs';
+import { loadTs } from './lib/ts.mjs';
 
 const OUT = 'public/og';
 mkdirSync(OUT, { recursive: true });
 
-const CHROME = globSync('/opt/pw-browsers/chromium-*/chrome-linux/chrome')[0];
-if (!CHROME) {
-  console.error('gen-og: no chromium under /opt/pw-browsers');
-  process.exit(2);
-}
-
-/** Card copy. Deliberately NOT the page's <title>: a title is written for a
- *  search result and repeats the brand, which the card already shows in the
- *  corner. These are written for a link preview. */
+/** Card copy (SPEC §5.8). Written for a link preview, not a search result:
+ *  the brand is already in the corner. The last line takes the copper. */
 const CARDS = {
-  home: { kicker: 'AI Consulting · Applied Engineering', line: ['We build the system.', 'Not the slide deck.'] },
-  work: { kicker: 'Selected Work', line: ['Three practices.', 'All of them in production.'] },
-  approach: { kicker: 'How We Work', line: ['How the work runs,', 'and where it stops.'] },
+  home: { kicker: 'AI Engineering · SEO · Software', line: ['AI systems, software and SEO,', 'built to be inspected.'] },
+  services: { kicker: 'Services', line: ['AI, SEO and software,', 'from one team.'] },
+  'services-ai-engineering': { kicker: 'AI Engineering', line: ['AI agents and automation', 'that show their work.'] },
+  'services-seo': { kicker: 'Technical SEO & AI Search', line: ['Technical SEO for search', 'and AI answer engines.'] },
+  'services-software': { kicker: 'Websites, Apps & Backends', line: ['Websites, apps', 'and the systems behind them.'] },
+  work: { kicker: 'Work', line: ['What we’ve built,', 'and how it works.'] },
+  'work-mobile-app': { kicker: 'Native App', line: ['The whole engine,', 'on the phone.'] },
+  'work-private-site': { kicker: 'Private Site', line: ['A private site', 'that says no by default.'] },
+  'work-this-site': { kicker: 'This Website', line: ['The site you’re on', 'is the SEO case study.'] },
   'work-real-estate-intelligence': { kicker: 'Real Estate Intelligence', line: ['Paste a listing.', 'Get the underwriting.'] },
   'work-trading-infrastructure': { kicker: 'Trading Infrastructure', line: ['Market data in,', 'orders out.'] },
   'work-ai-implementation': { kicker: 'AI Implementation', line: ['We start at the workflow,', 'not the model.'] },
+  approach: { kicker: 'How We Work', line: ['How the work runs,', 'and where it stops.'] },
   'legal-privacy': { kicker: 'Legal', line: ['Privacy.', 'No tracking, no cookies.'] },
   'legal-terms': { kicker: 'Legal', line: ['Terms of use.'] },
 };
 
-const font = readFileSync('public/fonts/manrope.woff2').toString('base64');
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const font = (f) => readFileSync(`public/fonts/${f}`).toString('base64');
+const FONTS = `
+  @font-face { font-family: 'Manrope'; font-weight: 200 800; font-display: block;
+    src: url(data:font/woff2;base64,${font('manrope.woff2')}) format('woff2'); }
+  @font-face { font-family: 'JetBrains Mono'; font-weight: 100 800; font-display: block;
+    src: url(data:font/woff2;base64,${font('jetbrains-mono.woff2')}) format('woff2'); }`;
+/* The site's own tokens and the poster's own styles, so the drawing on the
+   card is the drawing on the page. */
+const TOKENS = readFileSync('src/styles/tokens.css', 'utf8');
+const POSTER_CSS = readFileSync('src/styles/instruments/lattice.css', 'utf8');
+const HOST = ORIGIN.replace(/^https?:\/\//, '');
+const SHA = BUILD_SHA;
 
-function html(slug, film, card) {
-  const poster = readFileSync(`public/media/${film}.jpg`).toString('base64');
+const { renderPoster } = await loadTs('src/lib/poster.ts');
+
+/** The page's poster: the one it ships, or (legal pages) drawn here the
+ *  same way from the same HTML. */
+function posterOf(page) {
+  const html = readFileSync(page.out, 'utf8');
+  const shipped = /<svg class="pg"[\s\S]*?<\/svg>/.exec(html)?.[0];
+  return shipped ?? renderPoster(html, page.route).svg;
+}
+
+function card(page, c, svg) {
+  const lines = c.line
+    .map((l, i) => (i === c.line.length - 1 && c.line.length > 1 ? `<em>${esc(l)}</em>` : esc(l)))
+    .join('<br>');
   return `<!doctype html><html><head><meta charset="utf-8"><style>
-    @font-face { font-family: 'Manrope'; font-weight: 200 800; font-display: block;
-      src: url(data:font/woff2;base64,${font}) format('woff2'); }
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { width:1200px; height:630px; overflow:hidden; font-family:'Manrope',sans-serif;
-           background:#fafafc; position:relative; }
-    .film { position:absolute; inset:0; background:url(data:image/jpeg;base64,${poster}) center/cover no-repeat; }
-    /* The same diagonal hold the site's heroes use, so the card reads as the
-       page it links to. */
-    .veil { position:absolute; inset:0; background:
-      linear-gradient(96deg, rgba(250,250,252,.985) 0%, rgba(250,250,252,.975) 44%,
-        rgba(250,250,252,.9) 60%, rgba(250,250,252,.55) 76%, rgba(250,250,252,.1) 94%, rgba(250,250,252,0) 100%); }
-    .inner { position:relative; height:100%; padding:64px 72px; display:flex; flex-direction:column; }
-    .brand { display:flex; align-items:center; gap:13px; }
-    .mark { display:flex; align-items:flex-end; gap:3.5px; height:30px; }
-    .mark i { display:block; width:8px; height:30px; border-radius:2px; background:#0e1117; }
-    .mark i:nth-child(2) { width:4.4px; background:#d9542a; }
-    .wm { font-size:24px; font-weight:700; letter-spacing:-.022em; color:#0e1117; }
-    .wm b { font-weight:400; color:#616978; }
-    .body { margin-top:auto; }
-    .kicker { display:flex; align-items:center; gap:14px; font-size:17px; font-weight:600;
-              letter-spacing:.16em; text-transform:uppercase; color:#3d4453; margin-bottom:24px; }
-    .kicker::before { content:''; width:44px; height:3px; border-radius:3px;
-      background:linear-gradient(90deg,#d9542a,#0fa3a3,#6c4bf5); }
-    h1 { font-size:${card.line.length > 1 ? 68 : 76}px; font-weight:600; letter-spacing:-.035em;
-         line-height:1.04; color:#0e1117; max-width:17ch; }
-    h1 em { font-style:normal; font-weight:300; color:#c2451c; }
-    .foot { margin-top:34px; font-size:19px; color:#3d4453; font-weight:500; }
+    ${FONTS}
+    ${TOKENS}
+    ${POSTER_CSS}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { width: 1200px; height: 630px; overflow: hidden; position: relative;
+      background: var(--ground); color: var(--fg); font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased; }
+    .grid { position: absolute; inset: 0;
+      background-image: linear-gradient(var(--grid-major) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+        linear-gradient(var(--grid-minor) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px);
+      background-size: 64px 64px, 64px 64px, 16px 16px, 16px 16px;
+      background-position: -1px -1px; }
+    .art { position: absolute; top: 39px; right: 40px; width: 552px; height: 552px;
+      border: 1px solid var(--rule); border-radius: 6px;
+      background: radial-gradient(60% 60% at 50% 50%, rgba(108, 75, 245, 0.08), transparent 70%), var(--ground); }
+    .art .pg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .art .pg-t { font-size: 15px; }
+    .copy { position: absolute; left: 72px; top: 56px; bottom: 56px; width: 520px;
+      display: flex; flex-direction: column; }
+    .brand { display: flex; align-items: center; gap: 14px; font-size: 27px; font-weight: 700; letter-spacing: -0.01em; }
+    .brand b { font-weight: 400; color: var(--fg-2); }
+    .mark { display: flex; align-items: flex-end; gap: 4px; height: 30px; }
+    .mark i { display: block; width: 8px; height: 30px; border-radius: 2px; background: var(--fg); }
+    .mark i:nth-child(2) { background: var(--signal); }
+    .body { margin-top: auto; }
+    .kicker { display: flex; align-items: center; gap: 14px; margin-bottom: 22px;
+      font-family: var(--font-mono); font-size: 15px; font-weight: 500; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--fg-3); }
+    .kicker::before { content: ''; width: 28px; height: 2px; background: var(--signal); }
+    h1 { font-size: ${c.line.join(' ').length > 44 ? 48 : 54}px; font-weight: 600; line-height: 1.04;
+      letter-spacing: -0.035em; text-wrap: balance; }
+    h1 em { font-style: normal; font-weight: 300; letter-spacing: -0.03em; color: var(--signal); }
+    .block { display: inline-flex; margin-top: 40px; align-self: flex-start;
+      border: 1px solid var(--rule-3); border-radius: 2px;
+      font-family: var(--font-mono); font-size: 15px; color: var(--fg-2); }
+    .block span { padding: 9px 14px; }
+    .block span + span { border-left: 1px solid var(--rule-3); color: var(--fg-3); }
   </style></head><body>
-    <div class="film"></div><div class="veil"></div>
-    <div class="inner">
-      <div class="brand"><span class="mark"><i></i><i></i><i></i></span>
-        <span class="wm">ADJL <b>Technology</b></span></div>
+    <div class="grid"></div>
+    <div class="art">${svg}</div>
+    <div class="copy">
+      <div class="brand"><span class="mark"><i></i><i></i><i></i></span><span>ADJL <b>Technology</b></span></div>
       <div class="body">
-        <p class="kicker">${card.kicker}</p>
-        <h1>${card.line.map((l, i) => (i === card.line.length - 1 && card.line.length > 1 ? `<em>${l}</em>` : l)).join('<br>')}</h1>
-        <p class="foot">${ORIGIN.replace(/^https?:\/\//, '')}</p>
+        <p class="kicker">${esc(c.kicker)}</p>
+        <h1>${lines}</h1>
       </div>
+      <p class="block"><span>${esc(HOST + page.route)} · ${esc(SHA)}</span></p>
     </div>
   </body></html>`;
 }
 
-const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
+async function chromiumLib() {
+  for (const name of ['playwright-core', 'playwright']) {
+    try {
+      return (await import(name)).chromium;
+    } catch {
+      /* next */
+    }
+  }
+  /* A global install: require() honours NODE_PATH, import() doesn't. */
+  const req = createRequire(import.meta.url);
+  for (const name of ['playwright-core', 'playwright']) {
+    try {
+      return req(name).chromium;
+    } catch {
+      /* next */
+    }
+  }
+  console.error('gen-og: needs Playwright (npm i --no-save playwright-core)');
+  process.exit(2);
+}
+
+for (const p of PAGES) {
+  if (!existsSync(p.out)) {
+    console.error(`gen-og: no ${p.out}. Build first (vite build + prerender)`);
+    process.exit(1);
+  }
+  if (!CARDS[slugOf(p.route)]) {
+    console.error(`gen-og: no card copy for ${slugOf(p.route)}. Add it to CARDS`);
+    process.exit(1);
+  }
+}
+
+const chromium = await chromiumLib();
+const browser = await chromium
+  .launch()
+  .catch(() => chromium.launch({ executablePath: globSync('/opt/pw-browsers/chromium-*/chrome-linux*/chrome')[0] }));
 const ctx = await browser.newContext({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
 const page = await ctx.newPage();
 
 for (const p of PAGES) {
   const slug = slugOf(p.route);
-  const card = CARDS[slug];
-  if (!card) {
-    console.error(`gen-og: no card copy for ${slug} — add it to CARDS`);
-    process.exit(1);
-  }
-  await page.setContent(html(slug, p.film, card), { waitUntil: 'load' });
+  await page.setContent(card(p, CARDS[slug], posterOf(p)), { waitUntil: 'load' });
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(120);
-  // JPEG at 86: a share card is scaled down by every platform that shows it,
-  // and PNG would be four times the bytes for a picture of a photograph.
-  await page.screenshot({ path: `${OUT}/${slug}.jpg`, type: 'jpeg', quality: 86 });
+  /* JPEG at 88: a share card is scaled down by every platform that shows
+     it, and PNG of a hairline drawing is several times the bytes. */
+  await page.screenshot({ path: `${OUT}/${slug}.jpg`, type: 'jpeg', quality: 88 });
   console.log(`  ${slug.padEnd(32)} ${(statSync(`${OUT}/${slug}.jpg`).size / 1024).toFixed(0)} kB`);
 }
 
-/* The Organization logo. Square, on a plain ground, at a real pixel size —
-   Google's structured-data logo requirement is a raster image it can measure,
-   which the favicon SVG is not. */
+/* The Organization logo: square, on a plain light ground, at a real pixel
+   size. Google's structured-data logo has to be a raster it can measure,
+   and it's shown on white. */
 await page.setViewportSize({ width: 512, height: 512 });
 await page.setContent(
   `<!doctype html><html><head><meta charset="utf-8"><style>
-    @font-face { font-family:'Manrope'; font-weight:200 800; font-display:block;
-      src:url(data:font/woff2;base64,${font}) format('woff2'); }
     *{margin:0;padding:0;box-sizing:border-box}
     body{width:512px;height:512px;background:#fafafc;display:grid;place-items:center}
     .mark{display:flex;align-items:flex-end;gap:14px;height:250px}
     .mark i{display:block;width:64px;height:250px;border-radius:14px;background:#0e1117}
     .mark i:nth-child(2){width:35px;background:#d9542a}
-  </style></head><body>
-    <span class="mark"><i></i><i></i><i></i></span>
-  </body></html>`,
+  </style></head><body><span class="mark"><i></i><i></i><i></i></span></body></html>`,
   { waitUntil: 'load' },
 );
-await page.evaluate(() => document.fonts.ready);
 await page.screenshot({ path: `${OUT}/logo-512.png`, type: 'png' });
 console.log(`  ${'logo-512.png'.padEnd(32)} ${(statSync(`${OUT}/logo-512.png`).size / 1024).toFixed(0)} kB`);
 
 await browser.close();
-console.log(`\ngen-og: ${PAGES.length} share cards + logo -> ${OUT}/`);
+console.log(`\ngen-og: ${PAGES.length} share cards (commit ${SHA}) + logo -> ${OUT}/`);

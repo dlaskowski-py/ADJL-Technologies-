@@ -119,7 +119,8 @@ async function sheetFor(section: HTMLElement, tpl: HTMLTemplateElement, entry: E
   const pre = el.querySelector<HTMLElement>('[data-s="content"]')!;
   if (entry) {
     if (entry.bytes) set('bytes', `${kb(entry.bytes.raw)} raw · ${kb(entry.bytes.gz)} gz`);
-    if (entry.content !== undefined) highlight(pre, entry.content);
+    /* null: the map names the export but couldn't resolve it. */
+    if (entry.content != null) highlight(pre, entry.content);
     else pre.remove();
   } else {
     pre.remove();

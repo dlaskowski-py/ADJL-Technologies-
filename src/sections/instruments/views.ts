@@ -37,7 +37,7 @@ const L = {
 function drawerTemplate(): string {
   const row = (k: string, label: string) => `<div><dt>${esc(label)}</dt><dd data-d="${k}"></dd></div>`;
   return `<template data-drawer-tpl><aside data-drawer aria-label="${esc(L.drawer)}" data-chrome>
-    <div data-dh><p data-dt>${esc(L.drawer)}</p><button type="button" data-drawer-toggle aria-expanded="true" data-show="${esc(
+    <div data-dh><p data-dt>${esc(L.drawer)}</p><button type="button" data-drawer-toggle aria-expanded="true" aria-controls="machine-drawer-body" data-show="${esc(
       L.show,
     )}" data-hide="${esc(L.hide)}">${esc(L.hide)}</button></div>
     <div data-dbody id="machine-drawer-body">
@@ -50,6 +50,7 @@ function drawerTemplate(): string {
       <div data-d="outline"></div>
       <p data-l>${esc(MV.rows.graph)}</p>
       <div data-d="ld"></div>
+      <p data-dkey><span data-swatch aria-hidden="true"></span>${esc(L.hidden)}</p>
       <p data-dfoot><button type="button" data-copy-json data-done="${esc(cta.copied)}">${esc(
         L.copyJson,
       )}</button><span data-copied aria-live="polite"></span></p>

@@ -1,1 +1,502 @@
-/* Instrument styles: views. Owned by its workstream (see the rebuild ownership map). */
+/* Views: Render · Source · Machine (motion/views.ts and its two lazy
+   modes, sections/instruments/views.ts). OWNER: WS2.
+
+   The switch itself is chrome.css. This file is the two other ways to
+   read the page, both hung off <html data-view>:
+
+     machine  what a crawler is handed. Decoration fades and is hatched,
+              headings carry their outline number, links show where they
+              go, landmarks are outlined and named, structured data is
+              tagged, and the drawer holds the readout.
+     source   every section shows the code that produced it.
+
+   Annotations are generated content with an EMPTY alternative text
+   (`content: "…" / ""`), so a screen reader never reads them: they
+   restate what the markup already says to assistive tech. Browsers
+   without that syntax get no annotations (the drawer carries the data).
+   Everything the modes build at runtime is styled by attribute, under
+   its own root. Contrast holds in every mode: labels sit on their own
+   opaque ground or in a colour that clears 4.5:1 on every surface. */
+
+@keyframes v-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes v-scan {
+  to {
+    transform: translateY(100vh);
+  }
+}
+
+/* The transition (views.ts sets data-view-anim for its length). Full: a
+   copper scanline sweeps the viewport and each annotation appears as it
+   passes its section (--sy, 0 top to 1 bottom). Lite: a 150 ms fade.
+   Reduced: nothing is set, so nothing animates. */
+html[data-view-anim='scan'] {
+  --v-in: v-in;
+  --v-dur: 200ms;
+  --v-sweep: 400ms;
+}
+html[data-view-anim='fade'] {
+  --v-in: v-in;
+  --v-dur: 150ms;
+  --v-sweep: 0ms;
+}
+html[data-view-anim='scan'] [data-scan] {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 60;
+  height: 2px;
+  background: var(--signal);
+  pointer-events: none;
+  animation: v-scan 400ms var(--ease-io) both;
+}
+html[data-view-anim='scan'] [data-scan]::before {
+  content: '';
+  position: absolute;
+  inset: auto 0 2px;
+  height: 56px;
+  background: linear-gradient(transparent, color-mix(in srgb, var(--signal) 12%, transparent));
+}
+
+/* ── Machine ─────────────────────────────────────────────────────── */
+
+/* The drafting grid rises to its cap (tokens.css: --fg-3 still clears
+   4.6:1 where lines cross). */
+html[data-view='machine'] {
+  --grid-major: rgba(150, 170, 200, 0.09);
+  --grid-minor: rgba(150, 170, 200, 0.04);
+}
+
+/* Decoration fades: anything aria-hidden (outermost only, so nothing
+   dims twice), the canvas, anything marked data-deco. */
+html[data-view='machine'] main :is([aria-hidden='true'], canvas, [data-deco]):not([aria-hidden='true'] *) {
+  opacity: 0.15;
+}
+/* A decorative BLOCK keeps its box and is hatched, the pattern that
+   means "deliberately not shown", and its contents fade instead. */
+html[data-view='machine'] main :is(div, figure, ol, ul)[aria-hidden='true']:not([aria-hidden='true'] *) {
+  opacity: 1;
+  background-image: repeating-linear-gradient(135deg, var(--rule-2) 0 1px, transparent 1px 7px);
+  outline: 1px dashed var(--rule-3);
+  outline-offset: -1px;
+}
+html[data-view='machine'] main :is(div, figure, ol, ul)[aria-hidden='true']:not([aria-hidden='true'] *) > * {
+  opacity: 0.15;
+}
+html:not([data-motion='reduced']) main :is([aria-hidden='true'], canvas, [data-deco]) {
+  transition: opacity var(--d-2) var(--ease-out);
+}
+
+/* Landmarks: a dashed outline, and a name. */
+html[data-view='machine'] :is(main > section[id], body > footer, main nav[aria-label], [data-ld-type]) {
+  position: relative;
+}
+html[data-view='machine'] :is(main > section[id], body > footer, main nav[aria-label], body > header) {
+  outline: 1px dashed var(--fg-3);
+  outline-offset: -1px;
+}
+
+/* Every label below shares one look: mono, small, on its own ground. */
+@supports (content: 'a' / '') {
+  html[data-view='machine'] main :is(h1, h2, h3)[data-x]::before,
+  html[data-view='machine'] :is(main > section[id], body > footer, main nav[aria-label])::before,
+  html[data-view='machine'] [data-ld-type]::after,
+  html[data-view='machine'] main figure > div[aria-hidden='true']::after {
+    font-family: var(--font-mono);
+    font-size: var(--t-label);
+    font-weight: 500;
+    font-style: normal;
+    line-height: 1.5;
+    letter-spacing: 0.04em;
+    text-transform: none;
+    text-decoration: none;
+    white-space: nowrap;
+    animation: var(--v-in, none) var(--v-dur, 0ms) var(--ease-out) both;
+    animation-delay: calc(var(--sy, 0) * var(--v-sweep, 0ms));
+  }
+
+  /* Headings: outline number and level, as machine-kit numbers them. */
+  html[data-view='machine'] main :is(h1, h2, h3)[data-x]::before {
+    display: block;
+    width: fit-content;
+    margin-bottom: 10px;
+    padding: 0 6px;
+    border: 1px solid color-mix(in srgb, var(--model) 45%, transparent);
+    border-radius: var(--r-1);
+    color: var(--model);
+  }
+  html[data-view='machine'] main h1[data-x]::before {
+    content: 'h1' / '';
+  }
+  html[data-view='machine'] main h2[data-x]::before {
+    content: attr(data-x) ' · h2' / '';
+  }
+  html[data-view='machine'] main h3[data-x]::before {
+    content: attr(data-x) ' · h3' / '';
+  }
+
+  /* Links: where each one goes, the path a crawler follows. Not in chrome
+     or in Machine View's own readout, which already prints its paths. */
+  html[data-view='machine']
+    :is(main, body > footer)
+    a[href]:not([data-chrome] a, [data-machine] a, [aria-hidden='true'] a, [data-source-sheet] a)::after {
+    content: '→ ' attr(href) / '';
+    display: inline-block;
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+    margin-left: 0.4em;
+    font-family: var(--font-mono);
+    font-size: var(--t-label);
+    font-weight: 400;
+    font-style: normal;
+    line-height: 1.5;
+    letter-spacing: 0;
+    text-transform: none;
+    text-decoration: none;
+    vertical-align: baseline;
+    overflow-wrap: anywhere;
+    color: var(--x-link, var(--data));
+    animation: var(--v-in, none) var(--v-dur, 0ms) var(--ease-out) both;
+    animation-delay: calc(var(--sy, 0) * var(--v-sweep, 0ms));
+  }
+  /* On a button the label colour already clears the fill. */
+  html[data-view='machine'] .btn {
+    --x-link: currentColor;
+  }
+
+  /* Landmark names, top left. */
+  html[data-view='machine'] :is(main > section[id], body > footer, main nav[aria-label])::before {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 4;
+    padding: 0 6px;
+    border: 1px dashed var(--fg-3);
+    border-radius: var(--r-1);
+    background: var(--ground);
+    color: var(--fg-2);
+  }
+  html[data-view='machine'] main > section[id]::before {
+    content: 'section#' attr(id) / '';
+  }
+  html[data-view='machine'] body > footer::before {
+    content: 'footer' / '';
+  }
+  /* A nav in the page (the breadcrumbs) is short: its name and tag sit
+     in the gap under it, clear of the section's own label. */
+  html[data-view='machine'] main nav[aria-label]::before {
+    content: 'nav' / '';
+    top: calc(100% + 2px);
+    left: 0;
+  }
+
+  /* Entity tags: what the JSON-LD says this element is, top right. */
+  html[data-view='machine'] [data-ld-type]::after {
+    content: '◆ ' attr(data-ld-type) / '';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 4;
+    padding: 0 8px;
+    border: 1px solid color-mix(in srgb, var(--model) 50%, transparent);
+    border-radius: var(--r-1);
+    background: var(--ground);
+    color: var(--model);
+  }
+  html[data-view='machine'] main nav[data-ld-type]::after {
+    top: calc(100% + 2px);
+    left: 48px;
+    right: auto;
+  }
+  html[data-view='machine'] details[data-ld-type]::after {
+    top: -10px;
+    right: auto;
+    left: 0;
+  }
+
+  /* The figure-sized decoration says what the hatching means. */
+  html[data-view='machine'] main figure > div[aria-hidden='true']::after {
+    content: var(--x-hidden) / '';
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    z-index: 4;
+    padding: 0 8px;
+    border: 1px dashed var(--rule-3);
+    border-radius: var(--r-1);
+    background: var(--ground);
+    color: var(--fg-2);
+  }
+  html[data-view='machine'] main figure > div[aria-hidden='true'] {
+    position: relative;
+  }
+}
+
+/* ── The drawer: Machine readout, beside the page ────────────────────
+   A complementary landmark, not a dialog. Open by default from 1280px,
+   where the page makes room for it; a tab in the corner otherwise. */
+
+aside[data-drawer] {
+  --dw: min(360px, calc(100vw - 24px));
+  position: fixed;
+  z-index: 45;
+  top: var(--nav-h);
+  right: 0;
+  bottom: 0;
+  width: var(--dw);
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-2);
+  border-left: 1px solid var(--rule-3);
+  box-shadow: var(--e3-shadow);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  color: var(--fg-2);
+  animation: var(--v-in, none) var(--v-dur, 0ms) var(--ease-out) both;
+}
+html[data-drawer='closed'] aside[data-drawer] {
+  top: auto;
+  right: 12px;
+  bottom: 12px;
+  width: auto;
+  border: 1px solid var(--rule-3);
+  border-radius: var(--r-2);
+}
+html[data-drawer='closed'] [data-dbody] {
+  display: none;
+}
+@media (min-width: 1024px) {
+  aside[data-drawer] {
+    bottom: var(--status-h);
+  }
+  html[data-drawer='closed'] aside[data-drawer] {
+    bottom: calc(var(--status-h) + 12px);
+  }
+}
+/* Room for it beside the page. Keyed to the view, not to the drawer
+   arriving, so the page moves once, in the same frame as the click (an
+   input-driven change, not a layout shift), never when the lazy chunk
+   lands. The nav keeps its width: the drawer starts below it. */
+@media (min-width: 1280px) {
+  html[data-view='machine']:not([data-drawer='closed']) :is(main, body > footer) {
+    margin-right: 360px;
+  }
+}
+aside[data-drawer] [data-dh] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: 4px 4px 4px var(--s-4);
+  border-bottom: 1px solid var(--rule-2);
+}
+html[data-drawer='closed'] aside[data-drawer] [data-dh] {
+  border-bottom: 0;
+}
+aside[data-drawer] [data-dt] {
+  font-size: var(--t-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+}
+aside[data-drawer] button {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--rule-3);
+  border-radius: var(--r-2);
+  background: transparent;
+  font: inherit;
+  color: var(--fg);
+  cursor: pointer;
+  transition: border-color var(--d-1) var(--ease-out);
+}
+aside[data-drawer] button:hover {
+  border-color: var(--fg-3);
+}
+aside[data-drawer] [data-dbody] {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: var(--s-4);
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-3) transparent;
+}
+aside[data-drawer] [data-d='req'] {
+  margin-bottom: var(--s-4);
+  color: var(--fg);
+  overflow-wrap: anywhere;
+}
+aside[data-drawer] [data-totals] {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  border: 1px solid var(--rule);
+  background: var(--rule);
+}
+aside[data-drawer] [data-totals] > div {
+  padding: 10px 12px;
+  background: var(--panel);
+}
+aside[data-drawer] [data-totals] dt {
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+aside[data-drawer] [data-totals] dd {
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+aside[data-drawer] [data-l] {
+  margin: var(--s-5) 0 var(--s-2);
+  font-size: var(--t-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+aside[data-drawer] [data-outline] [data-num] {
+  display: inline-block;
+  min-width: 4ch;
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+aside[data-drawer] [data-outline] a {
+  text-decoration: underline;
+  text-decoration-color: var(--rule-3);
+  text-underline-offset: 3px;
+}
+aside[data-drawer] [data-outline] a:hover {
+  text-decoration-color: currentColor;
+}
+aside[data-drawer] [data-dkey] {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: var(--s-5);
+  font-size: var(--t-label);
+  color: var(--fg-2);
+}
+aside[data-drawer] [data-swatch] {
+  flex: none;
+  width: 28px;
+  height: 14px;
+  border: 1px dashed var(--rule-3);
+  background-image: repeating-linear-gradient(135deg, var(--rule-2) 0 1px, transparent 1px 7px);
+}
+aside[data-drawer] [data-dfoot] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: var(--s-5);
+}
+aside[data-drawer] [data-copied] {
+  color: var(--ok);
+}
+
+/* ── Source: a sheet per section ─────────────────────────────────────
+   Inline under the section head below 1024px; from there, an e3 sheet
+   over the right 40% of the section, starting where the head ends. */
+
+[data-source-sheet] {
+  position: relative;
+  z-index: 6;
+  margin-bottom: var(--s-5);
+  padding: var(--s-4);
+  background: var(--panel-2);
+  border: 1px solid var(--rule-3);
+  border-radius: var(--r-2);
+  box-shadow: var(--e3-shadow);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  line-height: 1.5;
+  color: var(--fg-2);
+  animation: var(--v-in, none) var(--v-dur, 0ms) var(--ease-out) both;
+  animation-delay: calc(var(--sy, 0) * var(--v-sweep, 0ms));
+}
+@media (min-width: 1024px) {
+  [data-source-sheet] {
+    position: absolute;
+    right: var(--gut);
+    width: 40%;
+    margin: 0;
+  }
+}
+[data-source-sheet] [data-sh] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2);
+  margin-bottom: var(--s-3);
+}
+[data-source-sheet] [data-st] {
+  font-size: var(--t-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--signal-hi);
+}
+[data-source-sheet] [data-s='id'] {
+  color: var(--fg);
+}
+[data-source-sheet] dl > div {
+  display: grid;
+  grid-template-columns: 9ch minmax(0, 1fr);
+  gap: var(--s-3);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule);
+}
+[data-source-sheet] dt {
+  color: var(--fg-3);
+}
+[data-source-sheet] dd {
+  min-width: 0;
+  color: var(--fg);
+  overflow-wrap: anywhere;
+}
+[data-source-sheet] [data-s='contracts'] {
+  color: var(--data);
+}
+[data-source-sheet] pre {
+  max-height: 50vh;
+  margin-top: var(--s-3);
+  padding: var(--s-3);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-1);
+  background: var(--ground);
+  font-size: var(--t-label);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  tab-size: 2;
+  color: var(--fg-3);
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-3) transparent;
+}
+[data-source-sheet] [data-j='k'] {
+  color: var(--model);
+}
+[data-source-sheet] :is([data-j='s'], [data-j='n']) {
+  color: var(--data);
+}
+[data-source-sheet] [data-j='m'] {
+  color: var(--signal-hi);
+  font-weight: 600;
+}
+[data-source-sheet] [data-s='missing'] {
+  margin-top: var(--s-3);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+
+@media print {
+  :is(aside[data-drawer], [data-source-sheet], [data-scan]) {
+    display: none;
+  }
+}

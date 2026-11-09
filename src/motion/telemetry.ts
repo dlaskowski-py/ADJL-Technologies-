@@ -219,44 +219,42 @@ function readCopy(): Copy | null {
   return copy;
 }
 
-/** Write one reading into one slot. Returns nothing; never throws. */
+/** Write one reading into one slot. Returns nothing; never throws.
+ *  The slot says what it holds in data attributes (telemetry.css styles
+ *  them): data-reading="live" once the browser has reported, data-state
+ *  "nr" / "none" / "cached" for a reading that isn't a number, and
+ *  data-rating with the word beside the value. */
 export function paint(el: HTMLElement, key: string, r: Reading): void {
   const c = readCopy();
   if (!c) return;
-  delete el.dataset.state;
-  delete el.dataset.rating;
+  const d = el.dataset;
+  delete d.state;
+  delete d.rating;
+  delete d.reading;
+  el.title = c.liveDef;
   if ('value' in r) {
     const text = (FORMAT[key] ?? String)(r.value);
     const rt = rate(key, r.value);
     if (rt) {
-      el.dataset.rating = rt;
+      d.rating = rt;
       const w = document.createElement('span');
       w.dataset.rw = rt;
       w.textContent = c.rate[rt];
       el.replaceChildren(text + ' ', w);
     } else el.textContent = text;
-    el.title = c.liveDef;
-    el.dataset.prov = 'live';
+    d.reading = 'live';
     return;
   }
   const t = r.text;
-  if (t === 'nr') {
-    el.textContent = c.nr;
-    el.title = c.nrTitle;
-    el.dataset.state = 'nr';
-  } else if (t === 'none') {
-    el.textContent = c.none;
-    el.title = c.noneTitle;
-    el.dataset.state = 'none';
-  } else if (t === 'cached') {
-    el.textContent = c.cached;
-    el.title = c.liveDef;
-    el.dataset.prov = 'live';
-  } else {
-    el.textContent = t;
-    el.title = c.liveDef;
-    el.dataset.prov = 'live';
+  if (t === 'nr' || t === 'none') {
+    el.textContent = t === 'nr' ? c.nr : c.none;
+    el.title = t === 'nr' ? c.nrTitle : c.noneTitle;
+    d.state = t;
+    return;
   }
+  el.textContent = t === 'cached' ? c.cached : t;
+  d.reading = 'live';
+  if (t === 'cached') d.state = t;
 }
 
 /** Flip a prerendered chip to Live (text, glyph and definition). */
@@ -296,7 +294,7 @@ export function initTelemetry(): void {
         paint(el, k, r);
         /* A tile's own chip: in the panel, each metric carries one. */
         const tile = el.closest('.tm-tile');
-        if (tile && 'value' in r) {
+        if (tile && el.dataset.reading === 'live') {
           const holder = tile.querySelector<HTMLElement>('[data-tchip]');
           if (holder && !holder.firstElementChild) {
             const src = el.closest('[data-telemetry]')?.querySelector('.panel-head .prov');
@@ -310,7 +308,7 @@ export function initTelemetry(): void {
     /* A readout's own chip goes Live once it holds a live reading. Sizes
        keep their ◆ Build marks (and, in the panel, their own chips). */
     document.querySelectorAll('[data-telemetry]').forEach((box) => {
-      if (!box.querySelector('[data-metric][data-prov="live"]')) return;
+      if (!box.querySelector('[data-metric][data-reading="live"]')) return;
       flipChip(box.querySelector('.panel-head > .prov') ?? box.querySelector('.status-readouts + .prov'));
     });
   };

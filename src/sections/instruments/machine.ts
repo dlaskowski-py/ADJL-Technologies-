@@ -122,10 +122,10 @@ export function renderMachine(variant: MachineVariant): string {
           MV.open,
         )}</span><span class="arw" aria-hidden="true">→</span></button></div>`
       : '';
-  return `<div class="panel machine machine--${variant}" data-machine="${variant}" data-copy="${liveCopy()}">
-    <div class="panel-head"><span class="panel-title">${esc(L.title[variant])}</span>${chip('build')}</div>
+  return `<div class="panel machine" data-machine="${variant}" data-copy="${liveCopy()}">
+    <div class="panel-head" data-chrome><span class="panel-title">${esc(L.title[variant])}</span>${chip('build')}</div>
     ${readers}
-    <div class="machine-body" data-machine-readout="${variant}"><!--machine:${variant}--></div>
+    <div data-machine-readout="${variant}"><!--machine:${variant}--></div>
     ${foot}
     <p class="sr-only" aria-live="polite" data-machine-say></p>
   </div>`;
@@ -298,8 +298,8 @@ function peoplePane(): string {
           /* 3rd-party has a BUILD value (stamp-sizes counts other-origin
              resources in the HTML); the rest exist only live. */
           k === 'thirdparty'
-            ? `<dd><span class="num" data-metric="${k}" data-prov="build" title="${esc(prov.build.def)}"></span></dd>`
-            : `<dd><span class="num" data-metric="${k}" ${NEEDS}>${esc(status.needsJs)}</span></dd>`,
+            ? `<dd><span class="num" data-metric="${k}" data-reading="build" title="${esc(prov.build.def)}"></span></dd>`
+            : `<dd><span class="num" data-metric="${k}" data-state="nojs" ${NEEDS}>${esc(status.needsJs)}</span></dd>`,
         ),
       )
       .join('')}</dl>

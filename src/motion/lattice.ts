@@ -39,7 +39,9 @@ import {
   hash,
   KU,
   KV,
+  LABEL,
   layout,
+  leader,
   LOOK,
   mulberry32,
   PLANE_Y,
@@ -101,8 +103,10 @@ type Prog = { p: WebGLProgram; u: Record<string, WebGLUniformLocation | null>; a
 export function initLattice(): void {
   const fig = document.querySelector<HTMLElement>('[data-lattice]');
   const art = fig?.querySelector<HTMLElement>('.hero-fig-art');
+  /* The poster is injected at prerender; the dev shell has none, and the
+     live drawing simply runs without its callouts there. */
   const svg = art?.querySelector<SVGSVGElement>('svg.pg');
-  if (!fig || !art || !svg || fig.dataset.running) return;
+  if (!fig || !art || fig.dataset.running) return;
 
   /* 1. Parse the page as it arrived, and time it. */
   const t0 = performance.now();
@@ -162,9 +166,11 @@ export function initLattice(): void {
   let looping = false;
   let first = true;
   let low = 0; // governor: 1 half particles, 2 no drift or beads
+  let shown = -1; // callout opacity last written
   const frames: number[] = [];
   const screen = new Float32Array(g.nodes.length * 2);
-  const labels = Array.from(svg.querySelectorAll<SVGGElement>('.pg-frame [data-plane]'));
+  const labels = Array.from(svg?.querySelectorAll<SVGGElement>('.pg-frame [data-plane]') ?? []);
+  const restD = labels.map((lb) => Array.from(lb.children, (c) => c.getAttribute('d')));
   const tip = document.createElement('div');
   tip.setAttribute('data-tip', '');
   tip.setAttribute('aria-hidden', 'true');
@@ -288,19 +294,30 @@ export function initLattice(): void {
       gl.drawArrays(gl.POINTS, 0, 1);
     }
 
-    /* The callouts ride with their planes, and show above 0.6. */
+    /* The callouts ride with their planes and show above 0.6; each leader
+       still lands on its plate's rim as the plates turn. */
     const op = smooth(0.6, 0.85, e);
-    labels.forEach((lb, k) => {
+    if (op || shown) {
+      shown = op;
       const c = [0, 0];
-      const r = [0, 0];
-      const y = PLANE_Y[k] * e;
-      proj(0, y, 0, c, 0);
-      const rest = [VIEW.cx, VIEW.cy - VIEW.s * PLANE_Y[k]];
-      r[0] = c[0] - rest[0];
-      r[1] = c[1] - rest[1];
-      lb.setAttribute('transform', `translate(${r[0].toFixed(1)} ${r[1].toFixed(1)})`);
-      lb.style.opacity = op.toFixed(3);
-    });
+      const d = [0, 0];
+      const cu = Math.cos(LABEL.phi);
+      const sv = Math.sin(LABEL.phi);
+      labels.forEach((lb, k) => {
+        const y = PLANE_Y[k] * e;
+        const rest = leader(k);
+        proj(0, y, 0, c, 0);
+        const tx = c[0] - VIEW.cx;
+        const ty = c[1] - (VIEW.cy - VIEW.s * PLANE_Y[k]);
+        const r = 1.04 + (RIM - 1.04) * e;
+        proj(r * cu, y, (1.04 + (FLAT * RIM - 1.04) * e) * sv, d, 0);
+        const dot = `${(d[0] - tx).toFixed(1)} ${(d[1] - ty).toFixed(1)}`;
+        lb.setAttribute('transform', `translate(${tx.toFixed(1)} ${ty.toFixed(1)})`);
+        lb.style.opacity = op.toFixed(3);
+        lb.firstElementChild?.setAttribute('d', `M${LABEL.x} ${rest.y.toFixed(1)}H${rest.elbow[0].toFixed(1)}L${dot}`);
+        lb.children[1]?.setAttribute('d', `M${dot}h0`);
+      });
+    }
   };
 
   /* The nearest structure node to the pointer: project, bucket, look up. */
@@ -438,11 +455,12 @@ export function initLattice(): void {
     if (med > 22) low++;
   };
 
+  const cap = fig.querySelector('[data-graph-caption]');
+  const counts = fig.querySelector('[data-graph-counts]');
+  const chip = fig.querySelector('.prov');
+  const built = [cap, counts, chip].map((el) => el?.cloneNode(true));
   const goLive = () => {
     fig.setAttribute('data-live', '');
-    const cap = fig.querySelector('[data-graph-caption]');
-    const counts = fig.querySelector('[data-graph-counts]');
-    const chip = fig.querySelector('.prov');
     const d = fig.dataset;
     if (cap && d.liveCaption) cap.textContent = d.liveCaption.replace('{ms}', `${ms < 10 ? ms.toFixed(1) : Math.round(ms)} ms`);
     if (counts && d.liveCounts) {
@@ -481,9 +499,12 @@ export function initLattice(): void {
   fig.dataset.running = 'false';
   whileVisible(fig, start, stop);
 
+  /* Scrolling only costs a frame while it changes the drawing: past 0.6
+     of the hero the graph is fully exploded, and far below it nothing is
+     drawn at all. */
   const onScroll = () => {
     rect = null;
-    need();
+    if (target() !== e) need();
   };
   window.addEventListener('scroll', onScroll, { passive: true });
   canvas.addEventListener('pointermove', (ev) => {
@@ -513,10 +534,14 @@ export function initLattice(): void {
     canvas.remove();
     tip.remove();
     fig.removeAttribute('data-live');
-    labels.forEach((lb) => {
+    fig.removeAttribute('data-running');
+    labels.forEach((lb, k) => {
       lb.removeAttribute('transform');
       lb.style.opacity = '';
+      restD[k].forEach((d, j) => d && lb.children[j].setAttribute('d', d));
     });
+    /* The poster is a build-time drawing again, so the caption says so. */
+    [cap, counts, chip].forEach((el, i) => el && built[i] && el.replaceWith(built[i]!));
   });
 
   /** The element a node stands for: its ordinal in the same list pageGraph
@@ -528,9 +553,11 @@ export function initLattice(): void {
       for (let p: Element | null = el; p; p = p.parentElement) if (isExcluded(p.tagName, p)) return false;
       return true;
     });
-    const el = els[nd.ord];
     const tag = nd.tag.slice(1).split(/[>\s]/)[0];
-    return el && el.tagName.toLowerCase() === tag ? el : null;
+    const is = (el?: Element) => !!el && el.tagName.toLowerCase() === tag;
+    if (is(els[nd.ord])) return els[nd.ord];
+    const want = nd.text.replace(/…$/, '');
+    return els.find((el) => is(el) && (el.textContent ?? '').replace(/\s+/g, ' ').trim().startsWith(want)) ?? null;
   }
 }
 

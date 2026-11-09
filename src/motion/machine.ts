@@ -89,6 +89,10 @@ async function fetchPage(): Promise<Live | null> {
      browser exposes it, else from when the response headers arrived. */
   const entry = (performance.getEntriesByName(url) as PerformanceResourceTiming[]).filter((e) => e.startTime >= t0 - 1).pop();
   const ttfb = entry && entry.responseStart > 0 ? entry.responseStart - entry.startTime : head;
+  /* A headline mid-decode is noise in the DOM (its real text is on its
+     aria-label meanwhile), so the rendered words are counted once every
+     line has resolved, which takes well under a second. */
+  for (let i = 0; i < 30 && document.querySelector('main h2[aria-label]'); i++) await new Promise((r) => setTimeout(r, 100));
   const main = document.querySelector('main');
   return {
     status: res.status,
@@ -208,9 +212,14 @@ function paint(p: HTMLElement, L: Live, c: Copy): void {
   const top = Math.max(N, M, 1);
   fill(p, 'dom', fmtInt(M), c);
   fill(p, 'dom2', fmtInt(M), c);
-  p.querySelectorAll<HTMLElement>('[data-k="pct"]').forEach((el) => {
-    el.textContent = M ? `(${Math.round((Math.min(N, M) / M) * 100)}%)` : '';
-  });
+  /* 100 only when every rendered word is in the raw HTML; anything short
+     of that shows its tenth (99.9%), never rounds up to full parity. The
+     figure also lands on the meter as data-parity, for anything reading
+     the page. */
+  const ratio = M ? Math.min(N, M) / M : null;
+  const pct = ratio === null ? null : ratio === 1 ? 100 : Math.min(99.9, Math.floor(ratio * 1000) / 10);
+  p.querySelectorAll<HTMLElement>('[data-k="pct"]').forEach((el) => (el.textContent = pct === null ? '' : `(${pct}%)`));
+  if (pct !== null) p.querySelectorAll<HTMLElement>('[data-parity]').forEach((el) => (el.dataset.parity = String(pct)));
   p.querySelectorAll<HTMLElement>('[data-k="rawbar"]').forEach((el) => el.style.setProperty('--f', (N / top).toFixed(3)));
   p.querySelectorAll<HTMLElement>('[data-k="dombar"]').forEach((el) => {
     el.style.setProperty('--f', (M / top).toFixed(3));

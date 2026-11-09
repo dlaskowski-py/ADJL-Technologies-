@@ -6,8 +6,11 @@
  * measured in the visitor's browser, so it prerenders as "needs JS" and
  * motion/telemetry.ts swaps in the reading when the browser reports one,
  * flipping that metric's chip to Live. Every value sits in a fixed-width
- * slot (machine.css / telemetry.css), so a reading landing never moves
- * anything.
+ * slot (telemetry.css), so a reading landing never moves anything.
+ *
+ * A slot says where its value came from with data-reading="build|live"
+ * (data-prov belongs to the .prov chips alone), and why it has none with
+ * data-state="nojs|nr|none".
  *
  * OWNER: WS2. Markup contract: [data-telemetry].
  */
@@ -62,7 +65,7 @@ export function telemetryCopy(): string {
 /** One value slot. BUILD ones are empty until stamp-sizes fills them. */
 function slot(k: Key): string {
   return BUILD.has(k)
-    ? `<dd class="num" data-metric="${k}" data-chrome data-prov="build" title="${esc(prov.build.def)}"></dd>`
+    ? `<dd class="num" data-metric="${k}" data-chrome data-reading="build" title="${esc(prov.build.def)}"></dd>`
     : `<dd class="num" data-metric="${k}" data-chrome data-state="nojs" title="${esc(status.needsJsTitle)}">${esc(
         status.needsJs,
       )}</dd>`;
@@ -78,7 +81,7 @@ export function renderStatusReadouts(): string {
 export function renderTelemetryPanel(): string {
   const m = status.metrics;
   return `<div class="panel tm-panel" data-telemetry="panel">
-    <div class="panel-head"><span class="panel-title">${esc(status.label)}</span>${chip('build')}</div>
+    <div class="panel-head" data-chrome><span class="panel-title">${esc(status.label)}</span>${chip('build')}</div>
     <dl class="tm-grid" data-chrome data-copy="${telemetryCopy()}">${PANEL.map(
       (k) => `<div class="tm-tile" data-key="${k}">
         <dt><span>${esc(m[k])}</span><span class="tm-chip" data-tchip>${BUILD.has(k) ? chip('build') : ''}</span></dt>

@@ -1,1 +1,107 @@
-/* Instrument styles: headers. Owned by its workstream (see the rebuild ownership map). */
+/* The curl -I panel on /work/this-site/#headers
+   (sections/instruments/headers.ts, motion/headers.ts). OWNER: WS2.
+
+   A terminal printout, then the policy annotated one directive per row.
+   The printout is a <pre> of attribute-tagged spans: BUILD ships the
+   policy as configured, the live module swaps in what the server answered
+   and marks any security header it didn't send. Colour is the site's:
+   teal for what was measured live (the URL, the status), violet for the
+   policy's structure (its directives), copper for the security headers
+   we chose to send. A missing header says so in words, not only amber. */
+
+.headers {
+  container: hd / inline-size;
+}
+.headers-out {
+  margin: 0;
+  padding: var(--s-4);
+  border-bottom: 1px solid var(--rule);
+  background: var(--ground);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  line-height: 1.7;
+  color: var(--fg-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  tab-size: 2;
+}
+.headers-out [data-line='cmd'] {
+  color: var(--fg);
+}
+.headers-out [data-p] {
+  color: var(--fg-3);
+}
+.headers-out [data-url] {
+  color: var(--data);
+}
+.headers-out [data-line='status'] {
+  color: var(--fg);
+}
+.headers-out [data-k='status']:not([data-live]) {
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+.headers-out [data-k='status'][data-live] {
+  color: var(--data);
+}
+.headers-out [data-hn] {
+  color: var(--fg-3);
+}
+.headers-out [data-sec] > [data-hn] {
+  font-weight: 600;
+  color: var(--signal-hi);
+}
+.headers-out [data-sec] {
+  color: var(--fg);
+}
+.headers-out [data-dir] {
+  color: var(--model);
+}
+.headers-out [data-val] {
+  color: var(--fg-2);
+}
+/* Configured, but this server didn't send it: kept, greyed, explained. */
+.headers-out [data-missing],
+.headers-out [data-missing] :is([data-hn], [data-dir], [data-val]) {
+  font-weight: 400;
+  color: var(--fg-3);
+}
+.headers-out [data-note] {
+  font-size: var(--t-label);
+  color: var(--warn);
+}
+
+/* The policy, annotated. */
+.headers-csp {
+  display: grid;
+  column-gap: var(--s-6);
+  padding: var(--s-2) var(--s-4) var(--s-4);
+}
+@container hd (min-width: 760px) {
+  .headers-csp {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.headers-row {
+  display: grid;
+  gap: 4px;
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid var(--rule);
+}
+.headers-row dt code {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  color: var(--model);
+  overflow-wrap: anywhere;
+}
+.headers-row dd {
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--fg-2);
+}
+.headers-row[data-missing]::after {
+  content: '▲ ' attr(title);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--warn);
+}

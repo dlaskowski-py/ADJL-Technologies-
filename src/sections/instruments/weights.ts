@@ -11,6 +11,10 @@
  */
 import { chip, esc } from '../html';
 
+/* Not in src/content*.ts yet (listed in WS2's report). */
+const TITLE = 'module weights · gz';
+const OVER = '▲ over budget';
+
 /** Lazy modules and their spec budgets (gz bytes). `core` is the entry
  *  every page loads first: boot, telemetry, views, reveal and friends. */
 export const WEIGHTS: { name: string; budget: number }[] = [
@@ -31,16 +35,20 @@ export const WEIGHTS: { name: string; budget: number }[] = [
 export function weightRow(name: string, gz: number | undefined, budget: number): string {
   const f = gz === undefined ? 0 : Math.min(1, gz / budget);
   const v = gz === undefined ? '' : `${(gz / 1024).toFixed(1)} kB`;
-  return `<div class="weight" data-mod="${esc(name)}"${gz !== undefined && gz > budget ? ' data-over' : ''}><dt>${esc(
+  /* Over budget says so in words, not only in amber. */
+  const over = gz !== undefined && gz > budget;
+  return `<div class="weight" data-mod="${esc(name)}"${over ? ' data-over' : ''}><dt>${esc(
     name,
   )}</dt><dd><span class="weight-bar" aria-hidden="true"><i style="--f:${f.toFixed(3)}"></i></span><span class="num weight-v">${esc(
     v,
-  )}</span><span class="weight-of">${esc(`/ ${(budget / 1024).toFixed(budget % 1024 ? 1 : 0)} kB`)}</span></dd></div>`;
+  )}</span><span class="weight-of">${esc(`/ ${(budget / 1024).toFixed(budget % 1024 ? 1 : 0)} kB`)}${
+    over ? ` <b>${esc(OVER)}</b>` : ''
+  }</span></dd></div>`;
 }
 
 export function renderWeights(): string {
   return `<div class="panel weights">
-    <div class="panel-head"><span class="panel-title">module weights · gz</span>${chip('build')}</div>
+    <div class="panel-head" data-chrome><span class="panel-title">${esc(TITLE)}</span>${chip('build')}</div>
     <dl class="weights-list" data-chrome data-weights>${WEIGHTS.map((w) => weightRow(w.name, undefined, w.budget)).join(
       '',
     )}</dl>

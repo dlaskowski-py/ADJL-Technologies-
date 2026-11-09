@@ -43,10 +43,14 @@ function mode(v: View): Promise<Mode> | null {
 
 /** Heading outline numbers for Machine view's CSS labels: h1 is 0, then
  *  2, 2.1, 2.1.1. (machine-kit.ts has the same rule for the readout; this
- *  copy keeps the first-load bundle free of it.) */
+ *  copy keeps the first-load bundle free of it.) Headings inside the
+ *  exclusion set (lib/exclude.ts) aren't in the outline a crawler reads,
+ *  so they aren't numbered: the labels match the drawer's outline. */
+const SKIP = '[aria-hidden="true"],[data-chrome],[data-machine],[data-ask-pre],[data-source-sheet]';
 function stampHeadings(): void {
   const c = [0, 0, 0];
   document.querySelectorAll<HTMLElement>('main h1, main h2, main h3').forEach((h) => {
+    if (h.closest(SKIP)) return;
     const l = Number(h.tagName[1]);
     if (l === 1) {
       h.dataset.x = '0';

@@ -145,6 +145,11 @@
   fill: var(--model);
 }
 
+/* The caption's layer sentence: it says in words what the drawing shows. */
+.hero-fig-layers {
+  text-wrap: pretty;
+}
+
 /* ── Live (full tier): the canvas over the poster ───────────────────── */
 
 /* Stacking inside the art box: canvas, then the poster's frame group on
@@ -251,4 +256,44 @@
   100% {
     outline-color: transparent;
   }
+}
+
+/* ── Compile (motion/compile.ts): the h1's markup, shown, then built ─── */
+
+/* Colour only, so the h1 never reflows and never makes a new LCP entry. */
+[data-compiling] em {
+  transition: color var(--d-2) linear;
+}
+[data-compiling='in'] em {
+  color: var(--fg);
+}
+[data-compile-layer] {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+[data-compile-layer] [data-mark] {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.26em;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+  color: var(--fg-3);
+  opacity: 0;
+}
+[data-compile-layer] [data-mark='open'] {
+  transform-origin: 100% 50%;
+}
+[data-compile-layer] [data-mark='close'] {
+  transform-origin: 0 50%;
+}
+[data-compile-layer] [data-caret] {
+  position: absolute;
+  width: 2px;
+  background: var(--signal);
+  opacity: 0;
 }

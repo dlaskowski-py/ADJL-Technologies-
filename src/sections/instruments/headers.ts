@@ -64,7 +64,7 @@ export function headerLines(directives: string[], others: [string, string][] = [
 export function renderHeaders(csp: CspNote[]): string {
   const copy = esc(JSON.stringify({ missing: L.missing }));
   return `<div class="panel headers" data-headers data-copy="${copy}">
-    <div class="panel-head"><span class="panel-title">curl -I</span>${chip('build')}</div>
+    <div class="panel-head" data-chrome><span class="panel-title">curl -I</span>${chip('build')}</div>
     <pre class="headers-out" tabindex="0" data-chrome><span data-line="cmd"><span data-p aria-hidden="true">$</span> curl -I <span data-url></span></span>
 <span data-line="status">HTTP <span data-k="status" title="${esc(status.needsJsTitle)}">${esc(status.needsJs)}</span></span>
 <span data-headers-build>${headerLines(csp.map((c) => c.directive))}</span><span data-headers-live></span></pre>
