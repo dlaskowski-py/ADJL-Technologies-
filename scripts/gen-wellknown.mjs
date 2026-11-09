@@ -34,9 +34,14 @@ Sitemap: ${ORIGIN}/sitemap.xml
 );
 
 mkdirSync('dist/.well-known', { recursive: true });
+/* RFC 9116 makes Expires mandatory, so a stale file announces itself
+   instead of being trusted forever. A year from the build: every deploy
+   renews it. */
+const expires = new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().replace(/\.\d{3}Z$/, 'Z');
 writeFileSync(
   'dist/.well-known/security.txt',
   `Contact: mailto:daniel@adjlcapital.com
+Expires: ${expires}
 Preferred-Languages: en
 Canonical: ${ORIGIN}/.well-known/security.txt
 `,

@@ -82,6 +82,9 @@
   border-bottom: 1px solid var(--rule);
   view-transition-name: nav;
 }
+.nav.is-stuck {
+  border-bottom-color: var(--rule-2);
+}
 .nav-inner {
   max-width: var(--max);
   margin-inline: auto;

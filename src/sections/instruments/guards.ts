@@ -11,7 +11,7 @@ export const GUARDS = guards.map((g) => g.name);
 
 export function renderGuards(): string {
   return `<div class="panel term guards" data-chrome>
-    <div class="panel-head"><span class="panel-title">npm run build</span>${chip('build')}</div>
+    <div class="panel-head" data-chrome><span class="panel-title">npm run build</span>${chip('build')}</div>
     <pre class="term-body"><code>${GUARDS.map((g) => `<span class="term-ok">✓</span> ${esc(g)}`).join('\n')}</code></pre>
   </div>`;
 }

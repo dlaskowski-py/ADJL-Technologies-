@@ -114,7 +114,7 @@ function renderTeam(n: number): string {
           ${prose(t.body, 'prose sec-body')}
         </div>
         <aside class="team-card panel" data-reveal>
-          <div class="panel-head"><span class="panel-title">founder</span></div>
+          <div class="panel-head" data-chrome><span class="panel-title">founder</span></div>
           <div class="team-card-body">
             <p class="team-name">${esc(t.name)}</p>
             <p class="label">${esc(t.role)}</p>
@@ -139,7 +139,7 @@ function renderTeam(n: number): string {
       <div class="stack">
         <p class="stack-label" data-reveal>${rich(t.stackLabel)}</p>
         <div class="stack-lock panel" data-reveal>
-          <div class="panel-head"><span class="panel-title">stack.lock</span></div>
+          <div class="panel-head" data-chrome><span class="panel-title">stack.lock</span></div>
           <dl class="stack-list" data-chrome>
             ${t.stack
               .map(

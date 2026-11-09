@@ -9,7 +9,13 @@
  */
 import { start } from './boot';
 
-const PAGES: Record<string, () => Promise<{ render: () => { navHtml: string; pageHtml: string } }>> = {
+type Loader = () => Promise<{ render: () => { navHtml: string; pageHtml: string } }>;
+
+/* DEV ONLY. In a production build every page is prerendered, so this map
+   is dead code; gating it on import.meta.env.DEV lets the bundler drop it
+   and with it every page's copy and renderers. Production JavaScript
+   carries no page content at all. */
+const PAGES: Record<string, Loader> = import.meta.env.DEV ? {
   '/': () => import('./pages/home'),
   '/services/': () => import('./pages/services'),
   '/services/ai-engineering/': () => import('./pages/service-ai'),
@@ -25,6 +31,6 @@ const PAGES: Record<string, () => Promise<{ render: () => { navHtml: string; pag
   '/approach/': () => import('./pages/approach'),
   '/legal/privacy/': () => import('./pages/legal-privacy'),
   '/legal/terms/': () => import('./pages/legal-terms'),
-};
+} : {};
 
 start(PAGES[location.pathname] ?? PAGES[location.pathname + '/'] ?? PAGES['/']);

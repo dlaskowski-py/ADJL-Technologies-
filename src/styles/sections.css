@@ -1045,7 +1045,7 @@
   content: counter(toc, decimal-leading-zero);
   font-family: var(--font-mono);
   font-size: var(--t-label);
-  color: var(--fg-faint);
+  color: var(--fg-3);
 }
 .legal-toc a:hover {
   color: var(--signal-hi);

@@ -72,7 +72,7 @@ export function renderContact(
           <p class="lead contact-body" data-reveal>${rich(c.body)}</p>
         </div>
         <div class="contact-card panel" data-reveal>
-          <div class="panel-head"><span class="panel-title">mailto</span></div>
+          <div class="panel-head" data-chrome><span class="panel-title">mailto</span></div>
           <div class="contact-card-body">
             <a class="contact-mail mono" href="mailto:${esc(c.email)}">${esc(c.email)}</a>
             <div class="actions">

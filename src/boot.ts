@@ -98,9 +98,9 @@ export function boot(): void {
 }
 
 /** Entry point: mount in dev (empty shell) or go straight to boot. */
-export async function start(load: () => Promise<{ render: Render }>): Promise<void> {
+export async function start(load?: () => Promise<{ render: Render }>): Promise<void> {
   const page = document.getElementById('page');
-  if (page && page.children.length === 0) {
+  if (load && page && page.children.length === 0) {
     const m = await load();
     mount(m.render);
   }
