@@ -446,16 +446,8 @@
   gap: var(--col-gap);
   margin-top: var(--s-7);
 }
-@media (min-width: 760px) {
-  .sys-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@media (min-width: 1100px) {
-  .sys-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
+/* The cards' own layout (wrapping rows, the wide feature card) is in
+   styles/landing/showcase.css, with the previews it was designed around. */
 .sys {
   display: flex;
   flex-direction: column;

@@ -12,10 +12,14 @@
    motion, Pause and JavaScript-off all show the same complete still. */
 
 /* ── The grid ──────────────────────────────────────────────────────
-   Rows that wrap, not tracks: a card asks for a share of the row and the
-   cards in a row grow to fill it. So five cards after the feature make
-   three and two with no hole, and whatever the /work/ filter leaves
-   re-flows the same way. Cards in a row are as tall as the tallest. */
+   Rows that wrap, not tracks: a card asks for 340px and the cards in a
+   row grow to fill it. So the count per row follows the width the grid
+   actually has (one on a phone, two from about 700px, three from about
+   1070px, and Source view's narrow column gets what fits there, not what
+   the window would),
+   five cards after the feature make three and two with no hole, and
+   whatever the /work/ filter leaves re-flows the same way. Cards in a row
+   are as tall as the tallest. */
 .sys-grid.sc-grid {
   display: flex;
   flex-wrap: wrap;
@@ -26,28 +30,17 @@
   display: none;
 }
 .sc-card {
-  flex: 1 1 100%;
+  flex: 1 1 340px;
   min-width: 0;
   container-type: inline-size;
+}
+/* The feature takes a row to itself at every width. */
+.sc-card.sc-feature {
+  flex-basis: 100%;
 }
 .sc-card:focus-within {
   border-color: var(--rule-3);
   background-color: var(--panel-2);
-}
-/* Two to a row, then three. The share only has to be more than a third
-   (or a quarter) of the row: growing does the rest. */
-@media (min-width: 760px) {
-  .sc-card {
-    flex-basis: 40%;
-  }
-  .sc-card.sc-feature {
-    flex-basis: 100%;
-  }
-}
-@media (min-width: 1100px) {
-  .sc-card {
-    flex-basis: 30%;
-  }
 }
 
 /* ── A card ────────────────────────────────────────────────────────
@@ -68,6 +61,32 @@
   gap: var(--s-3);
   min-width: 0;
 }
+.sc-copy .h3 {
+  text-wrap: balance;
+}
+/* The focus ring hugs the link's words, not the card's width. */
+.sc-copy .sys-link {
+  align-self: flex-start;
+}
+/* A narrow card can't always fit the kicker and the status on one line,
+   and one card in a row wrapping while its neighbors don't looks like a
+   mistake. So in a narrow card they always stack. (A container query
+   measures the card's content box: the card is 50px wider than the number
+   here, so this is cards under 420px.) */
+@container (max-width: 369.98px) {
+  .sc-copy .sys-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}
+/* Narrower still (cards under 340px: a 360px phone), the title bar gives
+   up its dots before its caption. */
+@container (max-width: 289.98px) {
+  .sc-dots {
+    display: none;
+  }
+}
 /* ── The device frame ──────────────────────────────────────────────
    A window cut into the card: the page's ground showing through, a title
    bar (browser dots, a caption, the provenance chip) and the drawing. */
@@ -84,22 +103,24 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--s-2);
+  gap: 6px;
   min-height: 30px;
-  padding: 3px 4px 3px 10px;
+  padding: 3px 4px 3px 8px;
   border-bottom: 1px solid var(--rule);
   font: 11px var(--font-mono);
   color: var(--fg-3);
 }
-/* Three dots from one element: the box and two shadows of it. */
+/* Three dots from one element: the box and two shadows of it. The bar is
+   set tight on purpose: on a 375px phone the longest caption, this site's
+   own address, has three pixels to spare beside the chip. */
 .sc-dots {
   flex: none;
-  width: 6px;
-  height: 6px;
-  margin-right: 20px;
+  width: 5px;
+  height: 5px;
+  margin-right: 14px;
   border-radius: 50%;
   background: currentColor;
-  box-shadow: 10px 0, 20px 0;
+  box-shadow: 7px 0, 14px 0;
   opacity: 0.6;
 }
 .sc-addr {
@@ -227,10 +248,10 @@ html[data-motion='reduced'] :is(.sc-shot, .sc-bar::after) {
 
 /* ── A card on its side ────────────────────────────────────────────
    A card with a row to itself (the feature, or the last one the filter
-   left) is wide enough to turn: the preview at a generous size, as tall
-   as the card, its labels a size up, and the copy beside it a size up
-   too. After the rules above on purpose: it overrides them. */
-@container (min-width: 700px) {
+   left) is wide enough to turn, from 740px: the preview at a generous
+   size, as tall as the card, its labels a size up, and the copy beside it
+   a size up too. After the rules above on purpose: it overrides them. */
+@container (min-width: 690px) {
   .sc-lay {
     display: grid;
     grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
@@ -246,21 +267,33 @@ html[data-motion='reduced'] :is(.sc-shot, .sc-bar::after) {
   .sc-copy .h3 {
     font-size: clamp(1.75rem, 1.1rem + 1.4vw, 2.25rem);
     line-height: 1.1;
-    text-wrap: balance;
   }
   .sc-copy p {
     font-size: var(--t-body);
   }
 }
 
+/* On paper the previews would be light ink on white. They're decoration
+   (the copy says the same thing), so they don't print. */
+@media print {
+  .sc-shot {
+    display: none;
+  }
+}
+
 /* ── Motion ────────────────────────────────────────────────────────
-   One 9s loop, six steps. A .sc-k* element is off until its step and then
-   stays, so one pass (the lite tier, --scene-iter: 1) ends on the finished
-   picture. On the full tier the action layer blinks out between loops.
-   How a thing arrives is its second class: drawn, slid in, landed, or
-   grown from its left end. */
+   One 9s loop, six steps, one every 1.17s from 0.27s; then the finished
+   picture holds for two seconds. A .sc-k* element is off until its step
+   and then stays, so one pass (the lite tier, --scene-iter: 1) ends on
+   the finished picture. On the full tier the action layer blinks out
+   between loops. How a thing arrives is its second class: drawn, slid
+   in, landed, or grown from its left end. */
+/* The dash is only on while playing: at rest a drawn line is a plain
+   line, whatever a browser makes of pathLength. */
 .sc-dr {
   --s: 1;
+}
+[data-playing='true'] .sc-dr {
   stroke-dasharray: 1;
 }
 .sc-sl {
@@ -273,7 +306,8 @@ html[data-motion='reduced'] :is(.sc-shot, .sc-bar::after) {
   --t: scaleX(0);
 }
 .sc-gx,
-.sc-rs {
+.sc-rs,
+.sc-run {
   transform-box: fill-box;
   transform-origin: 0 50%;
 }
@@ -326,18 +360,22 @@ html[data-motion='reduced'] :is(.sc-shot, .sc-bar::after) {
 [data-playing='true'] .sc-rs {
   animation: sc-rs 9s steps(1) var(--scene-iter, infinite);
 }
+/* The engine: the line under the link fills while the file does. */
+[data-playing='true'] .sc-run {
+  animation: sc-run 9s linear var(--scene-iter, infinite);
+}
 html[data-motion='full'] [data-playing='true'] .sc-act {
   animation: sc-loop 9s linear infinite;
 }
 
 @keyframes sc-k1 {
   0%,
-  6% {
+  3% {
     opacity: 0;
     transform: var(--t, none);
     stroke-dashoffset: var(--s, 0);
   }
-  11%,
+  8%,
   to {
     opacity: 1;
     transform: none;
@@ -346,12 +384,12 @@ html[data-motion='full'] [data-playing='true'] .sc-act {
 }
 @keyframes sc-k2 {
   0%,
-  18% {
+  16% {
     opacity: 0;
     transform: var(--t, none);
     stroke-dashoffset: var(--s, 0);
   }
-  23%,
+  21%,
   to {
     opacity: 1;
     transform: none;
@@ -360,12 +398,12 @@ html[data-motion='full'] [data-playing='true'] .sc-act {
 }
 @keyframes sc-k3 {
   0%,
-  30% {
+  29% {
     opacity: 0;
     transform: var(--t, none);
     stroke-dashoffset: var(--s, 0);
   }
-  35%,
+  34%,
   to {
     opacity: 1;
     transform: none;
@@ -388,12 +426,12 @@ html[data-motion='full'] [data-playing='true'] .sc-act {
 }
 @keyframes sc-k5 {
   0%,
-  54% {
+  55% {
     opacity: 0;
     transform: var(--t, none);
     stroke-dashoffset: var(--s, 0);
   }
-  59%,
+  60%,
   to {
     opacity: 1;
     transform: none;
@@ -402,12 +440,12 @@ html[data-motion='full'] [data-playing='true'] .sc-act {
 }
 @keyframes sc-k6 {
   0%,
-  66% {
+  68% {
     opacity: 0;
     transform: var(--t, none);
     stroke-dashoffset: var(--s, 0);
   }
-  71%,
+  73%,
   to {
     opacity: 1;
     transform: none;
@@ -416,25 +454,24 @@ html[data-motion='full'] [data-playing='true'] .sc-act {
 }
 @keyframes sc-loop {
   0%,
-  4%,
-  99%,
+  99.5%,
   to {
     opacity: 0;
   }
-  5%,
-  96% {
+  2%,
+  97% {
     opacity: 1;
   }
 }
 @keyframes sc-tmp {
   0%,
-  7%,
-  22%,
+  4%,
+  16%,
   to {
     opacity: 0;
   }
-  9%,
-  15% {
+  6%,
+  11% {
     opacity: 1;
   }
 }
@@ -449,33 +486,43 @@ html[data-motion='full'] [data-playing='true'] .sc-act {
   50%,
   75%,
   to {
-    fill-opacity: 1;
+    opacity: 1;
   }
   12%,
   37%,
   62%,
   87% {
-    fill-opacity: 0.3;
+    opacity: 0.3;
   }
 }
 @keyframes sc-nb {
   0%,
-  20%,
-  62%,
+  16%,
+  60%,
   to {
     transform: none;
   }
-  30%,
-  52% {
+  26%,
+  50% {
     transform: translateX(-24px);
+  }
+}
+@keyframes sc-run {
+  0%,
+  8% {
+    transform: scaleX(0);
+  }
+  73%,
+  to {
+    transform: none;
   }
 }
 @keyframes sc-rs {
   0%,
-  62% {
+  60% {
     transform: none;
   }
-  31% {
+  27% {
     transform: scaleX(0.45);
   }
 }

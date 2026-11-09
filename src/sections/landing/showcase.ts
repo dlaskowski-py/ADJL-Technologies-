@@ -7,7 +7,8 @@
  * The cards are content.ts `systems.items`, in that order, and the first
  * one is the feature: it takes a whole row. A preview is picked by the
  * card's link, so a new item without a drawing still renders as a plain
- * card.
+ * card. The layout is the stylesheet's (styles/landing/showcase.css): rows
+ * that wrap, and a card that turns on its side once it's wide enough.
  *
  * A PREVIEW is a device frame (a browser window, or a stage with a phone on
  * it) around one inline SVG. Markup contract: [data-scene] on the frame;
@@ -15,9 +16,10 @@
  * that moves is CSS hanging off that (styles/landing/showcase.css).
  *
  * THE DRAWINGS HAVE NO viewBox. A frame is 240px wide on a small phone and
- * 690px wide (and twice as tall) as the feature on a desktop, and a scaled
- * drawing would have to pick one of those to be legible at. So a drawing
- * is laid out like a page instead, and fills whatever frame it's given:
+ * 690px wide (and half as tall again) as the feature on a desktop, and a
+ * scaled drawing would have to pick one of those to be legible at. So a
+ * drawing is laid out like a page instead, and fills whatever frame it's
+ * given:
  *
  *   - A length written '5%' is a share of the frame (of its width for x,
  *     of its height for y). A bare number is pixels.
@@ -30,9 +32,11 @@
  *   - Lines that connect things run in shares and are drawn FIRST, so the
  *     opaque boxes over their ends cover the slack.
  *
- * Labels stay 11px at every width; only the layout stretches. They're
- * centered on their y (the stylesheet sets dominant-baseline), so a row's
- * text sits at y 0.
+ * Labels stay 11px at every width (13px in a card on its side); only the
+ * layout stretches. They're centered on their y (the stylesheet sets
+ * dominant-baseline), so a row's text sits at y 0. Where a size has to
+ * follow the type (a plate behind a label, a run of readouts), it's
+ * written in em: the mono face is 0.6em a character.
  *
  * WHAT'S PRERENDERED IS THE FINISHED PICTURE, which is what JavaScript-off,
  * reduced motion and Pause show. Playing, a scene runs one 9s loop:
@@ -44,6 +48,7 @@
  *   sc-gx           with a step: a bar that grows from its left end
  *   sc-fw           a dashed line that keeps flowing
  *   sc-tk           a readout that ticks
+ *   sc-run          a bar that fills from the first step to the last
  *   sc-tmp          shown for a moment early in the loop, and not at rest
  *   sc-act          the layer holding everything with a step: it blinks
  *                   out between loops, so a loop never ends on a hard cut
@@ -62,7 +67,7 @@ import { chip, esc, rich } from '../html';
 
 /* ── SVG primitives ─────────────────────────────────────────────────── */
 
-/** A length: a number is pixels, a string is as written ('5%'). */
+/** A length: a number is pixels, a string is as written ('5%', '1.2em'). */
 type U = number | string;
 type Anchor = '' | 'middle' | 'end';
 
@@ -72,17 +77,18 @@ const rect = (cls: string, x: U, y: U, w: U, h: U, rx = 2, extra = '') =>
   `<rect${c(cls)} x="${x}" y="${y}" width="${w}" height="${h}"${rx ? ` rx="${rx}"` : ''}${extra}/>`;
 const line = (cls: string, x1: U, y1: U, x2: U, y2: U, extra = '') =>
   `<line${c(cls)} x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"${extra}/>`;
-const text = (cls: string, x: U, y: U, s: string, anchor: Anchor = '') =>
-  `<text${c(cls)} x="${x}" y="${y}"${anchor ? ` text-anchor="${anchor}"` : ''}>${esc(s)}</text>`;
+const text = (cls: string, x: U, y: U, s: string, anchor: Anchor = '', extra = '') =>
+  `<text${c(cls)} x="${x}" y="${y}"${anchor ? ` text-anchor="${anchor}"` : ''}${extra}>${esc(s)}</text>`;
 const path = (cls: string, d: string) => `<path${c(cls)} d="${d}"/>`;
-const g = (cls: string, inner: string) => `<g class="${cls}">${inner}</g>`;
+const g = (cls: string, ...inner: string[]) => `<g class="${cls}">${inner.join('')}</g>`;
 /** Pixels from this point of the frame. Pass 0 to leave an axis as it is. */
-const at = (x: U, y: U, inner: string) => `<svg${x ? ` x="${x}"` : ''}${y ? ` y="${y}"` : ''}>${inner}</svg>`;
+const at = (x: U, y: U, ...inner: string[]) =>
+  `<svg${x ? ` x="${x}"` : ''}${y ? ` y="${y}"` : ''}>${inner.join('')}</svg>`;
 /** A region of the frame. Shares inside it are shares of the region. */
-const box = (x: U, y: U, w: U, h: U, inner: string) =>
-  `<svg x="${x}" y="${y}" width="${w}" height="${h}">${inner}</svg>`;
+const box = (x: U, y: U, w: U, h: U, ...inner: string[]) =>
+  `<svg x="${x}" y="${y}" width="${w}" height="${h}">${inner.join('')}</svg>`;
 /** The outline of a box(), filling it. */
-const sheet = (extra = '') => rect('sc-f', 0, 0, '100%', '100%', 3, extra);
+const sheet = () => rect('sc-f', 0, 0, '100%', '100%', 3);
 /** A line that draws on its step: pair with sc-dr. */
 const DRAW = ' pathLength="1"';
 const DOTTED = ' stroke-dasharray="2 4"';
@@ -90,7 +96,8 @@ const DOTTED = ' stroke-dasharray="2 4"';
 const tick = (cls: string, x: number, y: number) => path(cls, `M${x} ${y}l3 3 6-7`);
 /** Lines of text nobody needs to read: skeleton bars down a box(), each
  *  [y, width] in shares of it. */
-const bars = (rows: [number, number][]) => rows.map(([y, w]) => rect('sc-sk', '15%', pct(y), pct(w), 3, 1)).join('');
+const bars = (...rows: [number, number][]) =>
+  rows.map(([y, w]) => rect('sc-sk', '15%', pct(y), pct(w), 3, 1)).join('');
 /** A column head. */
 const cap = (x: U, s: string, anchor: Anchor = '', y: U = '10%') => text('sc-cp', x, y, s, anchor);
 /** A label that sits on a line: the text at (0, y), on a plate the color
@@ -98,7 +105,8 @@ const cap = (x: U, s: string, anchor: Anchor = '', y: U = '10%') => text('sc-cp'
  *  character), so the line stops short of it at any width. */
 function tag(cls: string, y: number, s: string, anchor: 'middle' | 'end'): string {
   const w = +(s.length * 0.6 + 1).toFixed(1);
-  return `${rect('sc-g', `-${anchor === 'end' ? w - 0.2 : w / 2}em`, y - 8, `${w}em`, 16, 0)}${text(cls, 0, y, s, anchor)}`;
+  const x = anchor === 'end' ? +(w - 0.2).toFixed(1) : w / 2;
+  return rect('sc-g', `-${x}em`, y - 8, `${w}em`, 16, 0) + text(cls, 0, y, s, anchor);
 }
 
 const TONE: Record<ShowcaseTone, string> = { data: 'sc-d', model: 'sc-m', warn: 'sc-w' };
@@ -107,49 +115,56 @@ const TONE: Record<ShowcaseTone, string> = { data: 'sc-d', model: 'sc-m', warn: 
 
 function sceneEngine(): string {
   const A = S['/work/real-estate-intelligence/'];
+  const [name, value, source] = A.cols;
   /* The first row's middle and the distance between rows, in shares of the
      frame's height: the table stretches with the frame, a row's text doesn't. */
-  const TOP = 39.5;
-  const PITCH = 10.4;
+  const TOP = 38.5;
+  const PITCH = 10.2;
   const BAR = '13%';
-  let rules = '';
-  const rows = A.rows
-    .map((r, i) => {
-      const y = TOP + i * PITCH;
-      const tone = TONE[r.tone];
-      const rule = pct(y - PITCH / 2);
-      rules += line('sc-ln', '5%', rule, '95%', rule);
-      /* The unaudited row says so twice: a band in amber, and its word. */
-      const band = r.flag
-        ? g(tone, `${rect('', '5%', -10, '90%', 20, 0, ' fill-opacity=".12"')}${rect('', '5%', -10, 2, 20, 0)}`)
-        : '';
-      return g(
-        `sc-k${r.step} sc-sl`,
-        at(
-          0,
-          pct(y),
-          `${band}${text('sc-hi', '8%', 0, r.name)}${text('', '37%', 0, S.mask)}${text(
-            tone,
-            '92%',
-            0,
-            r.flag ? `${S.flag} ${r.source}` : r.source,
-            'end',
-          )}`,
-        ),
-      );
-    })
-    .join('');
-  const [name, value, source] = A.cols;
-  /* The paste: a selection the width of the link (the mono face is 0.6em
-     a character), for a moment. */
-  const flash = rect('sc-c sc-tmp', 10, -9, `${+(A.url.length * 0.6 + 0.7).toFixed(1)}em`, 18, 2, ' fill-opacity=".35"');
+  const HEAD = '28%';
+  /* A rule over every row. The table is ruled before anything arrives, so
+     the frame is never empty. */
+  const rules = A.rows.map((_, i) => {
+    const y = pct(TOP + (i - 0.5) * PITCH);
+    return line('sc-ln', '5%', y, '95%', y);
+  });
+  const rows = A.rows.map((r, i) => {
+    const tone = TONE[r.tone];
+    return g(
+      `sc-k${r.step} sc-sl`,
+      at(
+        0,
+        pct(TOP + i * PITCH),
+        /* The unaudited row says so twice: a band in amber, and its word. */
+        r.flag ? g(tone, rect('', '5%', -10, '90%', 20, 0, ' fill-opacity=".1"'), rect('', '5%', -10, 2, 20, 0)) : '',
+        text('sc-hi', '8%', 0, r.name),
+        text('', '37%', 0, S.mask),
+        text(tone, '92%', 0, r.flag ? `${S.flag} ${r.source}` : r.source, 'end'),
+      ),
+    );
+  });
+  /* The link sits two characters in, after the prompt. The paste is a
+     selection its width (the mono face is 0.6em a character), for a moment. */
+  const LINK = '1.2em';
+  const flash = rect('sc-c sc-tmp', '0.9em', -9, `${+(A.url.length * 0.6 + 0.6).toFixed(1)}em`, 18, 2, ' fill-opacity=".35"');
 
-  return `${at(0, BAR, rect('sc-f', '5%', -13, '90%', 26, 4))}${at('8%', BAR, text('sc-c', 0, 0, '>'))}
-    ${cap('8%', name, '', '28%')}${cap('37%', value, '', '28%')}${cap('92%', source, 'end', '28%')}${rules}
-    ${g(
+  return [
+    /* The bar the link goes in, the track of the run under it, the prompt. */
+    at(0, BAR, rect('sc-f', '5%', -13, '90%', 26, 4), line('sc-ln', '5%', 18, '95%', 18)),
+    at('8%', BAR, text('sc-c', 0, 0, '>')),
+    cap('8%', name, '', HEAD),
+    cap('37%', value, '', HEAD),
+    cap('92%', source, 'end', HEAD),
+    ...rules,
+    g(
       'sc-act',
-      `${at('8%', BAR, `${flash}${text('sc-hi sc-k1', 14, 0, A.url)}`)}${text('sc-c sc-k1', '92%', BAR, A.pasted, 'end')}${rows}`,
-    )}`;
+      at('8%', BAR, flash, text('sc-hi sc-k1', LINK, 0, A.url)),
+      text('sc-c sc-k1', '92%', BAR, A.pasted, 'end'),
+      /* The run: the track fills while the file does. */
+      at(0, BAR, rect('sc-d sc-run', '5%', 17, '90%', 2, 0)),
+      ...rows,
+    ),
+  ].join('');
 }
 
 /* ── Trading and research: many feeds, one stream, the evening brief ── */
@@ -164,41 +179,33 @@ function sceneFeed(): string {
     [MID, '2 2 2 6 2 6'],
     ['76%', '2 8 2 4 2 2'],
   ];
-  const rails = lanes.map(([y]) => `${line('sc-ln', '5%', y, '30%', y)}${line('sc-ln', '30%', y, '40%', MID)}`).join('');
-  const ticks = lanes
-    .map(([y, dash]) => line('sc-fw', '5%', y, '30%', y, ` stroke-width="11" stroke-dasharray="${dash}"`))
-    .join('');
-  const brief = (inner: string) => box('73%', '21%', '22%', '68%', inner);
+  const rails = lanes.map(([y]) => line('sc-ln', '5%', y, '30%', y) + line('sc-ln', '30%', y, '40%', MID));
+  const ticks = lanes.map(([y, dash]) =>
+    line('sc-fw', '5%', y, '30%', y, ` stroke-width="11" stroke-dasharray="${dash}"`),
+  );
+  const brief = (...inner: string[]) => box('73%', '21%', '22%', '68%', ...inner);
 
-  return `${cap('5%', A.feeds)}${cap('40%', A.normalize, 'middle')}${cap('95%', A.brief, 'end')}${rails}
-    ${g(
+  return [
+    cap('5%', A.feeds),
+    cap('40%', A.normalize, 'middle'),
+    cap('95%', A.brief, 'end'),
+    ...rails,
+    g(
       'sc-act',
-      `${g('sc-hi sc-k1', ticks)}${g(
+      g('sc-hi sc-k1', ...ticks),
+      /* Under the node that makes it, so the node covers its start. */
+      g(
         'sc-d sc-k3',
-        `${line('sc-fw', '40%', MID, '73%', MID, ' stroke-width="2" stroke-dasharray="6 4"')}${text('', '56.5%', '66%', A.stream, 'middle')}`,
-      )}${g('sc-k2', at('40%', MID, `${rect('sc-f', -13, -13, 26, 26, 4)}${path('sc-o sc-d', 'M-6-5h12M-6 0h12M-6 5h12')}`))}${g(
-        'sc-k4 sc-up',
-        brief(sheet()),
-      )}${g(
-        'sc-k5',
-        brief(
-          `${rect('sc-c', '15%', '11%', '46%', 4, 1)}${bars([
-            [26, 70],
-            [36, 56],
-            [46, 66],
-          ])}`,
-        ),
-      )}${g(
-        'sc-k6',
-        brief(
-          bars([
-            [62, 70],
-            [72, 48],
-            [82, 60],
-          ]),
-        ),
-      )}`,
-    )}`;
+        line('sc-fw', '40%', MID, '73%', MID, ' stroke-width="2" stroke-dasharray="6 4"'),
+        text('', '56.5%', '66%', A.stream, 'middle'),
+      ),
+      g('sc-k2', at('40%', MID, rect('sc-f', -13, -13, 26, 26, 4), path('sc-o sc-d', 'M-6-5h12M-6 0h12M-6 5h12'))),
+      /* The brief lands, then writes itself: a heading and two paragraphs. */
+      g('sc-k4 sc-up', brief(sheet())),
+      g('sc-k5', brief(rect('sc-c', '15%', '11%', '46%', 4, 1), bars([26, 70], [36, 56], [46, 66]))),
+      g('sc-k6', brief(bars([62, 70], [72, 48], [82, 60]))),
+    ),
+  ].join('');
 }
 
 /* ── The native app: move an assumption, the answer recomputes, offline ── */
@@ -211,26 +218,35 @@ function sceneApp(): string {
      says, its color. They arrive top to bottom, a step each. */
   const notes: [number, string, string][] = [
     [-61, A.net, 'sc-hi'],
-    [-19, A.moved, 'sc-c'],
-    [17, A.done, 'sc-d'],
+    [-13, A.moved, 'sc-c'],
+    [29, A.done, 'sc-d'],
   ];
   /* Each leader starts under the phone and runs the whole way to the edge;
      its label sits on it, on a plate. */
-  const leaders = notes.map(([y, , tone], i) => line(`sc-o ${tone} sc-dr sc-k${i + 1}`, X, y, '95%', y, DRAW)).join('');
-  const labels = notes.map(([y, label, tone], i) => g(`sc-k${i + 1}`, tag(tone, y, label, 'end'))).join('');
+  const leaders = notes.map(([y, , tone], i) => line(`sc-o ${tone} sc-dr sc-k${i + 1}`, X, y, '95%', y, DRAW));
+  const labels = notes.map(([y, label, tone], i) => g(`sc-k${i + 1}`, tag(tone, y, label, 'end')));
+  /* The screen is laid out in pixels, so its type is too: it stays 11px
+     where the frame's labels go a size up. */
+  const phone = [
+    rect('sc-f', -50, -92, 100, 184, 14),
+    line('sc-ln', -9, -82, 9, -82),
+    line('sc-ln', -14, 82, 14, 82),
+    g('sc-hi', rect('sc-o', -38, -72, 76, 22, 11), text('', 0, -61, A.offline, 'middle')),
+    /* The slider's knob travels (sc-nb) and the result snaps (sc-rs). */
+    text('', -38, -32, A.slider),
+    line('sc-ln', -38, -13, 38, -13),
+    '<circle class="sc-c sc-nb" cx="14" cy="-13" r="6"/>',
+    text('', -38, 10, A.result),
+    rect('sc-sk', -38, 25, 76, 8, 1),
+    rect('sc-d sc-rs', -38, 25, 58, 8, 1),
+    text('sc-hi sc-lg', -38, 56, S.mask),
+  ];
 
-  return `${g('sc-act', at(0, '50%', leaders))}
-    ${at(
-      X,
-      '50%',
-      /* The screen is laid out in pixels, so its type is too. */
-      `<g font-size="11">${rect('sc-f', -50, -92, 100, 184, 14)}${line('sc-ln', -9, -82, 9, -82)}${line('sc-ln', -14, 82, 14, 82)}
-      ${g('sc-hi', `${rect('sc-o', -38, -72, 76, 22, 11)}${text('', 0, -61, A.offline, 'middle')}`)}
-      ${text('', -38, -37, A.slider)}${line('sc-ln', -38, -19, 38, -19)}<circle class="sc-c sc-nb" cx="14" cy="-19" r="6"/>
-      ${text('', -38, 1, A.result)}${rect('sc-sk', -38, 13, 76, 8, 1)}${rect('sc-d sc-rs', -38, 13, 58, 8, 1)}
-      ${text('sc-hi sc-lg', -38, 46, S.mask)}</g>`,
-    )}
-    ${g('sc-act', at('95%', '50%', labels))}`;
+  return [
+    g('sc-act', at(0, '50%', ...leaders)),
+    at(X, '50%', `<g font-size="11">${phone.join('')}</g>`),
+    g('sc-act', at('95%', '50%', ...labels)),
+  ].join('');
 }
 
 /* ── The private site: a signed request gets the page, any other doesn't ── */
@@ -249,57 +265,53 @@ function sceneEdge(): string {
   const UP = '37%';
   const DOWN = '75%';
   const request = (w: number, label: string, cls: string) =>
-    `${rect('sc-f', 0, -11, w, 22, 11)}${text(cls, w / 2, 0, label, 'middle')}`;
-  const page = (y: string, inner: string) => box('72%', y, '23%', '34%', inner);
+    rect('sc-f', 0, -11, w, 22, 11) + text(cls, w / 2, 0, label, 'middle');
+  const page = (y: string, ...inner: string[]) => box('72%', y, '23%', '34%', ...inner);
   const check = rect('sc-f', -11, -11, 22, 22, 4);
 
-  return `${hatch}${cap('5%', A.request)}${cap('50%', A.edge, 'middle')}${cap('95%', A.page, 'end')}
-    ${line('sc-ln', '50%', '18%', '50%', '94%', DOTTED)}
-    ${g(
+  return [
+    hatch,
+    cap('5%', A.request),
+    cap('50%', A.edge, 'middle'),
+    cap('95%', A.page, 'end'),
+    line('sc-ln', '50%', '18%', '50%', '94%', DOTTED),
+    /* Each request and its line to the edge, then the line past it: drawn
+       for the signed one, dotted for the one that gets nothing. */
+    g(
       'sc-act',
-      `${line('sc-o sc-c sc-dr sc-k1', '5%', UP, '50%', UP, DRAW)}${line('sc-o sc-d sc-dr sc-k3', '50%', UP, '72%', UP, DRAW)}${line(
-        'sc-o sc-dr sc-k4',
-        '5%',
-        DOWN,
-        '50%',
-        DOWN,
-        DRAW,
-      )}${line('sc-ln sc-k6', '50%', DOWN, '72%', DOWN, DOTTED)}${g('sc-k1 sc-sl', at('5%', UP, request(60, A.signed, 'sc-c')))}${g(
-        'sc-k4 sc-sl',
-        at('5%', DOWN, request(66, A.unknown, '')),
-      )}`,
-    )}
-    ${at('50%', UP, check)}${at('50%', DOWN, check)}
-    ${g(
+      line('sc-o sc-c sc-dr sc-k1', '8%', UP, '50%', UP, DRAW),
+      line('sc-o sc-d sc-dr sc-k3', '50%', UP, '72%', UP, DRAW),
+      line('sc-o sc-dr sc-k4', '8%', DOWN, '50%', DOWN, DRAW),
+      line('sc-ln sc-k6', '50%', DOWN, '72%', DOWN, DOTTED),
+      g('sc-k1 sc-sl', at('5%', UP, request(60, A.signed, 'sc-c'))),
+      g('sc-k4 sc-sl', at('5%', DOWN, request(66, A.unknown, ''))),
+    ),
+    at('50%', UP, check),
+    at('50%', DOWN, check),
+    g(
       'sc-act',
-      `${g('sc-k2', at('50%', UP, tick('sc-o sc-d', -5, 0)))}${g('sc-k5', at('50%', DOWN, path('sc-o sc-x', 'M-4-4l8 8m0-8l-8 8')))}${g(
-        'sc-k3',
-        page(
-          '20%',
-          `${sheet()}${rect('sc-c', '15%', '17%', '46%', 4, 1)}${bars([
-            [38, 70],
-            [54, 54],
-            [70, 64],
-          ])}`,
-        ),
-      )}${g(
+      g('sc-k2', at('50%', UP, tick('sc-o sc-d', -5, 0))),
+      g('sc-k5', at('50%', DOWN, path('sc-o sc-x', 'M-4-4l8 8m0-8l-8 8'))),
+      g('sc-k3', page('20%', sheet(), rect('sc-c', '15%', '17%', '46%', 4, 1), bars([38, 70], [54, 54], [70, 64]))),
+      g(
         'sc-k6',
         page(
           '58%',
-          `${rect('sc-ln', 0, 0, '100%', '100%', 3, ' stroke-dasharray="3 3"')}<rect width="100%" height="100%" rx="3" fill="url(#sc-ht)"/>${at(
-            '50%',
-            '50%',
-            tag('sc-x', 0, A.refused, 'middle'),
-          )}`,
+          rect('sc-ln', 0, 0, '100%', '100%', 3, ' stroke-dasharray="3 3"'),
+          '<rect width="100%" height="100%" rx="3" fill="url(#sc-ht)"/>',
+          at('50%', '50%', tag('sc-x', 0, A.refused, 'middle')),
         ),
-      )}`,
-    )}`;
+      ),
+    ),
+  ].join('');
 }
 
 /* ── This website: its own hero, its structure figure, its status bar ── */
 
 function sceneSite(): string {
   const A = S['/work/this-site/'];
+  const NAV = '8%';
+  const STATUS = '93.5%';
   /* The page's outline as a tree: the root, its sections, their parts.
      Points on a 100 × 100 grid that's stretched over the figure's panel;
      the stylesheet keeps their strokes unscaled (sc-ns, sc-pt). */
@@ -307,92 +319,112 @@ function sceneSite(): string {
   const mid = ['20 50', '50 50', '80 50'];
   const low = ['10 85', '30 85', '50 85', '70 85', '90 85'];
   const parent = [0, 0, 1, 2, 2];
-  const dots = (pts: string[]) => pts.map((p) => `M${p}h0`).join('');
+  /* A point is a line too short to see, so its square cap is all of it. */
+  const dots = (pts: string[]) => pts.map((p) => `M${p}h.01`).join('');
   const edges = mid.map((m) => `M${top}L${m}`).join('') + low.map((l, i) => `M${mid[parent[i]]}L${l}`).join('');
-  /* The status bar's readouts: a label, then a value that ticks. */
-  const readouts = A.readouts
-    .map(
-      (label, i) =>
-        `<tspan${i ? ' dx="12"' : ''}>${esc(label)}</tspan><tspan class="sc-hi sc-tk" dx="6" style="--d:${-i * 1.5}s">${esc(
-          A.readoutMask,
-        )}</tspan>`,
-    )
-    .join('');
-  const NAV = '8%';
-  const STATUS = '93.5%';
+  /* The status bar's readouts: a label, then a value that ticks. Set one
+     after another in em, the way the mono face sets them: 0.6em a
+     character, one character between a label and its value, two between
+     readouts. */
+  let col = 0;
+  const readouts = A.readouts.map((label, i) => {
+    const x = col;
+    const v = x + label.length + 1;
+    col = v + A.readoutMask.length + 2;
+    return (
+      text('', `${+(x * 0.6).toFixed(1)}em`, 0, label) +
+      text('sc-hi sc-tk', `${+(v * 0.6).toFixed(1)}em`, 0, A.readoutMask, '', ` style="--d:${-i * 1.5}s"`)
+    );
+  });
 
-  return `${at('5%', NAV, `${rect('sc-hi', 0, -6, 3, 12, 0)}${rect('sc-c', 5, -6, 3, 12, 0)}${rect('sc-hi', 10, -6, 3, 12, 0)}${rect('sc-sk', 20, -2, 38, 4, 1)}`)}
-    ${at('95%', NAV, `${rect('sc-sk', -92, -1.5, 16, 3, 1)}${rect('sc-sk', -70, -1.5, 16, 3, 1)}${rect('sc-c', -44, -7, 44, 14)}`)}
-    ${line('sc-ln', 0, '16%', '100%', '16%')}${line('sc-ln', 0, '87%', '100%', '87%')}
-    ${at('5%', '25%', `${rect('sc-c', 0, -1, 10, 2, 0)}${rect('sc-sk', 14, -2, 40, 4, 1)}`)}
-    ${rect('sc-f', '62%', '22%', '33%', '58%', 3)}
-    <text x="5%" y="${STATUS}">${readouts}</text>${at('95%', STATUS, `${rect('sc-ln', -36, -7, 36, 14, 7)}${rect('sc-sk', -33, -4, 14, 8, 4)}`)}
-    ${g(
+  return [
+    /* The nav: the three-bar mark and the wordmark, two links, the button. */
+    at(
+      '5%',
+      NAV,
+      rect('sc-hi', 0, -6, 3, 12, 0),
+      rect('sc-c', 5, -6, 3, 12, 0),
+      rect('sc-hi', 10, -6, 3, 12, 0),
+      rect('sc-sk', 20, -2, 38, 4, 1),
+    ),
+    at('95%', NAV, rect('sc-sk', -92, -1.5, 16, 3, 1), rect('sc-sk', -70, -1.5, 16, 3, 1), rect('sc-c', -44, -7, 44, 14)),
+    line('sc-ln', 0, '16%', '100%', '16%'),
+    /* The hero's eyebrow, and the panel its figure draws in. */
+    at('5%', '25%', rect('sc-c', 0, -1, 10, 2, 0), rect('sc-sk', 14, -2, 40, 4, 1)),
+    rect('sc-f', '62%', '22%', '33%', '58%', 3),
+    /* The status bar: readouts, and the Pause motion switch. */
+    line('sc-ln', 0, '87%', '100%', '87%'),
+    at('5%', STATUS, ...readouts),
+    at('95%', STATUS, rect('sc-ln', -36, -7, 36, 14, 7), rect('sc-sk', -33, -4, 14, 8, 4)),
+    g(
       'sc-act',
-      `${rect('sc-hi sc-gx sc-k1', '5%', '31%', '46%', '5.4%', 1)}${rect('sc-hi sc-gx sc-k2', '5%', '40.5%', '40%', '5.4%', 1)}${rect(
-        'sc-c sc-gx sc-k3',
-        '5%',
-        '50%',
-        '30%',
-        '5.4%',
-        1,
-      )}${g(
+      /* The headline, a line at a time, the last one in copper. */
+      rect('sc-hi sc-gx sc-k1', '5%', '31%', '46%', '5.4%', 1),
+      rect('sc-hi sc-gx sc-k2', '5%', '40.5%', '40%', '5.4%', 1),
+      rect('sc-c sc-gx sc-k3', '5%', '50%', '30%', '5.4%', 1),
+      /* The body copy and the two buttons. */
+      g(
         'sc-k4',
-        `${rect('sc-sk', '5%', '61.5%', '42%', 3, 1)}${rect('sc-sk', '5%', '67%', '34%', 3, 1)}${at(
-          '5%',
-          '77%',
-          `${rect('sc-c', 0, -8, 50, 16)}${rect('sc-ln', 56, -8, 50, 16)}`,
-        )}`,
-      )}<svg x="62%" y="22%" width="33%" height="58%" viewBox="0 0 100 100" preserveAspectRatio="none">${path(
+        rect('sc-sk', '5%', '61.5%', '42%', 3, 1),
+        rect('sc-sk', '5%', '67%', '34%', 3, 1),
+        at('5%', '77%', rect('sc-c', 0, -8, 50, 16), rect('sc-ln', 56, -8, 50, 16)),
+      ),
+      /* The figure: the page's nodes, then the edges between them. */
+      `<svg x="62%" y="22%" width="33%" height="58%" viewBox="0 0 100 100" preserveAspectRatio="none">${path(
         'sc-ns sc-m sc-k6',
         edges,
       )}${path('sc-pt sc-m sc-k5', dots(mid.concat(low)))}${path('sc-pt sc-c sc-k5', dots([top]))}</svg>`,
-    )}`;
+    ),
+  ].join('');
 }
 
 /* ── The AI practice: a document becomes fields, one waits for a person ── */
 
 function sceneAi(): string {
   const A = S['/work/ai-implementation/'];
-  /* The three fields' rows. The document feeds the middle one; the last
-     one is the field that's held, and it feeds the gate. */
+  /* The three fields' rows. The document feeds each as it arrives; the
+     last one is the field that's held, and it feeds the gate. */
   const ROWS = ['36%', '55%', '74%'];
+  const HELD = ROWS[2];
   /* A field: its box, its key (structure, so violet) and its value (masked). */
   const field = (w: number) =>
-    `${rect('sc-f', '31%', -12, '32%', 24)}${rect('sc-m', '34%', -2, 14, 4, 1)}${rect('sc-sk', '41.5%', -2, pct(w), 4, 1)}`;
+    rect('sc-f', '31%', -12, '32%', 24) + rect('sc-m', '34%', -2, 14, 4, 1) + rect('sc-sk', '41.5%', -2, pct(w), 4, 1);
   const read = (i: number, w: number) =>
-    g(`sc-k${i + 1} sc-sl`, at(0, ROWS[i], `${field(w)}${at('60%', 0, tick('sc-o sc-d', -9, 0))}`));
-  const gate = (inner: string) => box('72%', '24%', '23%', '62%', inner);
-  const person = 'M-8-8a8 8 0 1 0 16 0a8 8 0 1 0-16 0M-15 21a15 14 0 0 1 30 0';
+    g(`sc-k${i + 1} sc-sl`, at(0, ROWS[i], field(w), at('60%', 0, tick('sc-o sc-d', -9, 0))));
+  const feeds = ROWS.map((y, i) => line(`sc-o sc-m sc-dr sc-k${i + 1}`, '24%', ROWS[1], '31%', y, DRAW));
+  const gate = (...inner: string[]) => box('72%', '24%', '23%', '62%', ...inner);
+  const person = 'M-10-10a10 10 0 1 0 20 0a10 10 0 1 0-20 0M-18 25a18 16 0 0 1 36 0';
 
-  return `${cap('5%', A.doc)}${cap('47%', A.fields, 'middle')}${cap('95%', A.gate, 'end')}
-    ${box(
+  return [
+    cap('5%', A.doc),
+    cap('47%', A.fields, 'middle'),
+    cap('95%', A.gate, 'end'),
+    box(
       '5%',
       '24%',
       '19%',
       '62%',
-      `${sheet()}${rect('sc-hi', '15%', '10%', '42%', 4, 1)}${bars([
-        [24, 70],
-        [35, 56],
-        [46, 70],
-        [57, 46],
-        [68, 64],
-        [79, 36],
-      ])}`,
-    )}${gate(sheet())}
-    ${g(
+      sheet(),
+      rect('sc-hi', '15%', '10%', '42%', 4, 1),
+      bars([24, 70], [35, 56], [46, 70], [57, 46], [68, 64], [79, 36]),
+    ),
+    gate(sheet()),
+    g(
       'sc-act',
-      `${line('sc-o sc-m sc-dr sc-k1', '24%', ROWS[1], '31%', ROWS[1], DRAW)}${line('sc-o sc-w sc-dr sc-k4', '63%', ROWS[2], '72%', ROWS[2], DRAW)}${read(
-        0,
-        12,
-      )}${read(1, 9)}${g(
+      ...feeds,
+      line('sc-o sc-w sc-dr sc-k4', '63%', HELD, '72%', HELD, DRAW),
+      read(0, 12),
+      read(1, 9),
+      /* The held field: amber, outlined, and it says so. */
+      g(
         'sc-w sc-k3 sc-sl',
-        at(0, ROWS[2], `${field(6)}${rect('sc-o', '31%', -12, '32%', 24)}${text('', '61.5%', 0, A.held, 'end')}`),
-      )}${g('sc-c sc-k5', gate(at('50%', '38%', path('sc-o', person))))}${g(
-        'sc-c sc-k6',
-        gate(`${at('50%', '38%', tick('sc-o', 12, -14))}${text('', '50%', '82%', A.approved, 'middle')}`),
-      )}`,
-    )}`;
+        at(0, HELD, field(6), rect('sc-o', '31%', -12, '32%', 24), text('', '61.5%', 0, A.held, 'end')),
+      ),
+      /* A person at the gate, then their decision. */
+      g('sc-c sc-k5', gate(at('50%', '38%', path('sc-o', person)))),
+      g('sc-c sc-k6', gate(at('50%', '38%', tick('sc-o', 15, -18)), text('', '50%', '84%', A.approved, 'middle'))),
+    ),
+  ].join('');
 }
 
 /* ── Frames and cards ───────────────────────────────────────────────── */
