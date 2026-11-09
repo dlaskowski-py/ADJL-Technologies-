@@ -241,9 +241,9 @@ function staticTrace(): string {
     for (let j = i + 1; j < SPANS.length && SPANS[j].d > s.d; j++) if (SPANS[j].d === s.d + 1) kids.push(j);
     const fields = (s.f ?? []) as [string, SrcKey][];
     const body = fields.length
-      ? `<div class="hatch rp-d-f"><span class="hatch-label">${esc(UI.withheld)}</span><dl class="rp-d-dl">${fields
+      ? `<dl class="rp-d-dl">${fields
           .map(([l, k]) => `<div class="rp-d-row"><dt>${esc(l)}</dt><dd><span class="rp-mask">••••</span>${srcBadge(k)}</dd></div>`)
-          .join('')}</dl></div>`
+          .join('')}</dl>`
       : kids.length
         ? ''
         : `<p class="rp-d-none">${esc(s.x === 'derived' ? UI.inspector.derived : UI.inspector.none)}</p>`;
@@ -256,6 +256,7 @@ function staticTrace(): string {
   };
   return `<div class="rp-static">
     <p class="rp-st-title" data-chrome>${esc(UI.staticTitle)}</p>
+    <p class="rp-key" data-chrome><span class="rp-mask">••••</span><span class="hatch rp-key-h"><span class="hatch-label">${esc(UI.withheld)}</span></span></p>
     <div class="rp-d-tree" data-chrome>${node(0)}</div>
     <p class="rp-st-title" data-chrome>${esc(UI.wrongTitle)}</p>
     <ul class="rp-wrong">${UI.inputs

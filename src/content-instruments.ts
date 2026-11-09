@@ -55,6 +55,10 @@ export const askUi = {
   /** The prerendered answers for JavaScript off. */
   preLabel: 'Q{n} · answered at build',
   preNote: 'With JavaScript off, these were answered when the site was built, by the same code your browser runs.',
+  /** Shown instead of preNote when the index didn't load. */
+  fallbackNote: 'The search index didn’t load, so here are the answers the build computed with the same code.',
+  /** A build answer citing a passage an earlier one already quoted. */
+  sameAs: 'quoted in Q{n}',
   /** "Break the input": what each group has to do, checked at build. */
   expect: {
     answer: 'must answer',

@@ -523,6 +523,9 @@
   display: grid;
   gap: var(--s-3);
 }
+.rp-fcol {
+  min-width: 0;
+}
 .rp-i-sub {
   margin-bottom: 6px;
   font-family: var(--font-mono);
@@ -855,18 +858,23 @@ html.js .rp-static {
   padding-left: 10px;
   border-left: 1px solid var(--rule-2);
 }
-.rp-d-f {
-  margin: 4px 0 10px 26px;
-  padding: 40px 10px 10px;
-}
-.rp-d-f > .hatch-label {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-}
 .rp-d-dl {
   display: grid;
   gap: 3px;
+  max-width: 560px;
+  margin: 4px 0 10px 26px;
+}
+/* One key for the whole tree: a masked value, on the same hatch every
+   value in the tree sits on, labeled once. */
+.rp-key {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rp-key-h {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: var(--r-1);
 }
 .rp-d-row {
   display: flex;
@@ -888,6 +896,11 @@ html.js .rp-static {
   gap: 10px;
 }
 .rp-mask {
+  padding: 0 6px;
+  border: 1px dashed var(--rule-3);
+  border-radius: var(--r-1);
+  background-image: repeating-linear-gradient(135deg, var(--rule-2) 0 1px, transparent 1px 5px);
+  font-family: var(--font-mono);
   letter-spacing: 0.14em;
   color: var(--fg-2);
 }

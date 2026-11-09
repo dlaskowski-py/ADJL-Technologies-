@@ -58,6 +58,9 @@
 }
 .pl-head .prov {
   margin-left: auto;
+  min-width: 0;
+  /* The chip carries a whole clause; on a phone it wraps. */
+  white-space: normal;
 }
 
 /* ── The steps, stacked ──────────────────────────────────────────── */
@@ -198,6 +201,14 @@
   }
 }
 
+/* Every artifact sits in a grid cell, so each one may shrink. */
+.pl-eval,
+.pl-review,
+.pl-repo,
+.pl-tt {
+  min-width: 0;
+}
+
 /* 01 · 02  the process map: seven boxes on a spine that draws. */
 .pl-map {
   --bw: min(100%, 280px);
@@ -253,6 +264,10 @@
   white-space: nowrap;
   /* A box snaps in as the spine reaches it. */
   opacity: clamp(0, (var(--t, 1) * 7 - var(--k) - 0.2) * 100, 1);
+}
+.pl-box-t {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .pl-box--rub {
   border-style: dashed;
@@ -568,19 +583,26 @@
 
 /* Narrow artifact windows: the picked step's reason moves under the map,
    with its leader dropping from the box. */
-@container (max-width: 380px) {
+@container (max-width: 420px) {
+  .pl-art-body {
+    padding-inline: var(--s-4);
+  }
   .pl-map--pick {
-    --bw: min(52%, 200px);
+    --bw: 48%;
+  }
+  .pl-map--pick .pl-box {
+    padding: 0 10px;
   }
   .pl-note {
-    left: calc(100% + 20px);
+    left: calc(100% + 12px);
+    font-size: var(--t-label);
   }
   .pl-note::before {
-    left: -20px;
-    width: 15px;
+    left: -12px;
+    width: 9px;
   }
   .pl-note::after {
-    left: -21.5px;
+    left: -13.5px;
   }
 }
 

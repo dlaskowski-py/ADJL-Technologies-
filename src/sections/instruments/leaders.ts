@@ -91,7 +91,7 @@ function parity(layout: Layout): string {
   /* The phone's network: three bars, struck through when offline. */
   const nx = px + 10;
   const ny = top + 21;
-  const net = `<g class="ld-net">${[4, 7, 10].map((h, k) => rect(nx + k * 5, ny - h, 3, h, 'ld-bar', 0.5)).join('')}<path class="ld-net-x" d="M${nx - 2} ${
+  const net = `<g>${[4, 7, 10].map((h, k) => rect(nx + k * 5, ny - h, 3, h, 'ld-bar', 0.5)).join('')}<path class="ld-net-x" d="M${nx - 2} ${
     ny - 11
   }L${nx + 15} ${ny + 1}"/></g>`;
 
@@ -220,7 +220,7 @@ function pit(): string {
     .join('');
   const grid = `<svg class="ld-svg ld-svg--pit" viewBox="-1 -1 ${W + 2} ${H + 2}" width="${W}" height="${H}" aria-hidden="true" focusable="false">${hatchDef(
     'ld-h-pit',
-  )}<g class="ld-gaps">${gaps}</g><g class="ld-cells">${cells}</g></svg>`;
+  )}<g>${gaps}</g><g>${cells}</g></svg>`;
   return `<div class="ld-pit">
       <div class="ld-pit-bar" data-chrome>
         <button class="ld-toggle" type="button" aria-pressed="false" data-js-only><span class="ld-sw" aria-hidden="true"></span>${esc(P.toggle)}</button>
@@ -379,11 +379,11 @@ function readers(layout: Layout): string {
               }`,
           )
           .join('')}${line(`M${x} ${y0 + 2 * pitch + 30}V${outY - 16}`, 'ld-line ld-lane-l')}${text(x, outY, ln.out, 'ld-t2', 'middle')}${text(
-          x,
+          i ? x + 7 : x - 7,
           y0 - 12,
           ln.name.toUpperCase(),
           'ld-t3',
-          'middle',
+          i ? '' : 'end',
         )}</g>`;
       })
       .join('')}`;
