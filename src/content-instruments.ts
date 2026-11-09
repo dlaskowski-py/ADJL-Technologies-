@@ -37,7 +37,7 @@ export const askUi = {
     answer: 'Up to three passages from different sections, each with a link.',
   },
   /** Column heads in RETRIEVE. */
-  cols: { passage: 'passage', conf: 'conf', score: 'bm25' },
+  cols: { passage: 'passage', conf: 'conf' },
   stop: 'stop',
   unseen: 'unseen',
   df: 'df {n}',
@@ -48,8 +48,6 @@ export const askUi = {
   none: 'none above the floor',
   sections: '{n} cited from {s} sections',
   sectionsOne: '1 cited',
-  noTerms: 'Every word in that question is a stopword. Try naming the thing you’re asking about.',
-  noMatch: 'No passage on this site shares a word with that question.',
   /** ABSTAIN detail, under the content.ts abstain sentence. */
   abstainWhy: 'Best match {best}, floor {floor}.',
   abstainLabel: 'Abstained',
@@ -120,8 +118,12 @@ export const replayUi = {
   },
   inputsLegend: 'Try a different input',
   spansLegend: 'Inspect a stage',
+  /** Column heads over the trace. */
+  cols: { span: 'stage' },
   timeline: 'timeline · not to scale',
   inspector: {
+    /** The root span's place in the run. */
+    whole: 'every stage',
     stage: 'stage {n} of {total}',
     fields: 'fields',
     sources: 'where each value comes from',

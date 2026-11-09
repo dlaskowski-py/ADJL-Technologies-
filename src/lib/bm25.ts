@@ -56,28 +56,30 @@ export const MAX_PARTS = 3;
 /* ── Tokens ─────────────────────────────────────────────────────────── */
 
 /** About a hundred function words. "own" is deliberately NOT here (most
- *  lists have it): "who owns the code" is a question this site answers. */
-export const STOPWORDS: ReadonlySet<string> = new Set(
-  (
-    'a about above after again all also am an and any are as at be because been before being below between both ' +
-    'but by can could d did didn do does doesn doing don done down during each either else ever for from get gets ' +
-    'got had has have having he her here him his how i if in into is isn it its itself just let ll m may me might ' +
-    'more most much must my no nor not now of off on once only onto or other our ours out over per re s same she ' +
-    'should so some such t than that the their theirs them then there these they this those through to too under ' +
-    'until up us ve very via was we were what when where which while who whom whose why will with won would yes ' +
-    'yet you your yours'
-  ).split(' '),
-);
+ *  lists have it): "who owns the code" is a question this site answers.
+ *
+ *  The list is data, and it travels with the index: buildIndex() writes it
+ *  into /search-index.json and createEngine() reads it back from there, so
+ *  the browser never ships a second copy in its script, and an index is
+ *  always searched with the stopwords it was built with. */
+export const STOPWORDS =
+  'a about above after again all also am an and any are as at be because been before being below between both ' +
+  'but by can could d did didn do does doesn doing don done down during each either else ever for from get gets ' +
+  'got had has have having he her here him his how i if in into is isn it its itself just let ll m may me might ' +
+  'more most much must my no nor not now of off on once only onto or other our ours out over per re s same she ' +
+  'should so some such t than that the their theirs them then there these they this those through to too under ' +
+  'until up us ve very via was we were what when where which while who whom whose why will with won would yes ' +
+  'yet you your yours';
 
-/** Lowercase, decompose and drop accents, straighten apostrophes, drop a
- *  trailing 's. Everything the stemmer sees has been through this. */
+/** Lowercase, decompose and drop accents, drop a trailing 's (with any
+ *  apostrophe: ’ counts as '). Everything the stemmer sees has been
+ *  through this. Other apostrophes split words like any punctuation. */
 export function normalize(s: string): string {
   return s
     .toLowerCase()
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
-    .replace(/[’‘ʼ]/g, "'")
-    .replace(/'s\b/g, '');
+    .replace(/['’‘ʼ]s\b/g, '');
 }
 
 /** The six rules, in order. 1–4 are alternatives (the first that applies
@@ -102,20 +104,23 @@ export type Tok = {
   term: string | null;
 };
 
+/** A stopword list, as a set. */
+export type Stop = ReadonlySet<string>;
+
 /** Every word, stopwords included, for the trace. */
-export function tokenize(s: string): Tok[] {
+export function tokenize(s: string, stop: Stop): Tok[] {
   const out: Tok[] = [];
   for (const word of normalize(s).split(/[^a-z0-9]+/)) {
     if (!word) continue;
-    out.push({ word, term: STOPWORDS.has(word) ? null : stem(word) });
+    out.push({ word, term: stop.has(word) ? null : stem(word) });
   }
   return out;
 }
 
 /** Just the terms, in order, duplicates kept: what gets indexed. */
-export function terms(s: string): string[] {
+export function terms(s: string, stop: Stop): string[] {
   const out: string[] = [];
-  for (const t of tokenize(s)) if (t.term) out.push(t.term);
+  for (const t of tokenize(s, stop)) if (t.term) out.push(t.term);
   return out;
 }
 
@@ -128,11 +133,11 @@ const SPLIT = new RegExp(`[?;]+|,?\\s+(?:and|also|plus)\\s+(?=(?:${ASKS})\\b)`, 
 
 /** "Do you build iOS apps, and who owns the code?" → its two questions.
  *  A part with no terms of its own is folded into the one before it. */
-export function parts(q: string): string[] {
+export function parts(q: string, stop: Stop): string[] {
   const raw = q.split(SPLIT).map((s) => s.trim()).filter(Boolean);
   const out: string[] = [];
   for (const p of raw) {
-    if (out.length && (!terms(p).length || out.length >= MAX_PARTS)) out[out.length - 1] += ' ' + p;
+    if (out.length && (!terms(p, stop).length || out.length >= MAX_PARTS)) out[out.length - 1] += ' ' + p;
     else out.push(p);
   }
   return out.length ? out : [q.trim()];
@@ -164,7 +169,9 @@ export type Passage = {
  * it. Passage ids are their positions. Term statistics (df) and postings
  * are derived on load from the text, by the same tokenizer that wrote
  * N and avgdl here; createEngine() recomputes both and refuses to answer
- * if they disagree with the file.
+ * if they disagree with the file. (df isn't stored: at about 4 kB gz it
+ * would only repeat what the text already says, and the index has a
+ * 22 kB budget.)
  */
 export type IndexFile = {
   v: 1;
@@ -172,6 +179,8 @@ export type IndexFile = {
   N: number;
   /** Their average length, in terms (heading included). */
   avgdl: number;
+  /** The stopwords it was built with, space-separated. */
+  stop: string;
   passages: { route: string; anchor: string; heading?: string; text: string; sec?: string }[];
 };
 
@@ -188,17 +197,18 @@ const avg = (total: number, n: number) => (n ? Math.round((total / n) * 1e4) / 1
 
 /** Build the index file from passages in reading order. */
 export function buildIndex(list: Omit<Passage, 'id'>[]): IndexFile {
+  const stop: Stop = new Set(STOPWORDS.split(' '));
   let total = 0;
   let prev = '';
   const passages = list.map((p) => {
-    total += terms(docOf(p)).length;
+    total += terms(docOf(p), stop).length;
     const out: IndexFile['passages'][number] = { route: p.route, anchor: p.anchor, text: p.text };
     if (p.heading !== prev) out.heading = p.heading;
     if (p.sec) out.sec = p.sec;
     prev = p.heading;
     return out;
   });
-  return { v: 1, N: passages.length, avgdl: avg(total, passages.length), passages };
+  return { v: 1, N: passages.length, avgdl: avg(total, passages.length), stop: STOPWORDS, passages };
 }
 
 /** Postings and term statistics, built once from the file. */
@@ -208,15 +218,19 @@ export type Engine = {
   avgdl: number;
   /** term → [[passage id, term frequency], …]. A term's df is its length. */
   post: Map<string, [number, number][]>;
+  /** The stopwords the index was built with. */
+  stop: Stop;
   /** passage id → length in terms */
   dl: number[];
   /** The file's N and avgdl match what this code computes from its text.
    *  When they don't, the index was built by different code and its
-   *  scores can't be trusted, so nothing is answered. */
+   *  scores can't be trusted: the panel won't search it (it falls back to
+   *  the build's answers) and the build stops. */
   ok: boolean;
 };
 
 export function createEngine(file: IndexFile): Engine {
+  const stop: Stop = new Set((file.stop || '').split(' '));
   const post = new Map<string, [number, number][]>();
   const dl: number[] = [];
   const passages: Passage[] = [];
@@ -224,10 +238,9 @@ export function createEngine(file: IndexFile): Engine {
   let total = 0;
   file.passages.forEach((s, id) => {
     if (s.heading !== undefined) heading = s.heading;
-    const p: Passage = { id, route: s.route, anchor: s.anchor, heading, text: s.text };
-    if (s.sec) p.sec = s.sec;
+    const p = { ...s, id, heading };
     passages.push(p);
-    const ts = terms(docOf(p));
+    const ts = terms(docOf(p), stop);
     dl[id] = ts.length;
     total += ts.length;
     const tf = new Map<string, number>();
@@ -240,8 +253,8 @@ export function createEngine(file: IndexFile): Engine {
   });
   const N = passages.length;
   const avgdl = avg(total, N);
-  const ok = file.v === 1 && file.N === N && Math.abs(file.avgdl - avgdl) < 1e-3;
-  return { passages, N, avgdl, post, dl, ok };
+  const ok = file.v === 1 && stop.size > 1 && file.N === N && Math.abs(file.avgdl - avgdl) < 1e-3;
+  return { passages, N, avgdl, post, dl, stop, ok };
 }
 
 export const dfOf = (e: Engine, term: string): number => e.post.get(term)?.length ?? 0;
@@ -281,15 +294,14 @@ export type Hit = {
 };
 
 export type Search = {
-  query: string;
   parts: Part[];
   /** Every passage that shares a term with the question, best first. */
   hits: Hit[];
 };
 
 export function search(e: Engine, query: string): Search {
-  const ps: Part[] = parts(query).map((text) => {
-    const toks = tokenize(text);
+  const ps: Part[] = parts(query, e.stop).map((text) => {
+    const toks = tokenize(text, e.stop);
     const seen = new Set<string>();
     const ts: Term[] = [];
     for (const t of toks) {
@@ -302,37 +314,34 @@ export function search(e: Engine, query: string): Search {
   });
 
   const best = new Map<number, Hit>();
-  if (e.ok) {
-    ps.forEach((part, pi) => {
-      if (!part.ceiling) return;
-      const acc = new Map<number, { score: number; matched: string[] }>();
-      for (const t of part.terms) {
-        for (const [id, tf] of e.post.get(t.term) ?? []) {
-          const norm = K1 * (1 - B + (B * e.dl[id]) / (e.avgdl || 1));
-          const a = acc.get(id) ?? { score: 0, matched: [] };
-          a.score += (t.idf * tf * (K1 + 1)) / (tf + norm);
-          a.matched.push(t.term);
-          acc.set(id, a);
-        }
+  ps.forEach((part, pi) => {
+    if (!part.ceiling) return;
+    const acc = new Map<number, { score: number; matched: string[] }>();
+    for (const t of part.terms) {
+      for (const [id, tf] of e.post.get(t.term) ?? []) {
+        const norm = K1 * (1 - B + (B * e.dl[id]) / (e.avgdl || 1));
+        const a = acc.get(id) ?? { score: 0, matched: [] };
+        a.score += (t.idf * tf * (K1 + 1)) / (tf + norm);
+        a.matched.push(t.term);
+        acc.set(id, a);
       }
-      for (const [id, a] of acc) {
-        const conf = a.score / part.ceiling;
-        const prev = best.get(id);
-        if (!prev || conf > prev.conf) {
-          best.set(id, { p: e.passages[id], score: a.score, conf, part: pi, matched: a.matched });
-        }
+    }
+    for (const [id, a] of acc) {
+      const conf = a.score / part.ceiling;
+      const prev = best.get(id);
+      if (!prev || conf > prev.conf) {
+        best.set(id, { p: e.passages[id], score: a.score, conf, part: pi, matched: a.matched });
       }
-    });
-  }
+    }
+  });
 
   const hits = [...best.values()].sort((a, b) => b.conf - a.conf || a.p.id - b.p.id);
-  return { query, parts: ps, hits };
+  return { parts: ps, hits };
 }
 
 /* ── Gate and answer ────────────────────────────────────────────────── */
 
 export type Answer = {
-  floor: number;
   /** Hits at or above the floor, best first. */
   above: Hit[];
   /** What gets quoted: at most MAX_ANSWERS, one per section, and each
@@ -362,21 +371,19 @@ export function gate(s: Search, floor = FLOOR): Answer {
   }
   for (const h of above) if (!cited.includes(h)) take(h);
   cited.sort((a, b) => a.part - b.part || b.conf - a.conf);
-  return { floor, above, cited, best: s.hits[0]?.conf ?? 0 };
+  return { above, cited, best: s.hits[0]?.conf ?? 0 };
 }
 
 /** What a "Break the input" chip promises. */
 export type Expect = 'answer' | 'abstain' | 'answer-2';
 
 /** Did the answer do what was promised? `answer-2` means at least two
- *  passages, and (because an answer quotes one per section) from at least
- *  two sections. The build's evaluation and the live verdicts both use
- *  this, so they can't disagree about what passing means. */
-export function meets(expect: Expect, a: Answer): boolean {
-  if (expect === 'abstain') return a.cited.length === 0;
-  if (expect === 'answer-2') return new Set(a.cited.map((h) => sectionOf(h.p))).size >= 2;
-  return a.cited.length >= 1;
-}
+ *  passages, which gate() guarantees are from two sections (the build's
+ *  evaluation checks that separately). The build's evaluation and the
+ *  live verdicts both use this, so they can't disagree about what passing
+ *  means. */
+export const meets = (expect: Expect, a: Answer): boolean =>
+  expect === 'abstain' ? !a.cited.length : a.cited.length >= (expect === 'answer-2' ? 2 : 1);
 
 /** The whole pipeline: search, then gate. */
 export function run(e: Engine, query: string, floor = FLOOR): { search: Search; answer: Answer } {
@@ -400,40 +407,28 @@ export function sentences(text: string): string[] {
 
 /**
  * The passage, verbatim, up to MAX_QUOTE characters and cut at a sentence
- * end. When it's longer, the quote is the run of whole sentences that fits
- * and holds the most matched terms, so the sentence that matched is the
- * one you read. A single sentence longer than the limit is cut at a word
- * and marked as cut.
+ * end. When it's longer, the quote starts from the sentence holding the
+ * most matched terms (the earliest, on a tie), so the sentence that
+ * matched is the one you read, then takes the sentences after it, then
+ * the ones before, while they fit. A single sentence longer than the
+ * limit is cut at a word and marked as cut. `stop` is the engine's list.
  */
-export function quote(text: string, matched: readonly string[] = [], max = MAX_QUOTE): Quote {
+export function quote(text: string, matched: readonly string[], stop: Stop, max = MAX_QUOTE): Quote {
   if (text.length <= max) return { text, before: false, after: false };
   const ss = sentences(text);
   const want = new Set(matched);
-  const weight = ss.map((s) => terms(s).filter((t) => want.has(t)).length);
-  let bi = 0;
-  let bj = -1;
-  let bw = -1;
-  for (let i = 0; i < ss.length; i++) {
-    let len = -1;
-    let w = 0;
-    for (let j = i; j < ss.length; j++) {
-      len += ss[j].length + 1;
-      if (len > max) break;
-      w += weight[j];
-      /* More matched terms wins; then the earlier start; then more text. */
-      if (w > bw || (w === bw && i === bi && j > bj)) {
-        bw = w;
-        bi = i;
-        bj = j;
-      }
-    }
-  }
-  if (bj < 0) {
-    const i = Math.max(0, weight.findIndex((w) => w > 0));
-    const cut = ss[i].slice(0, max - 1).replace(/\s+\S*$/, '');
-    return { text: `${cut}…`, before: i > 0, after: true };
-  }
-  return { text: ss.slice(bi, bj + 1).join(' '), before: bi > 0, after: bj < ss.length - 1 };
+  let i = 0;
+  let most = -1;
+  ss.forEach((s, k) => {
+    const w = terms(s, stop).filter((t) => want.has(t)).length;
+    if (w > most) [most, i] = [w, k];
+  });
+  let j = i;
+  let len = ss[i].length;
+  if (len > max) return { text: `${ss[i].slice(0, max - 1).replace(/\s+\S*$/, '')}…`, before: i > 0, after: true };
+  while (j + 1 < ss.length && len + ss[j + 1].length < max) len += ss[++j].length + 1;
+  while (i > 0 && len + ss[i - 1].length < max) len += ss[--i].length + 1;
+  return { text: ss.slice(i, j + 1).join(' '), before: i > 0, after: j < ss.length - 1 };
 }
 
 /** A confidence or floor, the way every readout prints it (and the way

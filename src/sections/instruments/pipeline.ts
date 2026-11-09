@@ -17,7 +17,7 @@
  *
  * OWNER: WS4.
  */
-import { pipeline } from '../../content';
+import { pipeline, prov } from '../../content';
 import { pipelineUi as UI, replayUi } from '../../content-instruments';
 import { chip, esc, rich } from '../html';
 import { GUARDS } from './guards';
@@ -126,7 +126,9 @@ function review(): string {
         approved,
       )}</span></span>
     </div>
-    <div class="pl-term" data-pl-term>
+    <div class="pl-term" data-pl-term="${esc(
+      JSON.stringify({ rec: prov.recorded.label, def: prov.recorded.def, stamp: UI.termStamp, failed: UI.termFailed }),
+    )}">
       <div class="pl-term-head"><span class="pl-term-title">${esc(UI.termTitle)}</span>${chip('build')}</div>
       <pre class="pl-term-body"><code><span class="pl-cmd">${esc(UI.termCmd)}</span><span class="pl-stamp-l" data-pl-stamp></span><span data-pl-lines>${GUARDS.map(
         (g, j) => `<span data-gl style="--j:${j}"><i aria-hidden="true">✓</i> ${esc(g)}</span>`,

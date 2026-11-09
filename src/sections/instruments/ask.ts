@@ -32,15 +32,42 @@ const pct = (v: number) => String(Math.round(v * 100));
 export const floorText = (v: number): string =>
   ask.floor.valuetext.replace('{v}', fmt(v)).replace('{pct}', pct(v));
 
-/** One idle pane: its number, its name, what it will do. */
-function pane(n: number, key: 'query' | 'retrieve' | 'gate' | 'answer', body = ''): string {
+/** The abstain sentence, with the address in it linked. The live panel
+ *  and the build's answers (scripts/gen-machine.mjs) both print this. */
+export function abstainSay(): string {
+  const at = ask.abstain.indexOf(CONTACT);
+  if (at < 0) return esc(ask.abstain);
+  return `${esc(ask.abstain.slice(0, at))}<a class="tlink" href="mailto:${esc(CONTACT)}">${esc(CONTACT)}</a>${esc(
+    ask.abstain.slice(at + CONTACT.length),
+  )}`;
+}
+
+/** One idle pane: its number, its name, what it will do. `after` sits
+ *  outside the body, which the module replaces on every run. */
+function pane(n: number, key: 'query' | 'retrieve' | 'gate' | 'answer', body = '', after = ''): string {
   return `<div class="askp-pane" data-pane="${key}">
       <div class="askp-pane-head"><span class="askp-pane-n">${String(n).padStart(2, '0')}</span><span class="askp-pane-name">${esc(
         ask.stages[n - 1],
-      )}</span><span class="askp-pane-read" data-read></span></div>
-      <div class="askp-pane-body" data-body>${body || `<p class="askp-idle">${esc(askUi.idle[key])}</p>`}</div>
+      )}</span><span class="askp-pane-read" data-read>${
+        key === 'answer'
+          ? `<span data-o="answer">${esc(askUi.answerLabel)}</span><span data-o="abstain">${esc(askUi.abstainLabel)}</span>`
+          : ''
+      }</span></div>
+      <div class="askp-pane-body" data-body>${body || `<p class="askp-idle">${esc(askUi.idle[key])}</p>`}</div>${after}
     </div>`;
 }
+
+/** ANSWER at rest: what it will do, and the three slots it quotes into. */
+const answerIdle = (): string =>
+  `<p class="askp-idle">${esc(askUi.idle.answer)}</p><ol class="askp-slots" aria-hidden="true">${[1, 2, 3]
+    .map((n) => `<li><span>${String(n).padStart(2, '0')}</span></li>`)
+    .join('')}</ol>`;
+
+/** ABSTAIN, ready and hidden: the module shows it and fills in why. */
+const abstainBlock = (): string =>
+  `<div data-a="abstain" hidden><span data-a="glyph" aria-hidden="true">▲</span><span data-a="label">${esc(
+    askUi.abstainLabel,
+  )}</span><p data-a="say">${abstainSay()}</p><p data-a="why"></p></div>`;
 
 /** RETRIEVE at rest: the eight slots and the floor line, empty. */
 function skeleton(): string {
@@ -50,7 +77,7 @@ function skeleton(): string {
       `<li data-hit="empty"><span data-k="rank">${String(i + 1).padStart(2, '0')}</span><span data-k="where"></span><span data-k="bar"><i></i></span><span data-k="conf"></span></li>`,
   ).join('');
   return `<div class="askp-hits" data-hits>
-      <div class="askp-hits-head"><span>#</span><span>${esc(askUi.cols.passage)}</span><span>${esc(askUi.cols.conf)}</span><span></span></div>
+      <div class="askp-hits-head"><span>#</span><span>${esc(askUi.cols.passage)}</span><span></span><span>${esc(askUi.cols.conf)}</span></div>
       <ol class="askp-hit-list">${rows}</ol>
       <div class="askp-gate" aria-hidden="true"><span class="askp-gate-line"></span><span class="askp-gate-tag" data-gate-tag>${esc(
         askUi.floorAt.replace('{v}', fmt(FLOOR)),
@@ -68,6 +95,12 @@ function chipList(qs: string[]): string {
     </div>`;
 }
 
+/** A verdict in all three of its states. CSS shows the one that matches
+ *  data-verdict, so the module only ever changes that attribute. */
+const verdictWords = (['build', 'met', 'missed'] as const)
+  .map((k) => `<span data-v="${k}">${esc(askUi.verdict[k])}</span>`)
+  .join('');
+
 /** "Break the input": the demo's own evaluation set, as a table you can
  *  run. Each row's verdict is "checked at build" until the index loads,
  *  then it's re-run live at whatever floor the slider is on. */
@@ -79,19 +112,19 @@ function cases(id: string): string {
         .map(
           (c, i) => `<li class="askp-case">
           <span class="askp-case-label" data-chrome>${esc(c.label)}</span>
-          <a href="#ask-q${i + 1}" data-chip="${i + 1}" data-expect="${esc(c.expect)}">${esc(c.q)}</a>
+          <a href="#ask-q${i + 1}" data-chip="${i + 1}">${esc(c.q)}</a>
           <span class="askp-case-expect" data-chrome>${esc(askUi.expect[c.expect])}</span>
-          <span class="askp-case-verdict" data-chrome data-verdict="build"><i aria-hidden="true">✓</i> <span>${esc(
-            askUi.verdict.build,
-          )}</span></span>
+          <span class="askp-case-verdict" data-chrome data-verdict="build">${verdictWords}</span>
         </li>`,
         )
         .join('')}</ol>
     </div>`;
 }
 
+/** The floor is the gate's one parameter, so it lives in the GATE pane,
+ *  right under the RETRIEVE bars and the dashed line it moves. */
 function floorControl(id: string): string {
-  return `<div class="askp-floor" data-js-only data-chrome>
+  return `<div class="askp-floor">
       <div class="askp-floor-head">
         <label class="label" for="${id}-floor">${esc(ask.floor.label)}</label>
         <output class="askp-floor-out num" for="${id}-floor" data-floor-out>${fmt(FLOOR)}</output>
@@ -106,21 +139,40 @@ function floorControl(id: string): string {
     </div>`;
 }
 
-/** Everything the module prints, in one place in the page. Kept outside
- *  the panel so the panel's text is only what a reader sees. */
-function copyBlock(variant: AskVariant): string {
-  const data = {
-    variant,
+/** The strings the module fills in at run time (everything with a number
+ *  in it, and the announcements). Fixed wordings are in the markup already. */
+const copyData = () => {
+  const u = askUi;
+  return {
     floor: FLOOR,
     valuetext: ask.floor.valuetext,
     announce: ask.announce,
-    abstain: ask.abstain,
-    contact: CONTACT,
-    ui: askUi,
-    live: { label: prov.live.label, def: prov.live.def },
+    live: prov.live,
+    ui: {
+      ready: u.index.ready,
+      read: u.read,
+      part: u.part,
+      stop: u.stop,
+      unseen: u.unseen,
+      df: u.df,
+      floorAt: u.floorAt,
+      above: u.above,
+      none: u.none,
+      sections: u.sections,
+      sectionsOne: u.sectionsOne,
+      abstainWhy: u.abstainWhy,
+    },
   };
+};
+/** What src/motion/ask.ts reads from the block (a type-only import there). */
+export type AskCopy = ReturnType<typeof copyData>;
+
+/** The copy block, right after the panel: the module reads it as the
+ *  panel's next sibling. Outside the panel, so the panel's text is only
+ *  what a reader sees. */
+function copyBlock(variant: AskVariant): string {
   /* JSON inside <script> only needs "</" escaped. */
-  return `<script type="application/json" data-ask-copy="${variant}">${JSON.stringify(data).replace(/<\//g, '<\\/')}</script>`;
+  return `<script type="application/json" data-ask-copy="${variant}">${JSON.stringify(copyData()).replace(/<\//g, '<\\/')}</script>`;
 }
 
 export function renderAsk(variant: AskVariant): string {
@@ -129,7 +181,9 @@ export function renderAsk(variant: AskVariant): string {
   return `<div class="panel askp" data-ask="${variant}" data-stage="0">
     <div class="panel-head askp-head" data-chrome>
       <span class="panel-title">${esc(askUi.title)}</span>
-      <span class="askp-index" data-js-only data-index="idle">${esc(askUi.index.idle)}</span>
+      <span class="askp-index" data-js-only>${(['idle', 'loading', 'failed', 'mismatch'] as const)
+        .map((k) => `<span data-i="${k}">${esc(askUi.index[k])}</span>`)
+        .join('')}<span data-i="ready"></span></span>
       ${chip('build')}
     </div>
     <div class="askp-ctl">
@@ -141,11 +195,7 @@ export function renderAsk(variant: AskVariant): string {
           <button class="btn btn--primary askp-go" type="button" data-go>${esc(ask.button)}</button>
         </div>
       </div>
-      ${
-        full
-          ? `<div class="askp-tools">${cases(id)}${floorControl(id)}</div>`
-          : chipList(ask.chips)
-      }
+      ${full ? cases(id) : chipList(ask.chips)}
     </div>
     <div class="askp-run" data-js-only data-chrome data-run style="--floor:${FLOOR}">
       <ol class="askp-stages" aria-hidden="true">${ask.stages
@@ -155,9 +205,9 @@ export function renderAsk(variant: AskVariant): string {
         <div class="askp-mech">
           ${pane(1, 'query')}
           ${pane(2, 'retrieve', skeleton())}
-          ${pane(3, 'gate')}
+          ${pane(3, 'gate', '', full ? floorControl(id) : '')}
         </div>
-        <div class="askp-out">${pane(4, 'answer')}</div>
+        <div class="askp-out">${pane(4, 'answer', answerIdle(), abstainBlock())}</div>
       </div>
     </div>
     <p class="sr-only" role="status" aria-live="polite" data-chrome data-live></p>

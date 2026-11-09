@@ -1,1 +1,921 @@
-/* Instrument styles: replay. Owned by its workstream (see the rebuild ownership map). */
+/* Instrument styles: Run Replay. Owner: WS4.
+
+   The panel is prerendered finished, and the module only moves states, so
+   every state lives here as an attribute: data-s on rows, bars and marks
+   (done, gate, stop, held, flag, skip, idle, run), data-v on inspector
+   fields (mask, blank, and the state words), data-rp-out on the outcome
+   line. Rows the module rebuilds (fields, sources, leaders) are styled by
+   attribute only. */
+
+.replay {
+  container: rp / inline-size;
+  --row: 28px;
+}
+/* The chip says four things, so on a phone it wraps like a sentence. */
+.replay > .panel-head > .prov {
+  white-space: normal;
+  min-width: 0;
+}
+.rp-sub {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: var(--fg-3);
+}
+.rp-ui {
+  display: grid;
+  gap: var(--s-4);
+  padding: var(--s-5) clamp(var(--s-4), 2.4cqi, var(--s-6)) var(--s-5);
+}
+
+/* State colors, shared by glyphs, words and bars. A state is never color
+   alone: the glyph and the word always come with it. */
+.replay [data-s] {
+  --sc: var(--fg-3);
+}
+.replay [data-s='done'] {
+  --sc: var(--ok);
+}
+.replay [data-s='gate'] {
+  --sc: var(--signal-hi);
+}
+.replay [data-s='stop'] {
+  --sc: var(--fail);
+}
+.replay [data-s='held'],
+.replay [data-s='flag'] {
+  --sc: var(--warn);
+}
+.replay [data-s='run'] {
+  --sc: var(--data);
+}
+.replay [data-s='idle'] {
+  --sc: var(--fg-faint);
+}
+
+/* ── Break the input ─────────────────────────────────────────────── */
+
+.rp-inputs {
+  min-width: 0;
+  border: 0;
+}
+.rp-legend {
+  margin-bottom: var(--s-3);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.rp-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.rp-opt {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+}
+.rp-opt input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.rp-opt span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-1);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  line-height: 1.35;
+  color: var(--fg-2);
+  transition: border-color var(--d-1) var(--ease-out), background-color var(--d-1) var(--ease-out),
+    color var(--d-1) var(--ease-out);
+}
+/* A radio dot, drawn: hollow until chosen. */
+.rp-opt span::before {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--fg-3);
+}
+.rp-opt input:hover + span {
+  border-color: var(--rule-3);
+  color: var(--fg);
+}
+.rp-opt input:checked + span {
+  border-color: var(--signal);
+  background: color-mix(in srgb, var(--signal) 9%, var(--panel));
+  color: var(--fg);
+}
+.rp-opt input:checked + span::before {
+  border-color: var(--signal);
+  background: var(--signal);
+  box-shadow: inset 0 0 0 2px var(--panel);
+}
+.rp-opt input:focus-visible + span {
+  outline: 2px solid var(--signal-hi);
+  outline-offset: 2px;
+}
+
+/* ── The outcome line ───────────────────────────────────────────────
+   Every sentence sits in the same cell, so the line is as tall as the
+   longest from first paint and a new outcome never moves the trace. */
+.rp-out {
+  display: grid;
+  padding: 10px 14px;
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--oc, var(--rule-3));
+  border-radius: var(--r-1);
+  background: var(--ground);
+  transition: border-color var(--d-2) var(--ease-out);
+}
+.rp-out-l {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--fg);
+  visibility: hidden;
+}
+.rp-out-l i {
+  flex: none;
+  font-style: normal;
+  font-family: var(--font-mono);
+  color: var(--oc);
+}
+.rp-out-l[data-out=''] {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  color: var(--fg-3);
+  --oc: var(--data);
+}
+.rp-out[data-rp-out='clean'] {
+  --oc: var(--ok);
+}
+.rp-out[data-rp-out='search'] {
+  --oc: var(--fail);
+}
+.rp-out[data-rp-out='unknown'],
+.rp-out[data-rp-out='skip'],
+.rp-out[data-rp-out='water'] {
+  --oc: var(--warn);
+}
+.rp-out[data-rp-out='clean'] [data-out='clean'],
+.rp-out[data-rp-out='search'] [data-out='search'],
+.rp-out[data-rp-out='unknown'] [data-out='unknown'],
+.rp-out[data-rp-out='skip'] [data-out='skip'],
+.rp-out[data-rp-out='water'] [data-out='water'],
+.rp-out[data-rp-out=''] [data-out=''] {
+  visibility: visible;
+}
+
+/* ── Trace and inspector ─────────────────────────────────────────── */
+
+.rp-main {
+  display: grid;
+  gap: var(--s-5);
+  align-items: start;
+}
+@container rp (min-width: 1100px) {
+  .rp-main {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+}
+.rp-trace {
+  --nw: 64%;
+  min-width: 0;
+}
+@container rp (min-width: 560px) {
+  .rp-trace {
+    --nw: 58%;
+  }
+}
+.rp-cols {
+  display: grid;
+  grid-template-columns: var(--nw) 1fr;
+  padding: 0 0 8px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.rp-cols span {
+  padding-left: 8px;
+}
+.rp-body {
+  position: relative;
+}
+.rp-rows {
+  min-width: 0;
+  border: 0;
+}
+
+/* One span. The row is as wide as the trace, so picking it lights the
+   timeline too, and its words keep to the name column. */
+.rp-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--row);
+  padding: 0 calc(100% - var(--nw) + 8px) 0 8px;
+  border-radius: var(--r-1);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  white-space: nowrap;
+  color: var(--fg-2);
+  cursor: pointer;
+}
+.rp-row:hover {
+  background: color-mix(in srgb, var(--fg) 3%, transparent);
+}
+.rp-row:has(.rp-pick:checked) {
+  background: var(--panel-2);
+  box-shadow: inset 2px 0 0 var(--signal);
+}
+.rp-row:has(.rp-pick:focus-visible) {
+  outline: 2px solid var(--signal-hi);
+  outline-offset: -2px;
+}
+.rp-pick {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+.rp-tr {
+  flex: none;
+  white-space: pre;
+  color: var(--fg-faint);
+}
+.rp-g {
+  flex: none;
+  width: 1.4ch;
+  text-align: center;
+  color: var(--sc);
+}
+.rp-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--fg);
+}
+.rp-row[data-s='skip'] .rp-name,
+.rp-row[data-s='idle'] .rp-name {
+  color: var(--fg-3);
+}
+.rp-kind {
+  flex: none;
+  font-size: var(--t-label);
+}
+.rp-kind i {
+  font-style: normal;
+}
+.rp-kind[data-k='p'] {
+  color: var(--signal-hi);
+}
+.rp-kind[data-k='m'] {
+  color: var(--model);
+}
+.rp-sw {
+  flex: none;
+  margin-left: auto;
+  padding-left: 8px;
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+.rp-row[data-s='stop'] .rp-sw,
+.rp-row[data-s='held'] .rp-sw,
+.rp-row[data-s='flag'] .rp-sw {
+  color: var(--sc);
+}
+/* The kind word is in the inspector; in the tree the diamond carries it,
+   and a screen reader still hears the word. */
+.rp-kw {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+/* Narrow: the state word goes to the screen reader too; the glyph stays. */
+@container rp (max-width: 559px) {
+  .rp-sw {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+}
+
+/* The timeline, laid over the right of the rows. Bars aren't to scale:
+   every stage gets one column of the grid. */
+.rp-tl {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--nw);
+  right: 8px;
+  pointer-events: none;
+  overflow: clip;
+  overflow-clip-margin: 8px;
+}
+.rp-svg {
+  display: block;
+  overflow: visible;
+}
+.rp-grid line {
+  stroke: var(--rule);
+  stroke-width: 1;
+}
+.rp-svg pattern line {
+  stroke: var(--rule-3);
+  stroke-width: 1.5;
+}
+.rp-bar {
+  fill: var(--rule-2);
+  stroke: none;
+  transition: fill var(--d-2) var(--ease-out);
+}
+.rp-bar[data-s='idle'] {
+  fill: transparent;
+  stroke: var(--rule-3);
+  stroke-width: 1;
+}
+.rp-bar[data-s='run'] {
+  fill: var(--data);
+}
+.rp-bar[data-s='done'][data-k='g'] {
+  fill: var(--fg-3);
+}
+.rp-bar[data-s='done'][data-k='d'] {
+  fill: var(--data-dim);
+}
+.rp-bar[data-s='done'][data-k='c'] {
+  fill: var(--fg-2);
+}
+.rp-bar[data-s='done'][data-k='m'] {
+  fill: var(--model-dim);
+}
+.rp-bar[data-s='gate'] {
+  fill: var(--signal);
+}
+.rp-bar[data-s='stop'] {
+  fill: var(--fail);
+}
+.rp-bar[data-s='held'],
+.rp-bar[data-s='flag'] {
+  fill: var(--warn);
+}
+.rp-bar[data-s='skip'] {
+  stroke: var(--rule-2);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+[data-replay='full'] .rp-bar[data-s='skip'] {
+  fill: url(#rp-hatch-full);
+}
+[data-replay='compact'] .rp-bar[data-s='skip'] {
+  fill: url(#rp-hatch-compact);
+}
+.rp-bar--run {
+  fill: transparent;
+  stroke: var(--rule-2);
+  stroke-width: 1;
+}
+.rp-runfill {
+  fill: var(--sc);
+  transform: scaleX(var(--p, 1));
+  transform-box: fill-box;
+  transform-origin: left center;
+  transition: transform var(--d-2) var(--ease-io), fill var(--d-2) var(--ease-out);
+}
+.rp-runfill[data-s='done'] {
+  fill: var(--fg-2);
+}
+/* The person gate is a copper diamond; the model step a hollow violet one. */
+.rp-mark path {
+  fill: var(--signal);
+  stroke: var(--panel);
+  stroke-width: 2;
+  paint-order: stroke;
+  transition: fill var(--d-2) var(--ease-out), opacity var(--d-2) var(--ease-out);
+}
+.rp-mark[data-k='m'] path {
+  fill: var(--panel);
+  stroke: var(--model);
+  stroke-width: 1.5;
+}
+.rp-mark[data-s='idle'] path,
+.rp-mark[data-s='skip'] path {
+  opacity: 0.35;
+}
+.rp-mark[data-s='held'] path {
+  fill: var(--warn);
+}
+.rp-head {
+  position: absolute;
+  inset: 0;
+  transform: translateX(calc(var(--at, 14) / 14 * 100%));
+  transition: transform var(--d-2) var(--ease-io);
+}
+.rp-head::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--signal);
+}
+/* The cap: a small copper flag at the top of the line. */
+.rp-head::after {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: -2px;
+  width: 10px;
+  height: 6px;
+  background: var(--signal);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+/* ── Inspector ───────────────────────────────────────────────────── */
+
+.rp-insp {
+  container: rpi / inline-size;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-2);
+  background: var(--ground);
+}
+.rp-i-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  font-family: var(--font-mono);
+}
+.rp-i-stage {
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.rp-i-name {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--fg);
+}
+.rp-i-state {
+  margin-left: auto;
+  font-size: var(--t-label);
+  color: var(--sc);
+}
+.rp-i-state i {
+  font-style: normal;
+}
+.rp-i-note {
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--fg-2);
+}
+.rp-i-extra {
+  font-size: var(--t-small);
+  color: var(--fg-3);
+}
+.rp-fields {
+  padding: 40px 10px 10px;
+}
+.rp-fields[hidden] {
+  display: none;
+}
+.rp-fields > .hatch-label {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+}
+.rp-fgrid {
+  position: relative;
+  display: grid;
+  gap: var(--s-3);
+}
+.rp-i-sub {
+  margin-bottom: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.06em;
+  color: var(--fg-3);
+}
+.rp-fl,
+.rp-srcs {
+  list-style: none;
+  display: grid;
+  gap: 3px;
+}
+
+/* One field: label, the withheld value, and where it comes from. On a
+   narrow inspector the source drops to its own line, on every row alike. */
+.replay [data-f] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'l v' 's s';
+  align-items: center;
+  gap: 3px 10px;
+  min-height: 24px;
+  padding: 3px 8px;
+  border-radius: var(--r-1);
+  background: var(--panel);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+}
+.replay [data-f] > [data-fs] {
+  grid-area: s;
+  justify-self: start;
+}
+@container rpi (min-width: 400px) {
+  .replay [data-f] {
+    grid-template-columns: minmax(0, 1fr) auto max-content;
+    grid-template-areas: 'l v s';
+    padding: 2px 8px;
+  }
+}
+.replay [data-fl] {
+  grid-area: l;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--fg-2);
+}
+.replay [data-fv] {
+  grid-area: v;
+  color: var(--fg-3);
+  letter-spacing: 0.06em;
+}
+.replay [data-v='mask'] [data-fv] {
+  letter-spacing: 0.14em;
+  color: var(--fg-2);
+}
+.replay [data-f][data-flag] {
+  box-shadow: inset 2px 0 0 var(--warn);
+}
+.replay [data-v='blank'] [data-fv],
+.replay [data-v='held'] [data-fv] {
+  color: var(--warn);
+}
+.replay [data-v='skip'] [data-fl],
+.replay [data-v='idle'] [data-fl] {
+  color: var(--fg-3);
+}
+
+/* Provenance badges. Teal for records and measurements, copper for what
+   a person supplied, amber for anything unaudited. */
+.replay [data-fs] {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  border: 1px solid color-mix(in srgb, currentColor 38%, transparent);
+  border-radius: var(--r-1);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  line-height: 1.4;
+  white-space: nowrap;
+  color: var(--data);
+}
+.replay [data-fs] i {
+  font-style: normal;
+}
+.replay [data-fs='assume'] {
+  color: var(--signal-hi);
+}
+.replay [data-fs='national'] {
+  color: var(--fg-2);
+}
+.replay [data-fs='unaudited'] {
+  color: var(--warn);
+}
+
+/* The full variant, wide enough: fields on the left, the sources they
+   come from on the right, joined by leader lines. */
+.rp-leads,
+.rp-scol {
+  display: none;
+}
+@container rpi (min-width: 430px) {
+  [data-replay='full'] .rp-fgrid {
+    grid-template-columns: minmax(0, 1fr) 56px fit-content(190px);
+    gap: 0;
+  }
+  [data-replay='full'] .rp-scol {
+    display: flex;
+    flex-direction: column;
+    grid-column: 3;
+  }
+  [data-replay='full'] .rp-srcs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 8px;
+  }
+  [data-replay='full'] .rp-leads {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  [data-replay='full'] .rp-fl [data-fs] {
+    display: none;
+  }
+  [data-replay='full'] [data-f] {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'l v';
+  }
+}
+.replay [data-leader] {
+  fill: none;
+  stroke: var(--data-dim);
+  stroke-width: 1;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset var(--d-3) var(--ease-out), stroke var(--d-2) var(--ease-out);
+}
+.replay [data-leader][data-src='assume'] {
+  stroke: var(--signal);
+}
+.replay [data-leader][data-src='unaudited'] {
+  stroke: var(--warn);
+}
+.replay [data-leader][data-src='national'] {
+  stroke: var(--fg-3);
+}
+.replay [data-leader][data-v='mask'] {
+  stroke-dashoffset: 0;
+}
+.replay [data-leader-dot] {
+  fill: var(--fg-2);
+  opacity: 0;
+  transition: opacity var(--d-1) var(--ease-out);
+}
+.replay [data-leader-dot][data-v='mask'] {
+  opacity: 1;
+}
+.replay [data-still] [data-leader],
+.replay [data-still] [data-leader-dot] {
+  transition: none;
+}
+
+/* ── Controls ────────────────────────────────────────────────────── */
+
+.rp-ctl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) 10px;
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--rule);
+}
+.rp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--rule-3);
+  border-radius: var(--r-1);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  color: var(--fg);
+  transition: border-color var(--d-1) var(--ease-out), background-color var(--d-1) var(--ease-out);
+}
+.rp-btn i {
+  font-style: normal;
+  font-size: 0.7rem;
+  color: var(--fg-3);
+}
+.rp-btn:hover {
+  border-color: var(--fg-3);
+  background: var(--panel-2);
+}
+.rp-play {
+  min-width: 10ch;
+  border-color: var(--signal);
+}
+.rp-play i {
+  color: var(--signal-hi);
+}
+.rp-scrub {
+  flex: 1 1 180px;
+  display: flex;
+  min-width: 0;
+}
+.rp-range {
+  width: 100%;
+  height: 36px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.rp-range::-webkit-slider-runnable-track {
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, var(--signal) calc(var(--v, 1) * 100%), var(--rule-3) calc(var(--v, 1) * 100%));
+}
+.rp-range::-moz-range-track {
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, var(--signal) calc(var(--v, 1) * 100%), var(--rule-3) calc(var(--v, 1) * 100%));
+}
+.rp-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 20px;
+  margin-top: -9px;
+  border-radius: var(--r-1);
+  background: var(--fg);
+  border: 2px solid var(--signal);
+  box-shadow: 0 0 0 4px var(--panel);
+}
+.rp-range::-moz-range-thumb {
+  width: 8px;
+  height: 16px;
+  border-radius: var(--r-1);
+  background: var(--fg);
+  border: 2px solid var(--signal);
+  box-shadow: 0 0 0 4px var(--panel);
+}
+.rp-range:focus-visible {
+  outline-offset: 0;
+}
+.rp-read {
+  min-width: 7ch;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-3);
+}
+
+/* ── JavaScript off: the clean run as nested details ─────────────── */
+
+html.js .rp-static {
+  display: none;
+}
+.rp-static {
+  display: grid;
+  gap: var(--s-4);
+  padding: var(--s-5) clamp(var(--s-4), 2.4cqi, var(--s-6));
+}
+.rp-st-title {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.rp-d-tree {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+}
+.rp-d-s {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  padding: 5px 8px;
+  border-radius: var(--r-1);
+  list-style: none;
+  cursor: pointer;
+  color: var(--fg-2);
+}
+.rp-d-s::-webkit-details-marker {
+  display: none;
+}
+.rp-d-s::before {
+  content: '▸';
+  width: 1ch;
+  color: var(--fg-3);
+}
+.rp-d[open] > .rp-d-s::before {
+  content: '▾';
+}
+.rp-d-s:hover {
+  background: var(--panel-2);
+}
+.rp-d-g {
+  color: var(--sc);
+}
+.rp-d-n {
+  color: var(--fg);
+}
+.rp-d-note {
+  flex-basis: 100%;
+  padding-left: calc(3ch + 20px);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+@container rp (min-width: 640px) {
+  .rp-d-note {
+    flex-basis: auto;
+    padding-left: 0;
+  }
+}
+.rp-d-kids {
+  margin-left: 12px;
+  padding-left: 10px;
+  border-left: 1px solid var(--rule-2);
+}
+.rp-d-f {
+  margin: 4px 0 10px 26px;
+  padding: 40px 10px 10px;
+}
+.rp-d-f > .hatch-label {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+}
+.rp-d-dl {
+  display: grid;
+  gap: 3px;
+}
+.rp-d-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 3px 8px;
+  border-radius: var(--r-1);
+  background: var(--panel);
+  font-size: var(--t-label);
+}
+.rp-d-row dt {
+  color: var(--fg-2);
+}
+.rp-d-row dd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rp-mask {
+  letter-spacing: 0.14em;
+  color: var(--fg-2);
+}
+.rp-d-none {
+  margin: 2px 0 8px 26px;
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+.rp-wrong {
+  list-style: none;
+  display: grid;
+  gap: var(--s-3);
+  max-width: var(--measure);
+}
+.rp-wrong li {
+  padding-left: var(--s-4);
+  border-left: 2px solid var(--warn);
+  font-size: var(--t-small);
+  color: var(--fg-2);
+}
+.rp-wrong-in {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg);
+}
+
+html[data-motion='reduced'] .replay *,
+html[data-motion='reduced'] .replay *::before {
+  transition: none !important;
+}

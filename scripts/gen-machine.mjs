@@ -71,9 +71,9 @@ const strip = (html) => html.replace(PRE, '<!--ask:pre-->');
 
 /** Not quotable: the shared exclusion set, plus the Ask panel itself
  *  (it quotes passages, it isn't one), the footer, navigation, anything
- *  hidden, and the mono eyebrows and labels (a label names a thing; it
- *  doesn't answer anything). */
-const LABELS = new RegExp(String.raw`(^|\s)(eyebrow|label${process.env.ASK_SPECS === "1" ? "" : "|specs"})(\s|$)`);
+ *  hidden, the mono eyebrows and labels, and the hero spec strips (a
+ *  label names a thing; it doesn't answer anything). */
+const LABELS = /(^|\s)(eyebrow|label|specs)(\s|$)/;
 const skip = (el) =>
   isExcluded(el.name, el.attrs) ||
   LABELS.test(el.attrs.class ?? '') ||
@@ -83,7 +83,7 @@ const skip = (el) =>
   el.name === 'nav';
 
 const PASSAGE = new Set(['p', 'li', 'dd']);
-const HEADING = new Set(process.env.ASK_H3 === '1' ? ['h1', 'h2', 'h3', 'summary'] : ['h1', 'h2', 'summary']);
+const HEADING = new Set(['h1', 'h2', 'summary']);
 
 /**
  * Every passage on one page, in reading order, plus every id on the page
@@ -229,17 +229,15 @@ function sectionsOf(html) {
 const esc = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-/** The abstain sentence, with the address in it linked. */
-function abstainHtml() {
-  const text = C.ask.abstain;
-  const at = text.indexOf(C.CONTACT);
-  if (at < 0) return esc(text);
-  return `${esc(text.slice(0, at))}<a class="tlink" href="mailto:${esc(C.CONTACT)}">${esc(C.CONTACT)}</a>${esc(
-    text.slice(at + C.CONTACT.length),
-  )}`;
-}
+/** The abstain sentence, with the address linked: the renderer's own, so
+ *  the live panel and these answers can't word it differently. */
+const { abstainSay } = await loadTs('src/sections/instruments/ask.ts');
 
-function articleHtml(n, q, res, ui) {
+/** The slider's floors, as whole percents: 15, 20 … 75. */
+const FLOORS = [];
+for (let f = bm.FLOOR_MIN; f <= bm.FLOOR_MAX + 1e-9; f += bm.FLOOR_STEP) FLOORS.push(Math.round(f * 100));
+
+function articleHtml(n, q, res, ui, expect) {
   const { cited } = res.answer;
   const ok = cited.length > 0;
   const head = ok
@@ -247,21 +245,27 @@ function articleHtml(n, q, res, ui) {
     : C.ask.announce.none;
   const quotes = cited
     .map((h) => {
-      const qt = bm.quote(h.p.text, h.matched);
+      const qt = bm.quote(h.p.text, h.matched, engine.stop);
       const href = `${h.p.route}#${h.p.anchor}`;
-      return `<li data-a="quote"><blockquote data-a="text"><p>${qt.before ? '<span data-a="cut" aria-hidden="true">… </span>' : ''}${esc(
+      return `<li data-a="quote"><blockquote data-a="text" data-cut="${+qt.before}${+qt.after}"><p>${esc(
         qt.text,
-      )}${qt.after ? '<span data-a="cut" aria-hidden="true"> …</span>' : ''}</p></blockquote><p data-a="cite"><a href="${esc(
+      )}</p></blockquote><p data-a="cite"><a href="${esc(
         href,
       )}"><span data-a="where">${esc(href)}</span><span data-a="head">${esc(h.p.heading)}</span></a><span data-a="conf">${bm.fmt(
         h.conf,
       )}</span></p></li>`;
     })
     .join('');
-  return `<article class="askp-pre" id="ask-q${n}" data-outcome="${ok ? 'answer' : 'abstain'}">
+  /* A "Break the input" case also carries every slider floor at which it
+     does what it promises, so the panel's verdicts can follow the slider
+     without re-running four searches on every step. */
+  const met = expect
+    ? ` data-met="${FLOORS.filter((f) => bm.meets(expect, bm.gate(res.search, f / 100))).join(' ')}"`
+    : '';
+  return `<article class="askp-pre" id="ask-q${n}" data-outcome="${ok ? 'answer' : 'abstain'}"${met}>
       <p class="askp-pre-head"><span>${esc(ui.preLabel.replace('{n}', String(n)))}</span><span>${esc(head)}</span></p>
       <p class="askp-pre-q">${esc(q)}</p>
-      ${ok ? `<ol data-a="quotes">${quotes}</ol>` : `<p data-a="abstain"><span data-a="glyph" aria-hidden="true">▲</span> <span>${abstainHtml()}</span></p>`}
+      ${ok ? `<ol data-a="quotes">${quotes}</ol>` : `<p data-a="abstain"><span data-a="glyph" aria-hidden="true">▲</span> <span>${abstainSay()}</span></p>`}
     </article>`;
 }
 
@@ -302,8 +306,8 @@ const indexGz = gz(indexJson);
 if (indexGz > INDEX_BUDGET) {
   fail(`search-index.json is ${kb(indexGz)} gz, over its ${kb(INDEX_BUDGET)} budget.`);
 }
-if (process.env.GEN_MACHINE_DUMP) writeFileSync(process.env.GEN_MACHINE_DUMP, JSON.stringify(index, null, 1));
 const engine = bm.createEngine(index);
+if (!engine.ok) fail('the search index and src/lib/bm25.ts disagree about N or avgdl');
 const idsOf = new Map(pages.map((pg) => [pg.page.route, pg.ids]));
 
 /* 2 + 3. Precompute, inject, evaluate. */
@@ -324,12 +328,12 @@ for (const pg of pages) {
   const articles = qs.map((item, i) => {
     const res = bm.run(engine, item.q, bm.FLOOR);
     const { cited } = res.answer;
-    const ok = bm.meets(item.expect, res.answer);
+    const ok = bm.meets(item.expect, res.answer) && new Set(cited.map((h) => bm.sectionOf(h.p))).size === cited.length;
     for (const h of cited) {
       if (!idsOf.get(h.p.route)?.has(h.p.anchor)) fail(`citation ${h.p.route}#${h.p.anchor} doesn't resolve`);
     }
     results.push({ route: pg.page.route, variant, ...item, res, ok });
-    return articleHtml(i + 1, item.q, res, UI);
+    return articleHtml(i + 1, item.q, res, UI, variant === 'full' && item.expect);
   });
   pg.html = pg.html.replace('<!--ask:pre-->', `<!--ask:pre-->${articles.join('')}<!--/ask:pre-->`);
 }
@@ -345,7 +349,7 @@ if (EXPLAIN) {
       console.log(`    part "${pt.text}": ${pt.terms.map((t) => `${t.term}(df ${t.df})`).join(' ')}`);
     }
     for (const h of search.hits.slice(0, bm.TOP)) {
-      const mark = answer.cited.includes(h) ? '●' : h.conf >= answer.floor ? '○' : ' ';
+      const mark = answer.cited.includes(h) ? '●' : answer.above.includes(h) ? '○' : ' ';
       console.log(
         `  ${mark} ${bm.fmt(h.conf)} ${h.score.toFixed(2).padStart(6)}  q${h.part + 1} ${`${h.p.route}#${h.p.anchor}`.padEnd(
           44,

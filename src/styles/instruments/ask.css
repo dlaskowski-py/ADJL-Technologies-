@@ -35,6 +35,7 @@
   margin-left: auto;
 }
 .askp-index {
+  white-space: nowrap;
   font-family: var(--font-mono);
   font-size: var(--t-label);
   letter-spacing: 0.02em;
@@ -43,13 +44,41 @@
 }
 .askp-index::before {
   content: '·';
+  content: '·' / '';
   margin-right: var(--s-3);
   color: var(--fg-3);
 }
-.askp-index[data-index='ready'] {
+/* On a phone the readout gets a line of its own under the title, so its
+   wording can change (idle → loading → ready) without re-wrapping the
+   head and moving the panel. */
+@media (max-width: 759px) {
+  .askp-index {
+    order: 3;
+    flex: 1 0 100%;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .askp-index::before {
+    display: none;
+  }
+}
+/* Every wording is in the markup; the panel's data-index picks one. */
+.askp-index [data-i] {
+  display: none;
+}
+[data-ask]:not([data-index]) .askp-index [data-i='idle'],
+[data-ask][data-index='loading'] .askp-index [data-i='loading'],
+[data-ask][data-index='ready'] .askp-index [data-i='ready'],
+[data-ask][data-index='failed'] .askp-index [data-i='failed'],
+[data-ask][data-index='mismatch'] .askp-index [data-i='mismatch'] {
+  display: inline;
+}
+[data-ask][data-index='ready'] .askp-index {
   color: var(--data);
 }
-.askp-index[data-index='failed'] {
+[data-ask]:is([data-index='failed'], [data-index='mismatch']) .askp-index {
   color: var(--warn);
 }
 
@@ -57,11 +86,13 @@
 
 .askp-ctl {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-5);
   padding: var(--ask-pad);
 }
 .askp-ask {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-2);
 }
 .askp-label {
@@ -89,7 +120,10 @@
   pointer-events: none;
 }
 .askp-input {
-  flex: 1;
+  /* No intrinsic width: a search field is ~20 characters wide by default,
+     which is wider than a phone leaves it. */
+  flex: 1 1 0;
+  width: 0;
   min-width: 0;
   height: 52px;
   padding: 0 14px 0 40px;
@@ -205,16 +239,6 @@
 
 /* ── Full variant: Break the input, and the floor ───────────────────── */
 
-.askp-tools {
-  display: grid;
-  gap: var(--s-5);
-}
-@media (min-width: 1100px) {
-  .askp-tools {
-    grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
-    align-items: stretch;
-  }
-}
 .askp-cases-title {
   margin-bottom: var(--s-3);
 }
@@ -264,31 +288,46 @@
 .askp-case-verdict {
   grid-area: verdict;
   align-self: center;
+  /* As wide as its longest wording, so the live re-run can't move it. */
+  min-width: 19ch;
+  text-align: right;
   font-family: var(--font-mono);
   font-size: var(--t-label);
   white-space: nowrap;
   color: var(--ok);
 }
-.askp-case-verdict i {
-  font-style: normal;
+/* All three wordings are in the markup; the one matching data-verdict
+   shows. The glyph is decoration (the alt text after the slash is empty). */
+.askp-case-verdict [data-v] {
+  display: none;
+}
+.askp-case-verdict[data-verdict='build'] [data-v='build'],
+.askp-case-verdict[data-verdict='met'] [data-v='met'],
+.askp-case-verdict[data-verdict='missed'] [data-v='missed'] {
+  display: inline;
+}
+.askp-case-verdict::before {
+  content: '✓ ';
+  content: '✓ ' / '';
 }
 .askp-case-verdict[data-verdict='missed'] {
   color: var(--warn);
 }
+.askp-case-verdict[data-verdict='missed']::before {
+  content: '▲ ';
+  content: '▲ ' / '';
+}
 
+/* In the GATE pane, under the bars it gates. */
 .askp-floor {
   display: grid;
   align-content: start;
   gap: var(--s-3);
+  margin-top: var(--s-5);
   padding: 14px 16px 16px;
   border: 1px solid var(--rule-2);
   border-radius: var(--r-2);
   background: var(--panel-2);
-}
-@media (min-width: 1100px) {
-  .askp-floor {
-    margin-top: 29px;
-  }
 }
 .askp-floor-head {
   display: flex;
@@ -456,8 +495,14 @@
 .askp-out .askp-pane {
   border-bottom: 0;
 }
+/* Stacked (tablet and phone): the answer comes first, right under the
+   question, and the trace that produced it follows. The stage rail and
+   the pane numbers keep the pipeline's order. */
 @media (max-width: 1099px) {
-  .askp-mech .askp-pane:last-child {
+  .askp-out {
+    order: -1;
+  }
+  .askp-out .askp-pane {
     border-bottom: 1px solid var(--rule);
   }
 }
@@ -485,6 +530,37 @@
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+/* ANSWER's readout: both words are in the markup, the outcome picks. */
+[data-ask] [data-read] [data-o] {
+  display: none;
+}
+[data-ask][data-outcome='answer'] [data-read] [data-o='answer'],
+[data-ask][data-outcome='abstain'] [data-read] [data-o='abstain'] {
+  display: inline;
+}
+/* ANSWER at rest: the three slots a quote can land in. Wide screens only;
+   stacked, the answer pane comes first and stays short until asked. */
+.askp-slots {
+  list-style: none;
+  display: grid;
+  gap: var(--s-4);
+  margin-top: var(--s-5);
+}
+.askp-slots li {
+  min-height: 88px;
+  padding: 12px 16px;
+  border: 1px dashed var(--rule-2);
+  border-left: 2px solid color-mix(in srgb, var(--signal) 35%, transparent);
+  border-radius: 0 var(--r-1) var(--r-1) 0;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+@media (max-width: 1099px) {
+  .askp-slots {
+    display: none;
+  }
+}
 .askp-idle {
   max-width: 46ch;
   font-size: var(--t-small);
@@ -503,12 +579,16 @@
   align-items: stretch;
   gap: 6px;
 }
+/* Q1, Q2: which part of a compound question. Violet is structure. */
+[data-ask] [data-k='q'] {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.02em;
+  color: var(--model);
+}
 [data-ask] [data-part] > [data-k='q'] {
   align-self: center;
   margin-right: 2px;
-  font-family: var(--font-mono);
-  font-size: var(--t-label);
-  color: var(--model);
 }
 [data-ask] [data-tok] {
   display: inline-grid;
@@ -609,14 +689,19 @@
   line-height: 1.4;
   color: var(--fg-2);
 }
-[data-ask] [data-hit] [data-k='st'] {
-  font-family: var(--font-mono);
-  font-size: var(--t-label);
-  color: var(--signal-hi);
+/* ● quoted in the answer, ○ over the floor but its section is already
+   quoted (or three already are). */
+[data-ask] [data-hit]:is([data-state='cited'], [data-state='same']) [data-k='path']::before {
+  content: '●';
   margin-right: 6px;
+  color: var(--signal-hi);
 }
-[data-ask] [data-hit][data-state='same'] [data-k='st'] {
+[data-ask] [data-hit][data-state='same'] [data-k='path']::before {
+  content: '○';
   color: var(--fg-3);
+}
+[data-ask] [data-hit] [data-k='q'] {
+  margin-right: 6px;
 }
 [data-ask] [data-hit] [data-k='bar'] {
   position: relative;
@@ -722,6 +807,11 @@
   left: 100%;
   transform: translateX(-100%);
 }
+@media (max-width: 759px) {
+  .askp-axis span:is(:nth-child(2), :nth-child(4)) {
+    display: none;
+  }
+}
 
 /* GATE: one line of arithmetic. */
 [data-ask] [data-gate] {
@@ -740,6 +830,10 @@
 [data-ask] [data-gate] [data-k='held'] {
   color: var(--warn);
 }
+[data-ask] [data-gate] [data-k='held']::before {
+  content: '▲ ';
+  content: '▲ ' / '';
+}
 
 /* ANSWER: quotes with a copper rule and a citation, or the abstain. Used
    by the live pane and by the prerendered answers alike. */
@@ -754,34 +848,32 @@
   padding-left: 16px;
   border-left: 2px solid var(--signal);
 }
-[data-ask] [data-a='meta'] {
-  display: flex;
-  gap: 10px;
-  font-family: var(--font-mono);
-  font-size: var(--t-label);
-  letter-spacing: 0.04em;
-  color: var(--fg-3);
-  font-variant-numeric: tabular-nums;
-}
-[data-ask] [data-a='meta'] [data-k='q'] {
-  color: var(--model);
-}
 [data-ask] [data-a='text'] p {
   max-width: 66ch;
   font-size: 1rem;
   line-height: 1.6;
   color: var(--fg);
 }
+/* Quote marks, and an ellipsis where sentences were left out: data-cut
+   is two flags, before and after ("10" = cut before only). Decoration:
+   the alt text is empty. */
 [data-ask] [data-a='text'] p::before {
   content: '“';
+  content: '“' / '';
   color: var(--fg-3);
 }
 [data-ask] [data-a='text'] p::after {
   content: '”';
+  content: '”' / '';
   color: var(--fg-3);
 }
-[data-ask] [data-a='cut'] {
-  color: var(--fg-3);
+[data-ask] [data-a='text'][data-cut^='1'] p::before {
+  content: '“… ';
+  content: '“… ' / '';
+}
+[data-ask] [data-a='text'][data-cut$='1'] p::after {
+  content: ' …”';
+  content: ' …”' / '';
 }
 [data-ask] [data-a='cite'] {
   display: flex;
@@ -823,6 +915,9 @@
   color: var(--fg-3);
   font-variant-numeric: tabular-nums;
 }
+[data-ask] [data-a='abstain'][hidden] {
+  display: none;
+}
 [data-ask] [data-a='abstain'] {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -851,6 +946,15 @@
   line-height: 1.6;
   color: var(--fg);
 }
+[data-ask] [data-a='say'] a {
+  color: var(--signal-hi);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+[data-ask] [data-a='say'] a:hover {
+  text-decoration-thickness: 2px;
+}
 [data-ask] [data-a='why'] {
   font-family: var(--font-mono);
   font-size: var(--t-label);
@@ -867,13 +971,13 @@
    data-stage 1 → 4 over about 600ms. Each pane fades in when its stage is
    reached, bars grow, the floor line draws, quotes wipe in. Lite and
    reduced jump straight to stage 4, so none of this applies there. */
-html[data-motion='full'] [data-ask] [data-pane] [data-body] {
+html[data-motion='full'] [data-ask] [data-pane] :is([data-body], [data-read]) {
   transition: opacity var(--d-2) var(--ease-out);
 }
-html[data-motion='full'] [data-ask][data-ran][data-stage='0'] [data-pane='query'] [data-body],
-html[data-motion='full'] [data-ask][data-ran]:is([data-stage='0'], [data-stage='1']) [data-pane='retrieve'] [data-body],
-html[data-motion='full'] [data-ask][data-ran]:is([data-stage='0'], [data-stage='1'], [data-stage='2']) [data-pane='gate'] [data-body],
-html[data-motion='full'] [data-ask][data-ran]:not([data-stage='4']) [data-pane='answer'] [data-body] {
+html[data-motion='full'] [data-ask][data-ran][data-stage='0'] [data-pane='query'] :is([data-body], [data-read]),
+html[data-motion='full'] [data-ask][data-ran]:is([data-stage='0'], [data-stage='1']) [data-pane='retrieve'] :is([data-body], [data-read]),
+html[data-motion='full'] [data-ask][data-ran]:is([data-stage='0'], [data-stage='1'], [data-stage='2']) [data-pane='gate'] :is([data-body], [data-read]),
+html[data-motion='full'] [data-ask][data-ran]:not([data-stage='4']) [data-pane='answer'] :is([data-body], [data-read]) {
   opacity: 0;
 }
 html[data-motion='full'] [data-ask][data-ran]:is([data-stage='0'], [data-stage='1']) [data-hit] [data-k='bar'] i {
@@ -892,7 +996,9 @@ html[data-motion='full'] [data-ask][data-ran]:not([data-stage='4']) :is([data-a=
   clip-path: inset(0 100% 0 0);
 }
 html:not([data-motion='full']) .askp-run *,
-html:not([data-motion='full']) .askp-run *::after {
+html:not([data-motion='full']) .askp-run *::after,
+[data-ask][data-reset] .askp-run *,
+[data-ask][data-reset] .askp-run *::after {
   transition: none !important;
 }
 
@@ -907,11 +1013,12 @@ html:not([data-motion='full']) .askp-run *::after {
 .js .askp-pre-wrap {
   display: none;
 }
-/* The module couldn't load the index: fall back to the build's answers. */
-.js [data-ask][data-fallback] .askp-pre-wrap {
+/* The module couldn't load the index, or it was built by other code:
+   fall back to the build's answers. */
+.js [data-ask]:is([data-index='failed'], [data-index='mismatch']) .askp-pre-wrap {
   display: grid;
 }
-.js [data-ask][data-fallback] .askp-run {
+.js [data-ask]:is([data-index='failed'], [data-index='mismatch']) .askp-run {
   display: none;
 }
 .askp-pre-note {

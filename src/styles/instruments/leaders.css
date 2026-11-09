@@ -1,1 +1,632 @@
-/* Instrument styles: leaders. Owned by its workstream (see the rebuild ownership map). */
+/* Instrument styles: the leader-line diagrams (parity, seal, pit, clocks)
+   and the two-readers diagram. Owner: WS4.
+
+   Prerendered final, and complete without a script. motion/leaders.ts
+   only sets attributes on the figure:
+     data-pre    lines not drawn yet (set before the figure is in view)
+     data-on     parity: rows paired by the sweep (data-sweep on the root)
+     data-net    parity: the phone's network, 'off' once it drops
+     data-run    packets moving ('loop' on full, 'once' on lite)
+     data-surv   pit: survivors only
+   Color keeps its meaning: teal for data and the paths it takes, violet
+   for models, copper for people and output, amber for unaudited or held,
+   red for refused. */
+
+.leaders {
+  container: ld / inline-size;
+}
+.ld-draw-area {
+  padding: var(--s-5) clamp(var(--s-4), 3cqi, var(--s-6)) var(--s-4);
+}
+
+/* Two drawings, one shown: the narrow one keeps labels at reading size
+   on a phone. */
+.ld-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 680px;
+  margin-inline: auto;
+  overflow: visible;
+}
+.ld-svg--w {
+  display: none;
+}
+@container ld (min-width: 540px) {
+  .ld-svg--w {
+    display: block;
+  }
+  .ld-svg--n {
+    display: none;
+  }
+}
+
+/* ── Type and primitives inside the drawings ─────────────────────── */
+
+.ld-svg text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  fill: var(--fg-2);
+}
+.ld-svg .ld-t {
+  fill: var(--fg);
+}
+.ld-svg .ld-t2 {
+  fill: var(--fg-2);
+}
+.ld-svg .ld-t3 {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  fill: var(--fg-3);
+}
+.ld-svg .ld-t3n {
+  font-size: 10px;
+  fill: var(--fg-3);
+}
+.ld-svg--n .ld-t3n {
+  font-size: 10.5px;
+}
+.ld-box {
+  fill: var(--panel-2);
+  stroke: var(--rule-3);
+  stroke-width: 1;
+}
+.ld-line {
+  fill: none;
+  stroke: var(--rule-3);
+  stroke-width: 1;
+}
+.ld-arrow {
+  fill: none;
+  stroke: var(--fg-3);
+  stroke-width: 1;
+}
+.ld-dot {
+  fill: var(--fg-2);
+}
+.ld-rule {
+  fill: none;
+  stroke: var(--rule-2);
+  stroke-width: 1;
+}
+.ld-rule--dash {
+  stroke-dasharray: 3 4;
+}
+
+/* Lines draw; they don't fade. */
+.ld-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset var(--d-4) var(--ease-out);
+}
+.js [data-leaders][data-pre] .ld-draw {
+  stroke-dashoffset: 1;
+  transition: none;
+}
+
+/* Packets ride a CSS motion path, and only move while the module says
+   so: whileVisible starts them in view and stops them out of it, on
+   Pause and in a hidden tab. At rest they sit where the drawing needs
+   them. */
+.ld-pk {
+  fill: var(--data);
+  stroke: var(--panel);
+  stroke-width: 2;
+  paint-order: stroke;
+  offset-rotate: 0deg;
+}
+.ld-pk--stop {
+  fill: var(--fail);
+}
+[data-leaders][data-run] .ld-pk {
+  animation: ld-go 2.4s linear var(--dl, 0s) infinite both;
+}
+[data-leaders][data-run='once'] .ld-pk {
+  animation-iteration-count: 1;
+  animation-fill-mode: none;
+}
+[data-leaders='clocks'][data-run] .ld-pk {
+  animation-duration: 3.2s;
+}
+@keyframes ld-go {
+  0% {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 1;
+  }
+  100% {
+    offset-distance: 100%;
+    opacity: 0;
+  }
+}
+
+/* ── parity ──────────────────────────────────────────────────────── */
+
+.ld-frame {
+  fill: var(--ground);
+  stroke: var(--rule-3);
+  stroke-width: 1;
+}
+.ld-fdot {
+  fill: var(--rule-3);
+}
+.ld-notch {
+  fill: var(--rule-3);
+}
+.ld-skel {
+  fill: var(--rule-2);
+}
+.ld-block {
+  fill: var(--panel-2);
+  stroke: var(--rule-3);
+  stroke-width: 1;
+  transition: stroke var(--d-2) var(--ease-out);
+}
+.ld-chip {
+  fill: none;
+  stroke: color-mix(in srgb, var(--model) 45%, transparent);
+  stroke-width: 1;
+}
+.ld-svg .ld-chip-t {
+  font-size: 8px;
+  letter-spacing: 0.02em;
+  fill: var(--model);
+}
+.ld-link {
+  fill: none;
+  stroke: var(--data-dim);
+  stroke-width: 1;
+}
+.ld-svg .ld-tick {
+  fill: var(--ok);
+  transition: opacity var(--d-1) var(--ease-out);
+}
+.ld-bar {
+  fill: var(--data);
+}
+.ld-net-x {
+  fill: none;
+  stroke: var(--fail);
+  stroke-width: 1.5;
+}
+.ld-on {
+  display: none;
+}
+.ld-svg .ld-recomp {
+  fill: var(--signal-hi);
+}
+
+/* The sweep. Rows wait unpaired, then pair one by one; the phone drops
+   its network and recomputes on its own. */
+[data-leaders='parity'][data-sweep] .ld-row:not([data-on]) .ld-link {
+  stroke-dashoffset: 1;
+  transition: none;
+}
+[data-leaders='parity'][data-sweep] .ld-row:not([data-on]) .ld-tick {
+  opacity: 0;
+}
+[data-leaders='parity'] .ld-row[data-on='now'] .ld-block {
+  stroke: var(--signal);
+}
+[data-leaders='parity'][data-net='on'] .ld-bar {
+  fill: var(--data);
+}
+[data-leaders='parity'][data-net='on'] .ld-net-x,
+[data-leaders='parity'][data-net='on'] .ld-off,
+[data-leaders='parity'][data-net='on'] .ld-recomp {
+  display: none;
+}
+[data-leaders='parity'][data-net='on'] .ld-on {
+  display: inline;
+}
+[data-leaders='parity']:not([data-net='on']) .ld-bar {
+  fill: var(--fg-faint);
+}
+[data-leaders='parity'][data-net='re'] .ld-tick--ph {
+  animation: ld-retick var(--d-3) steps(1, end) both;
+  animation-delay: calc(var(--i) * 70ms);
+}
+@keyframes ld-retick {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── seal ────────────────────────────────────────────────────────── */
+
+.ld-edge {
+  fill: color-mix(in srgb, var(--data) 8%, var(--panel-2));
+  stroke: var(--data-dim);
+  stroke-width: 1;
+}
+.ld-line--ok {
+  stroke: var(--data-dim);
+}
+.ld-line--fail {
+  stroke: var(--fail);
+  stroke-dasharray: 3 3;
+}
+.ld-arrow--ok {
+  stroke: var(--data);
+}
+.ld-box--ok {
+  stroke: color-mix(in srgb, var(--ok) 55%, transparent);
+}
+.ld-svg .ld-okg {
+  fill: var(--ok);
+}
+.ld-svg .ld-fail {
+  fill: var(--fail);
+}
+.ld-refuse {
+  stroke: color-mix(in srgb, var(--fail) 55%, transparent);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+.ld-svg--w .ld-refuse {
+  fill: url(#ld-h-seal-w);
+}
+.ld-svg--n .ld-refuse {
+  fill: url(#ld-h-seal-n);
+}
+.ld-svg pattern line {
+  stroke: var(--rule-3);
+  stroke-width: 1.5;
+}
+.ld-absent {
+  fill: none;
+  stroke: var(--rule-3);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+[data-leaders='seal'][data-run] .ld-pk {
+  animation-duration: 2.8s;
+}
+
+/* ── pit ─────────────────────────────────────────────────────────── */
+
+.ld-pit {
+  display: grid;
+  gap: var(--s-4);
+}
+.ld-pit-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3) var(--s-5);
+}
+.ld-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 0 14px 0 10px;
+  border: 1px solid var(--rule-3);
+  border-radius: var(--r-1);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  color: var(--fg);
+  transition: border-color var(--d-1) var(--ease-out), background-color var(--d-1) var(--ease-out);
+}
+.ld-toggle:hover {
+  background: var(--panel-2);
+}
+/* A switch, drawn: the knob moves right and turns amber when pressed. */
+.ld-sw {
+  position: relative;
+  width: 26px;
+  height: 14px;
+  border: 1px solid var(--fg-3);
+  border-radius: 7px;
+}
+.ld-sw::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--fg-3);
+  transition: transform var(--d-2) var(--ease-out), background-color var(--d-2) var(--ease-out);
+}
+.ld-toggle[aria-pressed='true'] {
+  border-color: var(--warn);
+}
+.ld-toggle[aria-pressed='true'] .ld-sw {
+  border-color: var(--warn);
+}
+.ld-toggle[aria-pressed='true'] .ld-sw::after {
+  transform: translateX(12px);
+  background: var(--warn);
+}
+.ld-key {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+.ld-key li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.ld-key li::before {
+  content: '';
+  width: 12px;
+  height: 9px;
+  border-radius: 2px;
+}
+.ld-key-m::before {
+  background: var(--data-dim);
+}
+.ld-key-l::before {
+  background: color-mix(in srgb, var(--data-dim) 42%, var(--panel));
+}
+.ld-pit-plot {
+  display: grid;
+  grid-template-columns: auto minmax(0, 880px);
+  justify-content: center;
+  gap: 6px 10px;
+  align-items: center;
+}
+.ld-svg--pit {
+  max-width: none;
+  grid-column: 2;
+}
+.ld-axis {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+.ld-axis--y {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+.ld-axis--x,
+.ld-hides {
+  grid-column: 2;
+}
+.ld-cell {
+  fill: var(--data-dim);
+  fill-opacity: var(--k, 1);
+  transition: opacity var(--d-2) var(--ease-out);
+}
+.ld-cell--left {
+  fill-opacity: calc(var(--k, 1) * 0.42);
+}
+.ld-gap {
+  fill: url(#ld-h-pit);
+  stroke: var(--rule-3);
+  stroke-dasharray: 3 3;
+  opacity: 0;
+  transition: opacity var(--d-2) var(--ease-out);
+}
+.ld-hides {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: start;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  visibility: hidden;
+}
+.hatch-swatch {
+  width: 22px;
+  height: 12px;
+  border: 1px dashed var(--rule-3);
+  border-radius: 2px;
+  background-image: repeating-linear-gradient(135deg, var(--rule-3) 0 1px, transparent 1px 5px);
+}
+[data-leaders='pit'][data-surv] .ld-cell--left {
+  opacity: 0;
+}
+[data-leaders='pit'][data-surv] .ld-gap {
+  opacity: 1;
+}
+[data-leaders='pit'][data-surv] .ld-hides {
+  visibility: visible;
+  color: var(--fg-2);
+}
+/* The one-pass reveal: dates fill in from the left. */
+.js [data-leaders='pit'][data-pre] .ld-cell {
+  opacity: 0;
+}
+[data-leaders='pit'] .ld-cell {
+  transition-delay: calc(var(--c) * 28ms);
+}
+[data-leaders='pit'][data-surv] .ld-cell,
+[data-leaders='pit'][data-still] .ld-cell {
+  transition-delay: 0s;
+}
+
+/* ── clocks ──────────────────────────────────────────────────────── */
+
+.ld-clock-src {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: var(--s-5) clamp(var(--s-4), 3cqi, var(--s-6)) 0;
+  border: 0;
+}
+.ld-legend {
+  float: left;
+  margin-right: var(--s-3);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.ld-opt {
+  position: relative;
+  display: inline-flex;
+}
+.ld-opt input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.ld-opt span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-1);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  color: var(--fg-2);
+}
+.ld-opt span::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--fg-3);
+}
+.ld-opt input:hover + span {
+  border-color: var(--rule-3);
+  color: var(--fg);
+}
+.ld-opt input:checked + span {
+  border-color: var(--data-dim);
+  background: color-mix(in srgb, var(--data) 8%, var(--panel));
+  color: var(--fg);
+}
+.ld-opt input:checked + span::before {
+  border-color: var(--data);
+  background: var(--data);
+  box-shadow: inset 0 0 0 2px var(--panel);
+}
+.ld-opt input:focus-visible + span {
+  outline: 2px solid var(--signal-hi);
+  outline-offset: 2px;
+}
+.ld-clock {
+  transition: stroke var(--d-2) var(--ease-out), opacity var(--d-2) var(--ease-out);
+}
+.ld-arm {
+  fill: none;
+  stroke: var(--rule-3);
+  stroke-width: 1;
+}
+.ld-line--path {
+  stroke: var(--data-dim);
+  stroke-width: 1.5;
+}
+.ld-pivot {
+  fill: var(--data);
+}
+.ld-step {
+  fill: var(--panel-2);
+}
+.ld-bracket {
+  fill: none;
+  stroke: var(--fg-3);
+  stroke-width: 1;
+}
+/* The radiogroup swaps the clock source and nothing else. Without :has()
+   both packet streams show, which still reads as two clocks on one path. */
+@supports selector(:has(*)) {
+  [data-leaders='clocks']:has(input[value='replay']:checked) .ld-pks[data-src='live'],
+  [data-leaders='clocks']:has(input[value='live']:checked) .ld-pks[data-src='replay'] {
+    display: none;
+  }
+  [data-leaders='clocks']:has(input[value='replay']:checked) .ld-src[data-src='replay'] .ld-clock,
+  [data-leaders='clocks']:has(input[value='live']:checked) .ld-src[data-src='live'] .ld-clock {
+    stroke: var(--data);
+  }
+  [data-leaders='clocks']:has(input[value='replay']:checked) .ld-src[data-src='replay'] .ld-arm,
+  [data-leaders='clocks']:has(input[value='live']:checked) .ld-src[data-src='live'] .ld-arm {
+    stroke: var(--data);
+    stroke-width: 1.5;
+  }
+  [data-leaders='clocks']:has(input[value='replay']:checked) .ld-src[data-src='live'] .ld-arm,
+  [data-leaders='clocks']:has(input[value='live']:checked) .ld-src[data-src='replay'] .ld-arm {
+    stroke-dasharray: 2 3;
+  }
+}
+
+/* ── readers ─────────────────────────────────────────────────────── */
+
+.ld-doc {
+  fill: var(--panel-2);
+  stroke: var(--signal);
+  stroke-width: 1;
+}
+.ld-fold {
+  fill: none;
+  stroke: var(--signal);
+  stroke-width: 1;
+}
+.ld-lane[data-k='d'] .ld-lane-l,
+.ld-lane[data-k='d'] .ld-lane-a {
+  stroke: var(--data-dim);
+}
+.ld-lane[data-k='d'] .ld-lane-b {
+  stroke: color-mix(in srgb, var(--data) 50%, transparent);
+}
+.ld-lane[data-k='m'] .ld-lane-l,
+.ld-lane[data-k='m'] .ld-lane-a {
+  stroke: var(--model-dim);
+}
+.ld-lane[data-k='m'] .ld-lane-b {
+  stroke: color-mix(in srgb, var(--model) 55%, transparent);
+}
+
+/* ── The facts, as prose ─────────────────────────────────────────── */
+
+.ld-facts {
+  list-style: none;
+  counter-reset: ld;
+  display: grid;
+  gap: var(--s-3) var(--s-6);
+  padding: var(--s-5) clamp(var(--s-4), 3cqi, var(--s-6)) var(--s-5);
+  border-top: 1px solid var(--rule);
+}
+@container ld (min-width: 620px) {
+  .ld-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.ld-facts li {
+  counter-increment: ld;
+  display: grid;
+  grid-template-columns: 2.5ch minmax(0, 1fr);
+  gap: 10px;
+  font-size: var(--t-small);
+  line-height: 1.55;
+  color: var(--fg-2);
+}
+.ld-facts li::before {
+  content: counter(ld, decimal-leading-zero);
+  padding-top: 3px;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--signal-hi);
+}
+
+html[data-motion='reduced'] .leaders * {
+  transition: none !important;
+  animation: none !important;
+}
