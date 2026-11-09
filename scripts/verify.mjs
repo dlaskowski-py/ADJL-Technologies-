@@ -127,12 +127,12 @@ async function scrollThrough(p) {
   await p.evaluate(async () => {
     const step = Math.max(200, Math.floor(window.innerHeight * 0.8));
     for (let y = 0; y < document.documentElement.scrollHeight; y += step) {
-      window.scrollTo(0, y);
+      window.scrollTo({ top: y, behavior: 'instant' });
       await new Promise((r) => setTimeout(r, 90));
     }
-    window.scrollTo(0, document.documentElement.scrollHeight);
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
     await new Promise((r) => setTimeout(r, 600));
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: 'instant' });
     await new Promise((r) => setTimeout(r, 400));
   });
 }
@@ -269,7 +269,7 @@ console.log('instruments');
           await pause.evaluate((b) => b.click()); // undo, and clear the stored preference
           await waitFor('true', 4000);
         }
-        await p.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+        await p.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
         if (await waitFor('false', 2500)) ok('lattice: stops when scrolled offscreen');
         else fail('lattice: still data-running="true" after scrolling it offscreen');
       }
@@ -303,7 +303,7 @@ console.log('instruments');
         const bottom = top + root.offsetHeight + window.innerHeight;
         let best = read();
         for (let y = Math.max(0, top); y <= bottom; y += 120) {
-          window.scrollTo(0, y);
+          window.scrollTo({ top: y, behavior: 'instant' });
           await new Promise((r) => setTimeout(r, 70));
           best = Math.max(best, read());
         }
@@ -423,7 +423,7 @@ console.log('instruments');
       el.closest('[data-flow]').scrollIntoView({ block: 'start' });
       await new Promise((r) => setTimeout(r, 500));
       const a = parseFloat(getComputedStyle(el).strokeDashoffset);
-      window.scrollBy(0, 500);
+      window.scrollBy({ top: 500, behavior: 'instant' });
       await new Promise((r) => setTimeout(r, 500));
       const b = parseFloat(getComputedStyle(el).strokeDashoffset);
       return { a, b };
