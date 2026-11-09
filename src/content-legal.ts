@@ -55,7 +55,7 @@ export const privacy: LegalDoc = {
       id: 'motion',
       heading: 'Motion preference',
       paragraphs: [
-        'If you press Pause motion, your browser remembers the choice in its own local storage so the next page stays still. It never leaves your device, and clearing your site data removes it.',
+        'If you press Pause motion, your browser remembers the choice in its own local storage so the next page stays still. It never leaves your device, and clearing your site data removes it. The home page’s opening animation plays once per visit. Your browser notes that it has played in session storage, which is erased when you close the tab.',
       ],
     },
     {

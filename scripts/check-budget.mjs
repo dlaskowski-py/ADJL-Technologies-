@@ -11,7 +11,8 @@
  *                                                      <script type=module>
  *                                                      plus every
  *                                                      <link rel=modulepreload>
- *   CSS                                   ≤ 24 kB gz   (was 20; see BUDGET)
+ *   shared CSS (linked by every page)     ≤ 24 kB gz   (was 20; see BUDGET)
+ *   page-only CSS (one page's own sheet)  ≤ 10 kB gz
  *   each lazy chunk                       ≤ 10 kB gz
  *   /search-index.json                    ≤ 22 kB gz
  *   all JS reachable from home            ≤ 70 kB gz   first load plus every
@@ -49,6 +50,8 @@ const BUDGET = {
      of it is dead. 24 kB of render-blocking CSS is still small. If this
      trips again, trim a stylesheet; don't move the number a second time. */
   css: 24 * KB,
+  /* Styles one page links for itself, on top of the shared sheet. */
+  pageCss: 10 * KB,
   lazyChunk: 10 * KB,
   searchIndex: 22 * KB,
   reachable: 70 * KB,
@@ -137,6 +140,8 @@ const closure = (roots) => {
 const firstLoadAll = new Set();
 let homeReach = null;
 let worst = { html: 0, js: 0 };
+/** route → the stylesheets its HTML links, as dist files. */
+const pageStyles = new Map();
 
 for (const page of PAGES) {
   const html = readFileSync(page.out, 'utf8');
@@ -177,12 +182,27 @@ for (const page of PAGES) {
   }
 
   for (const s of styles) if (!isExternal(s) && !existsSync(fileOf(s))) fail(`${route} links ${s}, which isn't in dist`);
+  pageStyles.set(route, styles.filter((s) => !isExternal(s)).map(fileOf).filter((f) => existsSync(f)));
   if (route === '/') homeReach = closure(present);
 }
 
 /* ── CSS ───────────────────────────────────────────────────────────── */
-const cssGz = cssFiles.reduce((n, f) => n + gz(f), 0);
-if (cssGz > BUDGET.css) fail(`CSS is ${kb(cssGz)} gz across ${cssFiles.length} file(s) (budget ${kb(BUDGET.css)})`);
+/* Two budgets, because there are two kinds of stylesheet. The SHARED one
+   is linked from every page, so every visitor pays for it wherever they
+   land. A PAGE-ONLY one (the home page's landing styles, /work/'s showcase
+   styles) is paid for only by the page that links it, and gets its own,
+   smaller cap so a page can't hide a second site's worth of CSS there. */
+const routes = [...pageStyles.keys()];
+const sharedCss = cssFiles.filter((f) => routes.every((r) => pageStyles.get(r).includes(f)));
+const cssGz = sharedCss.reduce((n, f) => n + gz(f), 0);
+if (cssGz > BUDGET.css) fail(`shared CSS is ${kb(cssGz)} gz across ${sharedCss.length} file(s) (budget ${kb(BUDGET.css)})`);
+let worstPageCss = 0;
+for (const r of routes) {
+  const own = pageStyles.get(r).filter((f) => !sharedCss.includes(f));
+  const ownGz = own.reduce((n, f) => n + gz(f), 0);
+  worstPageCss = Math.max(worstPageCss, ownGz);
+  if (ownGz > BUDGET.pageCss) fail(`${r} page-only CSS is ${kb(ownGz)} gz (budget ${kb(BUDGET.pageCss)}): ${own.map((f) => `${basename(f)} ${kb(gz(f))}`).join(', ')}`);
+}
 for (const f of cssFiles) {
   const css = readFileSync(f, 'utf8');
   for (const m of css.matchAll(/url\(\s*['"]?([^'")]+)['"]?\s*\)/g)) {
@@ -244,5 +264,5 @@ if (bad) {
 }
 pass(
   'check-budget',
-  `${PAGES.length} pages within budget: HTML ≤ ${kb(worst.html)} gz, first-load JS ≤ ${kb(worst.js)} gz, CSS ${kb(cssGz)} gz, ${lazyCount} lazy chunks ≤ ${kb(biggestLazy)} gz, ${kb(reachGz)} reachable from home${indexGz ? `, search index ${kb(indexGz)} gz` : ''}, no orphans, no third-party resources`,
+  `${PAGES.length} pages within budget: HTML ≤ ${kb(worst.html)} gz, first-load JS ≤ ${kb(worst.js)} gz, shared CSS ${kb(cssGz)} gz, page-only CSS ≤ ${kb(worstPageCss)} gz, ${lazyCount} lazy chunks ≤ ${kb(biggestLazy)} gz, ${kb(reachGz)} reachable from home${indexGz ? `, search index ${kb(indexGz)} gz` : ''}, no orphans, no third-party resources`,
 );
