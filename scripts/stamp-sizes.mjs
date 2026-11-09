@@ -107,7 +107,14 @@ function machineReadouts(html, page) {
 /** The [headers.values] of the `for = "/*"` block, in file order. */
 function deployedHeaders() {
   const toml = readFileSync('netlify.toml', 'utf8');
-  const blocks = toml.split(/^\[\[headers\]\]\s*$/m).slice(1);
+  /* Each block ends where the next table starts. The /* block is the last
+     [[headers]] table, and without the cut it ran on into the
+     [[redirects]] after it, which put the redirect's from/to on the panel
+     as if they were response headers. */
+  const blocks = toml
+    .split(/^\[\[headers\]\]\s*$/m)
+    .slice(1)
+    .map((b) => b.split(/^\[\[(?!headers\.)/m)[0]);
   for (const b of blocks) {
     if (!/^\s*for\s*=\s*"\/\*"\s*$/m.test(b)) continue;
     const out = [];

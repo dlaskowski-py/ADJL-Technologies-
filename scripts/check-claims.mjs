@@ -66,7 +66,7 @@ const NUMERIC = [
   /\b\d+(\.\d+)?x\s+(faster|cheaper|better|more|improvement)/i,
   /\b(saved|saves|reduced|cut)\s+(over\s+)?\d+/i,
   /\b\d{2,}\+?\s+(clients|customers|companies|firms|projects|engagements)\b/i,
-  /\b(two|three|four|five|six|seven|eight|nine|ten|\d+)\s+(clients|customers|companies|firms|projects|engagements|systems|products|builds)\b/i,
+  /(?<![\d.])\b(two|three|four|five|six|seven|eight|nine|ten|\d+)\s+(clients|customers|companies|firms|projects|engagements|systems|products|builds)\b/i,
 ];
 
 /** The privacy page states there is no analytics or tracking on this site.
