@@ -31,6 +31,8 @@ const CONTRACTS = {
   'ask.ts': '[data-ask]',           'pipeline.ts': '[data-pipeline]',
   'replay.ts': '[data-replay]',     'leaders.ts': '[data-leaders]',
   'headers.ts': '[data-headers]',   'palette.ts': '[data-palette]',
+  'scenes.ts': '[data-scene]',      'typer.ts': '[data-typer]',
+  'intro.ts': '[data-intro-overlay]',
 };
 
 /** Files in src/motion/ that aren't modules with markup of their own. */

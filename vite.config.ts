@@ -8,7 +8,10 @@ export default defineConfig({
   build: {
     target: 'es2020',
     assetsInlineLimit: 2048,
-    cssCodeSplit: false,
+    /* Split, so a stylesheet linked from one shell (the home page's landing
+       styles, /work/'s showcase styles) ships only to that page. The shared
+       stylesheet, imported by src/boot.ts, still goes to every page. */
+    cssCodeSplit: true,
     rollupOptions: {
       /* One shell per page. Adding a page means a line here, an entry in
          scripts/pages.mjs (so it's prerendered), a page module in

@@ -11,12 +11,17 @@
 import * as C from '../content';
 import { renderNav } from './nav';
 import { pageHero } from './kit';
-import { renderPractices } from './top';
 import { renderContact, renderFaq, renderFooter } from './bottom';
 import { chip, esc, eyebrow, headline, linkRow, prose, rail, rich, sectionOpen } from './html';
 import { renderMachine } from './instruments/machine';
 import { renderAsk } from './instruments/ask';
 import { renderPipeline } from './instruments/pipeline';
+import { renderIntro } from './landing/intro';
+import { renderTyper } from './landing/typer';
+import { renderTicker } from './landing/ticker';
+import { renderOffers } from './landing/offers';
+import { renderCtaBand } from './landing/cta';
+import { showcaseCards } from './landing/showcase';
 
 function renderMachineSection(n: number): string {
   const m = C.machineView;
@@ -69,23 +74,6 @@ function renderProcess(n: number): string {
   </section>`;
 }
 
-/** One card per running system. data-tags drives the /work/ filter. */
-export function systemCards(): string {
-  return `<div class="sys-grid">${C.systems.items
-    .map(
-      (it, i) => `<article class="sys panel bracket" data-reveal style="--i:${i % 3}" data-tags="${esc(it.tags.join(' '))}">
-      <div class="sys-top">
-        <span class="label">${esc(it.kicker)}</span>
-        <span class="sys-status mono"><i aria-hidden="true">●</i> ${esc(it.status)}</span>
-      </div>
-      <h3 class="h3">${rich(it.title)}</h3>
-      <p>${rich(it.body)}</p>
-      <a class="alink sys-link" href="${esc(it.link.href)}"><span>${esc(it.link.label)}</span><span class="arw" aria-hidden="true">→</span></a>
-    </article>`,
-    )
-    .join('')}</div>`;
-}
-
 function renderSystems(n: number): string {
   const s = C.systems;
   return `${sectionOpen({ id: 'systems', src: 'content.ts#systems', renderer: 'sections/home.ts#renderSystems', band: true })}
@@ -96,7 +84,7 @@ function renderSystems(n: number): string {
         ${headline(s.headline)}
         ${prose([s.intro], 'prose sec-body')}
       </div>
-      ${systemCards()}
+      ${showcaseCards()}
       ${linkRow([s.more])}
     </div>
   </section>`;
@@ -160,18 +148,26 @@ export function renderPage(): { navHtml: string; pageHtml: string } {
   return {
     navHtml: renderNav('/'),
     pageHtml: [
+      /* The opening sequence: an overlay, shown only on the first visit of
+         a session (see public/js-on.js). The page under it is complete. */
+      renderIntro(),
       pageHero({
         route: '/',
         hero: { eyebrow: h.eyebrow, headline: h.headline, lead: h.body, primary: h.primary, secondary: h.secondary },
         src: 'content.ts#hero',
         renderer: 'sections/home.ts#renderPage',
         figure: true,
+        after: renderTyper(),
       }),
-      renderPractices(2),
-      renderMachineSection(3),
-      renderAskSection(4),
-      renderProcess(5),
-      renderSystems(6),
+      /* What we do and what we've built, in plain words… */
+      renderTicker(),
+      renderOffers(2),
+      renderSystems(3),
+      renderCtaBand(),
+      /* …then the proof, for anyone who wants to check it. */
+      renderMachineSection(4),
+      renderAskSection(5),
+      renderProcess(6),
       renderTeam(7),
       renderFaq(C.faq, 8, 'content.ts#faq'),
       renderContact(9),

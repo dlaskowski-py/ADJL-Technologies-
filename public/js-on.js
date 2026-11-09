@@ -1,4 +1,4 @@
-/* Runs in the head, before first paint. Two jobs.
+/* Runs in the head, before first paint. Three jobs.
  *
  * 1. Set html.js. Reveal styles hide content only under .js, so with
  *    scripting off (or this file failing to load) nothing is hidden.
@@ -35,4 +35,19 @@
   d.setAttribute('data-motion-detected', t);
   d.setAttribute('data-motion', paused ? 'reduced' : t);
   if (paused) d.setAttribute('data-paused', 'true');
+
+  /* 3. The opening sequence. It plays once per browser session, only when
+   *    the home page is where the visit starts, and never under reduced
+   *    motion. Decided here so its overlay is in the very first frame: a
+   *    deferred script would show the page, then cover it. A link to a
+   *    section (/#contact) or a click from another page of this site goes
+   *    straight to the page. */
+  var seen = true;
+  try {
+    seen = sessionStorage.getItem('adjl:intro') === 'seen';
+  } catch (e) {}
+  var internal = document.referrer.indexOf(location.origin + '/') === 0;
+  if (!seen && !paused && t !== 'reduced' && location.pathname === '/' && !location.hash && !internal) {
+    d.setAttribute('data-intro', 'play');
+  }
 })();

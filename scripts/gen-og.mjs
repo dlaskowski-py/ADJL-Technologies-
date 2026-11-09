@@ -28,7 +28,7 @@ mkdirSync(OUT, { recursive: true });
 /** Card copy (SPEC §5.8). Written for a link preview, not a search result:
  *  the brand is already in the corner. The last line takes the copper. */
 const CARDS = {
-  home: { kicker: 'AI Engineering · SEO · Software', line: ['AI systems, software and SEO,', 'built to be inspected.'] },
+  home: { kicker: 'AI · Websites · Apps · SEO', line: ['AI, websites and apps,', 'built for what’s next.'] },
   services: { kicker: 'Services', line: ['AI, SEO and software,', 'from one team.'] },
   'services-ai-engineering': { kicker: 'AI Engineering', line: ['AI agents and automation', 'that show their work.'] },
   'services-seo': { kicker: 'SEO & AI Search', line: ['Technical SEO for search', 'and AI answer engines.'] },

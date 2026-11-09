@@ -25,6 +25,7 @@ import { initCompile } from './motion/compile';
 import { initDecode } from './motion/decode';
 import { initTelemetry } from './motion/telemetry';
 import { initViews } from './motion/views';
+import { initScenes } from './motion/scenes';
 import { initCopyMail, initFaq, initFilter, initMenu, initNav, initPause } from './ui';
 
 type Render = () => { navHtml: string; pageHtml: string };
@@ -71,6 +72,13 @@ export function boot(): void {
   initTelemetry();
   initViews();
 
+  initScenes();
+  /* The opening sequence (home only, first visit of a session): its CSS
+     timeline is already running; this adds Skip and the hand-off. */
+  if (document.querySelector('[data-intro-overlay]')) {
+    void import('./motion/intro').then((m) => m.initIntro());
+  }
+  lazyOn('[data-typer]', () => import('./motion/typer').then((m) => m.initTyper()), '200px');
   lazyOn('[data-machine]', () => import('./motion/machine').then((m) => m.initMachine()), '400px');
   lazyOn('[data-ask]', () => import('./motion/ask').then((m) => m.initAsk()));
   lazyOn('[data-pipeline]', () => import('./motion/pipeline').then((m) => m.initPipeline()));

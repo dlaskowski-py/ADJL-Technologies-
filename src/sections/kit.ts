@@ -63,6 +63,8 @@ export type HeroOpts = {
   /** JSON-LD the hero is described by (service pages: '#service'). */
   ld?: string;
   ldType?: string;
+  /** Extra markup under the CTAs (home: the typed "now building" line). */
+  after?: string;
 };
 
 /**
@@ -93,6 +95,7 @@ export function pageHero(o: HeroOpts): string {
         </div>`
             : ''
         }
+        ${o.after ?? ''}
         ${specRail(h.specs, 'specs hero-specs')}
       </div>
       ${o.figure ? renderHeroFigure() : ''}

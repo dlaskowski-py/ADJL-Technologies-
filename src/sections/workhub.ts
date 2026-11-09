@@ -12,7 +12,7 @@ import { esc, rail, sectionOpen } from './html';
 import { renderContact, renderFooter } from './bottom';
 import { renderNav } from './nav';
 import { pageHero } from './kit';
-import { systemCards } from './home';
+import { showcaseCards } from './landing/showcase';
 
 export type WorkHubContent = {
   meta: Meta;
@@ -46,7 +46,7 @@ export function renderWorkHubPage(c: WorkHubContent): { navHtml: string; pageHtm
     <div class="wrap">
       ${rail(2, 'systems')}
       ${filter}
-      ${systemCards()}
+      ${showcaseCards()}
     </div>
   </section>`;
 

@@ -634,3 +634,9 @@ html[data-motion='reduced'] [data-reveal] {
     transform: none !important;
   }
 }
+
+/* Scenes (motion/scenes.ts): on the lite tier a loop that opts in with
+   animation-iteration-count: var(--scene-iter, infinite) plays once. */
+html[data-motion='lite'] [data-scene] {
+  --scene-iter: 1;
+}

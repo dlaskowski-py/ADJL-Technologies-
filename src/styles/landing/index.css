@@ -1,0 +1,6 @@
+/* Home-page-only styles: the opening sequence, the consumer landing
+   sections and the animated portfolio. Kept out of the shared stylesheet
+   so the other pages don't pay for them. */
+@import './intro.css';
+@import './landing.css';
+@import './showcase.css';

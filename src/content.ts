@@ -52,9 +52,9 @@ export const meta: Meta = {
   title: 'AI Engineering, SEO and Software Studio | ADJL Technology',
   description:
     'ADJL Technology builds AI agents and automation, websites and native apps, and the technical SEO that gets them found by search and AI answer engines.',
-  ogTitle: 'AI systems, software and SEO, built to be inspected.',
+  ogTitle: 'AI, websites and apps, built for what’s next.',
   ogDescription:
-    'AI agents and automation, websites and native apps, and the technical SEO that gets them found. Every demo on the page runs in your browser.',
+    'ADJL Technology builds AI that handles the busywork, websites people can find, and apps for iPhone and Android. Everything on the page was built by us.',
 };
 
 /** The address on every page. One string, one place to change it. */
@@ -121,10 +121,10 @@ export const status = {
 };
 
 export const hero = {
-  eyebrow: 'AI Engineering · SEO & AI Search · Websites & Apps',
-  headline: ['AI systems, software and SEO,', 'built to be {em}inspected.{/em}'],
-  body: 'ADJL Technology builds AI agents and automation, websites and native apps, and the technical SEO that gets them found by search engines and AI answer engines. Every demo on this page runs in your browser. Each one tells you whether it’s live.',
-  primary: { label: 'See what we’ve built', href: '/work/' },
+  eyebrow: 'AI · Websites · Apps · SEO',
+  headline: ['AI, websites and apps,', 'built for {em}what’s next.{/em}'],
+  body: 'ADJL Technology builds AI that handles the busywork, websites people can find, and apps for iPhone and Android. Everything on this page was built by us. Scroll down and try it.',
+  primary: { label: 'See what we’ve built', href: '#systems' },
   secondary: { label: 'Talk to Daniel', href: '#contact' },
   figure: {
     captionBuild: 'This page’s own structure, drawn at build from its HTML.',
