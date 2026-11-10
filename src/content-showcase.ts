@@ -54,6 +54,27 @@ export const showcase = {
     ] as { name: string; source: string; tone: ShowcaseTone; step: number; flag?: boolean }[],
   },
 
+  '/work/loep/': {
+    bar: 'loep/scanner',
+    /* Column heads, left and right: 7 and 8 characters at most. The number
+       is the sheet's own (Loep's screens are numbered sheets), not a result. */
+    place: 'address',
+    sheet: 'sheet 01',
+    /* One ruled line of the sheet each, and the sheet is ruled for three:
+       the figure (5 characters at most) and the source printed beside it
+       (7 at most). `step` is when the line arrives, 2 to 4, after the pin
+       has landed on step 1. */
+    rows: [
+      { name: 'price', source: 'listing', step: 2 },
+      { name: 'taxes', source: 'county', step: 3 },
+      { name: 'area', source: 'census', step: 4 },
+    ] as { name: string; source: string; step: number }[],
+    /* Beside the box the person ticks, once it's ticked: 15 characters at most. */
+    confirmed: 'price confirmed',
+    /* The run that waits for that tick: 5 characters at most. */
+    model: 'model',
+  },
+
   '/work/trading-infrastructure/': {
     bar: 'feed/brief',
     /* Column heads, left to right: 5, 9 and 13 characters at most. */

@@ -167,6 +167,93 @@ function sceneEngine(): string {
   ].join('');
 }
 
+/* ── Loep: a pin on the map, the records on a sheet, a price confirmed ── */
+
+function sceneLoep(): string {
+  const A = S['/work/loep/'];
+  /* The map and the sheet stand side by side and are as tall as each other:
+     where they start and how tall they are, in shares of the frame's height. */
+  const TOP = 20;
+  const TALL = 69;
+  const MAP = 5;
+  const WIDE = 25;
+  const SHEET = '35%';
+  const map = (...inner: string[]) => box(pct(MAP), pct(TOP), pct(WIDE), pct(TALL), ...inner);
+  const page = (...inner: string[]) => box(SHEET, pct(TOP), '60%', pct(TALL), ...inner);
+  /* The sheet's five lines, evenly spaced, in shares of its height: three
+     figures with a hairline under each, the box the person ticks, the run
+     that waits for the tick. */
+  const ROWS = [13, 31, 49];
+  const CONFIRM = '67%';
+  const MODEL = '85%';
+  /* The pin stands level with the middle figure, so the survey's line runs
+     straight from it to the middle of what it brings back. */
+  const LEVEL = ROWS[1];
+  const PIN_X = pct(MAP + WIDE / 2);
+  const PIN_Y = pct(TOP + (LEVEL * TALL) / 100);
+  const spot = (...inner: string[]) => map(at('50%', pct(LEVEL), ...inner));
+  /* The ground: contours of a hill and of the corner of another, traced
+     from a height field and cut off at the map's edge. Points on a
+     100 × 100 grid that's stretched over the map (sc-ns keeps the strokes
+     unscaled); the pin's spot is left clear. */
+  const ground =
+    'M45 0C42 3 37 12 30 16C22 20 5 22 0 23M29 0C27 2 23 7 19 10C14 12 3 13 0 14' +
+    'M100 67C96 65 87 58 78 56C70 53 59 52 49 53C40 53 29 56 21 59C14 62 7 67 5 72C3 77 4 84 8 88C12 93 26 98 29 100' +
+    'M48 60C39 61 28 65 23 69C19 74 18 81 22 85C26 90 37 94 46 95C55 97 68 95 75 93C83 90 90 83 90 79C91 74 84 67 77 64C70 61 57 60 48 60z' +
+    'M48 66C41 68 31 74 31 78C30 81 40 88 47 89C54 91 69 89 73 86C78 83 78 74 74 71C70 68 55 65 48 66z';
+  const rules = ROWS.map((y) => line('sc-ln', '6%', pct(y + 9), '94%', pct(y + 9)));
+  const rows = A.rows.map((r, i) =>
+    g(
+      `sc-k${r.step} sc-sl`,
+      page(
+        at(
+          0,
+          pct(ROWS[i]),
+          text('sc-hi', '6%', 0, r.name),
+          text('', '36%', 0, S.mask),
+          text('sc-d', '94%', 0, r.source, 'end'),
+        ),
+      ),
+    ),
+  );
+
+  return [
+    cap(pct(MAP), A.place),
+    cap('95%', A.sheet, 'end'),
+    map(
+      rect('sc-ln', 0, 0, '100%', '100%', 3),
+      `<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">${path('sc-ns', ground)}</svg>`,
+    ),
+    /* Under the sheet, so the sheet covers its end; under the pin, so the
+       pin covers its start. */
+    g('sc-act', line('sc-o sc-d sc-dr sc-k2', PIN_X, PIN_Y, SHEET, PIN_Y, DRAW)),
+    /* The sheet is ruled before anything arrives, its box unticked and its
+       run not started. */
+    page(
+      sheet(),
+      ...rules,
+      at('6%', CONFIRM, rect('sc-ln', 0, -6, 12, 12, 2)),
+      at(0, MODEL, text('', '6%', 0, A.model), rect('sc-sk', '36%', -3, '58%', 6, 1)),
+    ),
+    g(
+      'sc-act',
+      /* The click: the building's outline, and the pin that lands on it. */
+      g('sc-c sc-k1', spot(path('sc-o', 'M-12-4L9-10 12 4-9 10z'))),
+      g(
+        'sc-c sc-k1 sc-up',
+        spot(path('', 'M0 0C-2-6-7-8-7-13a7 7 0 1 1 14 0C7-8 2-6 0 0z'), '<circle class="sc-g" cy="-13" r="2.5"/>'),
+      ),
+      ...rows,
+      /* The person's act, then the run it was holding back. */
+      g(
+        'sc-c sc-k5',
+        page(at('6%', CONFIRM, rect('sc-o', 0, -6, 12, 12, 2), tick('sc-o', 1.5, 0), text('', 19, 0, A.confirmed))),
+      ),
+      page(at(0, MODEL, rect('sc-m sc-gx sc-k6', '36%', -3, '58%', 6, 1))),
+    ),
+  ].join('');
+}
+
 /* ── Trading and research: many feeds, one stream, the evening brief ── */
 
 function sceneFeed(): string {
@@ -434,6 +521,7 @@ function sceneAi(): string {
  *  it carries no browser dots. */
 const SCENES: Record<string, { bar: string; draw: () => string; phone?: boolean }> = {
   '/work/real-estate-intelligence/': { bar: S['/work/real-estate-intelligence/'].bar, draw: sceneEngine },
+  '/work/loep/': { bar: S['/work/loep/'].bar, draw: sceneLoep },
   '/work/trading-infrastructure/': { bar: S['/work/trading-infrastructure/'].bar, draw: sceneFeed },
   '/work/mobile-app/': { bar: S['/work/mobile-app/'].bar, draw: sceneApp, phone: true },
   '/work/private-site/': { bar: S['/work/private-site/'].bar, draw: sceneEdge },
