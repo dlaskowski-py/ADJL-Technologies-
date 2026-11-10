@@ -9,10 +9,13 @@
  * and its steps are the ones in package.json, and the renderer reads the
  * page count (src/site-pages.ts) and the guard names
  * (src/content-case-this-site.ts) from the registries the build uses. The
- * firm's name comes from `nav.wordmark` in src/content.ts.
+ * firm's name comes from `nav.wordmark` in src/content.ts, and the line
+ * under it is the site's tagline, from the same module.
  *
  * OWNER: WS-A.
  */
+import { TAGLINE } from './content';
+
 export const intro = {
   /** The one control in the overlay. Escape does the same. */
   skip: 'Skip intro',
@@ -52,6 +55,7 @@ export const intro = {
    *  them in turn, so it expects three). */
   beats: ['Write', 'Build', 'Assemble'],
 
-  /** Set under the mark, just before the overlay opens. */
-  tagline: 'We build AI, websites and apps.',
+  /** Set under the mark, just before the overlay opens: the firm's
+   *  tagline (content.ts TAGLINE, the line it shares with ADJL Capital). */
+  tagline: TAGLINE,
 };

@@ -102,6 +102,11 @@ export function dateModifiedOf(page) {
 export const ORG_DESCRIPTION =
   'An AI engineering, technical SEO and software studio. Builds AI agents and automation, websites and native apps, and makes them readable to search engines and AI answer engines.';
 
+/** The tagline, word for word as src/content.ts has it (TAGLINE): the
+ *  Organization's `slogan`. check-seo fails the build if the line in a
+ *  page's footer and this one ever differ. */
+export const ORG_SLOGAN = 'Today’s investment, tomorrow’s legacy.';
+
 const KNOWS_ABOUT = [
   'AI implementation',
   'AI agents',
@@ -181,6 +186,7 @@ export function buildHead({ origin, page, pages, meta, faq, h1 }) {
     url: `${origin}/`,
     email: 'daniel@adjlcapital.com',
     description: ORG_DESCRIPTION,
+    slogan: ORG_SLOGAN,
     /* A raster logo on a plain ground. Google's Organization logo wants
        real pixel dimensions, and the favicon is a 32-unit SVG with no
        intrinsic size: technically a URL, practically unusable. */

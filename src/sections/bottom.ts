@@ -114,6 +114,7 @@ export function renderFooter(): string {
           ${markSvg()}
           <span class="wm-text"><span>ADJL</span> <b>Technology</b></span>
         </a>
+        <p class="foot-tagline">${esc(footer.tagline)}</p>
         <p class="foot-blurb">${rich(footer.blurb)}</p>
         <a class="foot-mail mono" href="mailto:${esc(CONTACT)}">${esc(CONTACT)}</a>
         <button class="pause-btn" type="button" data-pause data-js-only aria-pressed="false">${esc(status.pause)}</button>

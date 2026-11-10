@@ -28,7 +28,7 @@
  */
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { OG_MANIFEST, ORIGIN, PAGES, ogTitleOf } from './pages.mjs';
-import { slugOf, twinOf } from './seo.mjs';
+import { ORG_SLOGAN, slugOf, twinOf } from './seo.mjs';
 import { walk, ldNodes, typesOf, jsonScripts } from './lib-text.mjs';
 import { pass } from './lib/report.mjs';
 import { readHeaders } from './lib/headers.mjs';
@@ -163,6 +163,11 @@ for (const page of PAGES) {
   const card = `public/og/${slugOf(route)}.jpg`;
   if (!existsSync(card)) fail(`${route} has no share card at ${card}. Run \`npm run og\``);
   else if (statSync(card).size < 8000) fail(`${card} is suspiciously small (${statSync(card).size} bytes)`);
+
+  /* The tagline is written twice, once for people (content.ts, in the
+     footer) and once for machines (seo.mjs, the Organization's slogan). */
+  const said = html.match(/<p class="foot-tagline">([^<]*)<\/p>/)?.[1];
+  if (said !== ORG_SLOGAN) fail(`${route}: the footer's tagline reads "${said}" and the Organization's slogan "${ORG_SLOGAN}"`);
 
   /* And it has to be the card for THIS headline. The cards are drawn by a
      local chore with hand-written copy, so one can outlive the headline it

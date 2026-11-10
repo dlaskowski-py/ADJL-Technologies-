@@ -60,6 +60,12 @@ export const meta: Meta = {
 /** The address on every page. One string, one place to change it. */
 export const CONTACT = 'daniel@adjlcapital.com';
 
+/** The tagline. It's ADJL Capital's line, and the two firms share it: it
+ *  sits under the name at the end of the opening sequence and under the
+ *  wordmark in every page's footer, and scripts/seo.mjs gives the same
+ *  words to the Organization's `slogan` (check-seo holds the two together). */
+export const TAGLINE = 'Today’s investment, tomorrow’s legacy.';
+
 export const nav = {
   wordmark: { lead: 'ADJL', tail: 'Technology' },
   links: [
@@ -605,11 +611,13 @@ export const cta = {
 export type FooterGroup = { name: string; links: Link[] };
 
 export const footer: {
+  tagline: string;
   blurb: string;
   groups: FooterGroup[];
   stamp: string;
   legal: string;
 } = {
+  tagline: TAGLINE,
   blurb:
     'ADJL Technology builds AI systems, websites and apps, and the technical SEO that gets them found. Founded and led by Daniel Laskowski.',
   groups: [

@@ -554,6 +554,14 @@ html:not(.js) .nav-burger {
   align-items: flex-start;
   gap: var(--s-4);
 }
+/* The tagline, under the wordmark on every page. */
+.foot-tagline {
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--fg);
+}
 .foot-blurb {
   max-width: 40ch;
   font-size: var(--t-small);
