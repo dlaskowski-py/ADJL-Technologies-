@@ -107,7 +107,7 @@ export function initCopyMail(): void {
 }
 
 /** Pause motion (WCAG 2.2.2): every [data-pause] button toggles it, and
- *  the choice persists across pages until pressed again. */
+ *  the choice holds across pages for the rest of the visit. */
 export function initPause(): void {
   const btns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-pause]'));
   const paused = isPaused();

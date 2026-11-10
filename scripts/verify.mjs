@@ -6,8 +6,9 @@
  * intended use.
  *
  * The build's guards read HTML. These are the checks only a running browser
- * can make, on all pages at 390px (a phone, touch, so the lite tier) and
- * 1440px (a desktop, fine pointer, so the full tier):
+ * can make, on all pages at 390px (a phone, touch) and 1440px (a desktop,
+ * fine pointer), both on the full tier (a phone is not held back for being
+ * a phone; the lite tier is checked once, on a weak device, further down):
  *
  *   - nothing overflows sideways
  *   - no console error fires
@@ -39,7 +40,7 @@
  *
  *   - the overlay is up in the first frame the h1 is in, the h1 under it is
  *     still the LCP, and it hands off (html[data-intro="done"], overlay
- *     removed, `adjl:intro-done` fired) within 6.5s
+ *     removed, `adjl:intro-done` fired) within 9s
  *   - the h1's compile effect and the hero graph start after the hand-off
  *   - Skip and Escape end it within 400ms, and the page can't be scrolled
  *     under it
@@ -306,7 +307,7 @@ console.log('instruments');
       }
       await p.evaluate(() => {
         try {
-          localStorage.removeItem('adjl:motion');
+          sessionStorage.removeItem('adjl:motion');
         } catch {
           /* private mode */
         }
@@ -476,17 +477,38 @@ console.log('instruments');
   await ctx.close();
 }
 
-/* No canvas when motion is reduced, or on a touch device (lite tier). */
-for (const [label, opts] of [
-  ['prefers-reduced-motion', { viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' }],
-  ['touch', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }],
+/* Who gets the hero's canvas, and who gets loops that keep running.
+   A phone does: touch alone is not a reason to hold motion back (it used
+   to be, and every phone got a still hero and animations that ran once).
+   Reduced motion doesn't, and neither does a weak device (few cores here;
+   low memory, data saver and 2g are the same branch of public/js-on.js). */
+for (const [label, opts, want, weak] of [
+  ['prefers-reduced-motion', { viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' }, 'reduced', false],
+  ['a weak device (2 cores)', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }, 'lite', true],
+  ['a phone (touch)', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }, 'full', false],
 ]) {
   const ctx = await newContext(opts);
+  if (weak) await ctx.addInitScript(() => Object.defineProperty(Navigator.prototype, 'hardwareConcurrency', { get: () => 2 }));
   const { p } = await open(ctx, '/');
   await p.waitForTimeout(3500); // past load + idle, when the lattice would start
-  const n = await p.evaluate(() => document.querySelectorAll('canvas').length);
-  if (n) fail(`${label}: ${n} <canvas> on the home page. Only the full tier draws one.`);
-  else ok(`${label}: no canvas`);
+  const r = await p.evaluate(() => {
+    const scene = document.querySelector('[data-scene]');
+    return {
+      tier: document.documentElement.dataset.motion,
+      canvases: document.querySelectorAll('canvas').length,
+      once: scene ? getComputedStyle(scene).getPropertyValue('--scene-iter').trim() === '1' : null,
+    };
+  });
+  if (r.tier !== want) fail(`${label}: the motion tier is "${r.tier}", expected "${want}"`);
+  else if (want === 'full') {
+    if (!r.canvases) fail(`${label}: no <canvas> on the home page. The full tier draws the hero's graph.`);
+    else if (r.once) fail(`${label}: scenes are set to play once; on the full tier they loop`);
+    else ok(`${label}: full tier, the hero's graph is drawn and scenes loop`);
+  } else {
+    if (r.canvases) fail(`${label}: ${r.canvases} <canvas> on the home page. Only the full tier draws one.`);
+    else if (want === 'lite' && !r.once) fail(`${label}: scenes aren't limited to one pass on the lite tier`);
+    else ok(`${label}: ${want} tier, no canvas`);
+  }
   await ctx.close();
 }
 
@@ -496,7 +518,7 @@ for (const [label, opts] of [
    the scroll lock and the hand-off. */
 if (!ONLY || ONLY.has('/')) {
   console.log('intro');
-  const HANDOFF_MAX = 6500;
+  const HANDOFF_MAX = 9000;
   const SKIP_MAX = 400;
 
   /* Recorded in the page, on its own clock: whether the overlay was up in
@@ -631,7 +653,7 @@ if (!ONLY || ONLY.has('/')) {
   await never('on /#contact', {}, '/#contact');
   await never('on /services/', {}, '/services/');
   await never('with motion paused', {}, '/', async (p) => {
-    await p.addInitScript(() => localStorage.setItem('adjl:motion', 'off'));
+    await p.addInitScript(() => sessionStorage.setItem('adjl:motion', 'off'));
     await p.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
   });
   await never('when the visitor arrives from another page of this site', {}, '/', async (p) => {

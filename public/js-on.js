@@ -5,18 +5,24 @@
  *
  * 2. Resolve the motion tier ONCE, before any CSS paints, so the first frame
  *    already matches it: 'reduced' (prefers-reduced-motion, or the visitor
- *    pressed Pause motion on an earlier page), 'lite' (save-data, 2g, low
- *    memory or a coarse pointer) or 'full'. A module bundle can't do this:
- *    module scripts are deferred, so the page would paint once in the wrong
- *    tier and then change under the reader.
+ *    pressed Pause motion earlier in this visit), 'lite' (save-data, 2g,
+ *    low memory or few cores) or 'full'. A phone is NOT lite for being a
+ *    phone: a coarse pointer used to mean lite, and that left every phone
+ *    with a still hero and animations that played once and stopped. A
+ *    module bundle can't do this: module scripts are deferred, so the page
+ *    would paint once in the wrong tier and then change under the reader.
  *
  * A classic script on the same origin, so script-src 'self' covers it. */
 (function () {
   var d = document.documentElement;
   d.className += ' js';
+  /* Pause motion holds for the visit (session storage), not for good: a
+     stray tap must not leave the site still on every later visit. The key
+     it used to keep in local storage is cleared. */
   var paused = false;
   try {
-    paused = localStorage.getItem('adjl:motion') === 'off';
+    paused = sessionStorage.getItem('adjl:motion') === 'off';
+    localStorage.removeItem('adjl:motion');
   } catch (e) {}
   var t = 'full';
   var n = navigator;
@@ -29,7 +35,7 @@
     c.saveData ||
     /(^|-)(2g|slow-2g)$/.test(c.effectiveType || '') ||
     (typeof n.deviceMemory === 'number' && n.deviceMemory < 4) ||
-    mq('(pointer: coarse)')
+    (typeof n.hardwareConcurrency === 'number' && n.hardwareConcurrency < 4)
   )
     t = 'lite';
   d.setAttribute('data-motion-detected', t);

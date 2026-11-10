@@ -107,6 +107,6 @@ export function initIntro(): void {
       if (e.target === root && !e.pseudoElement) done();
     });
   }
-  /* A watchdog, for a frame that never comes (the timeline is about 5.4s). */
-  window.setTimeout(done, 7000);
+  /* A watchdog, for a frame that never comes (the timeline is about 7.9s). */
+  window.setTimeout(done, 10000);
 }

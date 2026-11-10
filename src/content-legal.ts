@@ -8,7 +8,7 @@
  * personal data involved is the message you choose to send.
  *
  * Three things the site does in the browser are described here because
- * they ship with this page: the Pause motion preference (local storage),
+ * they ship with this page: the Pause motion preference (session storage),
  * the same-origin measurement fetches, and Ask This Site, which never sends
  * the question anywhere. If any of those changes, this page changes with it.
  *
@@ -55,7 +55,7 @@ export const privacy: LegalDoc = {
       id: 'motion',
       heading: 'Motion preference',
       paragraphs: [
-        'If you press Pause motion, your browser remembers the choice in its own local storage so the next page stays still. It never leaves your device, and clearing your site data removes it. The home page’s opening animation plays once per visit. Your browser notes that it has played in session storage, which is erased when you close the tab.',
+        'If you press Pause motion, your browser remembers the choice in its own session storage so the next page stays still. The home page’s opening animation plays once per visit, and your browser notes there that it has played. Neither note leaves your device, and both are erased when you close the tab.',
       ],
     },
     {

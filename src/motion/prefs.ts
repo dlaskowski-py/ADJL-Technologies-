@@ -8,10 +8,11 @@
  *
  *   reduced  prefers-reduced-motion, or Pause motion pressed: nothing moves
  *            on its own, everything is visible immediately.
- *   lite     coarse pointer, low memory, data saver: one-shot reveals and
- *            short transitions, no continuously running canvas, no pointer
- *            effects.
- *   full     everything.
+ *   lite     low memory, few cores, data saver, a 2g connection: one-shot
+ *            reveals and short transitions, no continuously running canvas.
+ *   full     everything. Phones included: a coarse pointer is not a reason
+ *            to hold motion back (it used to be, and every phone got a
+ *            still hero and animations that ran once and stopped).
  *
  * The tier can CHANGE during a visit: Pause motion drops it to 'reduced'
  * and pressing it again restores what was detected. Every module with a
@@ -32,7 +33,7 @@ function detect(): Tier {
   const c = nav.connection;
   if (c?.saveData || (c?.effectiveType && /(^|-)(2g|slow-2g)$/.test(c.effectiveType))) return 'lite';
   if (typeof nav.deviceMemory === 'number' && nav.deviceMemory < 4) return 'lite';
-  if (window.matchMedia('(pointer: coarse)').matches) return 'lite';
+  if (typeof nav.hardwareConcurrency === 'number' && nav.hardwareConcurrency < 4) return 'lite';
   return 'full';
 }
 
@@ -52,7 +53,9 @@ function read(): Tier {
 export let tier: Tier = read();
 export let allowCanvas = tier === 'full';
 export let allowReveal = tier !== 'reduced';
-export let allowPointer = tier === 'full';
+/** Effects that follow a pointer: only where one can hover. */
+const hovers = typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+export let allowPointer = tier === 'full' && hovers;
 export const allowVideo = false;
 
 const subs: ((t: Tier) => void)[] = [];
@@ -66,13 +69,14 @@ export function isPaused(): boolean {
   return root?.dataset.paused === 'true';
 }
 
-/** Pause or resume everything. Persists in localStorage (try/catch: it can
- *  be unavailable or throw), and the privacy page says so. */
+/** Pause or resume everything. Held in sessionStorage (try/catch: it can
+ *  be unavailable or throw), so it lasts for the visit and no longer; the
+ *  privacy page says so. */
 export function setPaused(paused: boolean): void {
   if (!root) return;
   try {
-    if (paused) localStorage.setItem('adjl:motion', 'off');
-    else localStorage.removeItem('adjl:motion');
+    if (paused) sessionStorage.setItem('adjl:motion', 'off');
+    else sessionStorage.removeItem('adjl:motion');
   } catch {
     /* Storage unavailable: the choice holds for this page only. */
   }
@@ -80,7 +84,7 @@ export function setPaused(paused: boolean): void {
   tier = paused ? 'reduced' : detected;
   allowCanvas = tier === 'full';
   allowReveal = tier !== 'reduced';
-  allowPointer = tier === 'full';
+  allowPointer = tier === 'full' && hovers;
   root.dataset.motion = tier;
   if (paused) root.dataset.paused = 'true';
   else delete root.dataset.paused;
@@ -171,5 +175,5 @@ export function afterIntro(fn: () => void): void {
        itself, so say so; callers that re-check the attribute then proceed. */
     if (document.documentElement.dataset.intro === 'play') document.documentElement.dataset.intro = 'done';
     go();
-  }, 8000);
+  }, 11000);
 }

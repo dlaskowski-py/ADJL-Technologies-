@@ -14,11 +14,17 @@
      --t1  code types (characters × --cps), then the command and the
            build's ticks, on the same character clock
      --t3  the pane is wiped and the page draws as a wireframe
-     --t4  the wireframe's own mark grows into the mark; the name is set
-     --t5  the mark folds into its copper bar, which becomes the seam
+     --t4  the pane fades, the wireframe's own mark grows into the mark,
+           the name is set and the tagline rises under it
+     --t5  the name fades, the mark folds into its copper bar, which
+           becomes the seam
      --t6  the two halves part on the page
      --t7  gone
    Only transform, opacity, visibility, stroke-dashoffset and color move.
+
+   Nothing in it is a hard cut any more, except what is meant to click
+   (a build step ticking off): a thing that arrives fades or draws in, and
+   a thing that leaves fades out, each on an ease.
 
    The drawing's geometry lives in the renderer; the lengths below that
    repeat it (a character is 6.9 wide, a line 15 tall, the pane body
@@ -32,18 +38,22 @@
 html[data-intro='play']:not([data-motion='reduced']) .intro {
   /* --end (inline, from the renderer) is how many characters the code and
      the build take. Everything after waits for it. As shipped, --t7 comes
-     to about 5.4s; keep it under 5.5 (motion/intro.ts gives up at 7).
-     Two numbers set the pace. --cps: at 5ms a line of code takes about a
-     fifth of a second, slow enough to see it typed and not wiped in.
-     --t5: the name is whole for a second and the line under it for as
-     long, which is what it takes to read them. */
-  --cps: 5ms;
-  --t1: 0.15s;
-  --t3: calc(var(--t1) + var(--end) * var(--cps) + 0.1s);
-  --t4: calc(var(--t3) + 0.85s);
-  --t5: calc(var(--t4) + 1.6s);
-  --t6: calc(var(--t5) + 0.16s);
-  --t7: calc(var(--t6) + 0.5s);
+     to about 7.9s; keep it under 8 (motion/intro.ts gives up at 10).
+     --cps is a twelfth of a second for ten characters: exactly two
+     characters a frame on a 60Hz screen and one on a 120Hz one. Any other
+     rate makes the caret advance by uneven amounts from frame to frame,
+     which is what made the typing look rough. It's also slow enough to
+     read a line as it's typed.
+     --t4 leaves the wireframe drawn and still for a moment before it goes.
+     --t5: the name is whole for a second and a third, and the line under
+     it is readable for about as long, which is what it takes to read them. */
+  --cps: 8.3333ms;
+  --t1: 0.2s;
+  --t3: calc(var(--t1) + var(--end) * var(--cps) + 0.15s);
+  --t4: calc(var(--t3) + 1.2s);
+  --t5: calc(var(--t4) + 2.45s);
+  --t6: calc(var(--t5) + 0.32s);
+  --t7: calc(var(--t6) + 0.85s);
   position: fixed;
   inset: 0;
   z-index: 1000;
@@ -70,7 +80,7 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
   border: 0 solid transparent;
   border-right-width: 1px;
   --x: -100%;
-  animation: intro-part 0.5s cubic-bezier(0.7, 0, 0.2, 1) var(--t6) forwards,
+  animation: intro-part 0.85s cubic-bezier(0.65, 0, 0.35, 1) var(--t6) forwards,
     intro-edge 1ms var(--t6) forwards;
 }
 .intro::after {
@@ -121,7 +131,7 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
 /* ── The pane: an editor, then a terminal under it ───────────────── */
 
 .intro-pane {
-  animation: intro-fade 0.12s linear var(--t4) forwards;
+  animation: intro-fade 0.4s var(--ease-io) var(--t4) forwards;
 }
 .intro-box {
   fill: var(--panel);
@@ -174,10 +184,11 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
     intro-lit calc(var(--n) * var(--cps)) var(--at);
 }
 
-/* The build's steps tick off: they snap in, they don't fade. */
+/* The build's steps tick off: each one clicks in, with a short settle so
+   a column of them reads as a rhythm and not a flicker. */
 .intro-oks text {
   font-size: 10px;
-  animation: intro-in 1ms calc(var(--t1) + var(--c) * var(--cps)) backwards;
+  animation: intro-tick 0.2s var(--ease-out) calc(var(--t1) + var(--c) * var(--cps)) backwards;
 }
 .intro-oks tspan {
   fill: var(--ok);
@@ -192,14 +203,14 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
   stroke-width: 1.5px;
   stroke-dasharray: 0 668 360 308; /* twin: the body is 360×308 */
   transform-box: fill-box;
-  animation: intro-wipe 0.3s var(--ease-io) var(--t3) backwards, intro-lit 0.3s var(--t3);
+  animation: intro-wipe 0.45s var(--ease-io) var(--t3) backwards, intro-lit 0.45s var(--t3);
 }
 .intro-wire path {
   fill: none;
   stroke: var(--rule-3);
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  animation: intro-draw 0.34s var(--ease-out) calc(var(--t3) + 0.06s + var(--i) * 34ms) forwards;
+  animation: intro-draw 0.5s var(--ease-out) calc(var(--t3) + 0.18s + var(--i) * 42ms) forwards;
 }
 .intro-wire .intro-3 {
   stroke: var(--fg-faint);
@@ -245,26 +256,27 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
    32.6), then grown to the middle of the drawing (intro-grow). */
 .intro-mk {
   transform: translate(25px, 32.6px) scale(0.25);
-  animation: intro-in 1ms calc(var(--t3) + 0.12s) backwards,
-    intro-grow 0.45s var(--ease-io) var(--t4) forwards;
+  animation: intro-in 1ms calc(var(--t3) + 0.2s) backwards,
+    intro-grow 0.7s var(--ease-io) var(--t4) forwards;
 }
 .intro-b {
   fill: var(--fg);
   transform-box: fill-box;
   transform-origin: center;
-  animation: intro-fold 0.14s var(--ease-io) var(--t5) forwards;
+  animation: intro-fold 0.28s var(--ease-io) var(--t5) forwards;
 }
 /* The copper bar stretches into the seam the halves part on. */
 .intro-b2 {
   fill: var(--signal);
-  animation: intro-seam 0.16s cubic-bezier(0.7, 0, 0.84, 0) var(--t5) forwards,
+  animation: intro-seam 0.32s cubic-bezier(0.7, 0, 0.84, 0) var(--t5) forwards,
     intro-out 1ms var(--t6) forwards;
 }
 
-/* The name, set by one pass of a caret, and the line under it. */
+/* The name, set by one pass of a caret, and the line that rises under it.
+   Both fade as the mark starts to fold. */
 .intro-lk {
-  animation: intro-in 1ms calc(var(--t4) + 0.3s) backwards,
-    intro-out 1ms var(--t5) forwards;
+  animation: intro-in 1ms calc(var(--t4) + 0.5s) backwards,
+    intro-fade 0.3s var(--ease-io) calc(var(--t5) - 0.12s) forwards;
 }
 .intro-svg .intro-nm {
   font: 700 30px var(--font-sans);
@@ -280,12 +292,15 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
   fill: var(--ground);
   stroke-width: 2px;
   stroke-dasharray: 0 558 38;
-  animation: intro-set 0.28s var(--ease-io) calc(var(--t4) + 0.32s) both,
-    intro-lit 0.28s calc(var(--t4) + 0.32s);
+  animation: intro-set 0.5s var(--ease-io) calc(var(--t4) + 0.52s) both,
+    intro-lit 0.5s calc(var(--t4) + 0.52s);
 }
 .intro-svg .intro-tg {
+  /* 13 units: about 13px on a phone, where 11.5 was hard to read in the
+     second it's up. Thirty-eight characters still clear the frame. */
+  font-size: 13px;
   text-anchor: middle;
-  animation: intro-in 1ms calc(var(--t4) + 0.62s) backwards;
+  animation: intro-rise 0.45s var(--ease-out) calc(var(--t4) + 0.96s) backwards;
 }
 
 /* ── The foot: what this is, and the way out ─────────────────────── */
@@ -353,6 +368,18 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
 @keyframes intro-fade {
   to {
     opacity: 0;
+  }
+}
+@keyframes intro-tick {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+}
+@keyframes intro-rise {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
   }
 }
 @keyframes intro-lit {
