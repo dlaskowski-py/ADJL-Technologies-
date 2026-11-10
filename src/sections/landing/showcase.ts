@@ -450,8 +450,10 @@ function shot(href: string): string {
       </div>`;
 }
 
-/** Reveal order within a row: the feature alone, then three, then two. */
+/** Reveal order within a row: the feature alone, then three, then two
+ *  (/work/), or the feature and then pairs (home). */
 const STAGGER = [0, 0, 1, 2, 0, 1];
+const STAGGER_PAIRS = [0, 0, 1, 0, 1];
 
 /**
  * One card. sc-lay is what lays it out: the preview over the copy, or
@@ -459,9 +461,9 @@ const STAGGER = [0, 0, 1, 2, 0, 1];
  * card, so the feature, and any card the /work/ filter leaves alone in a
  * row, turns without a rule of its own).
  */
-function card(it: SystemCard, i: number): string {
+function card(it: SystemCard, i: number, home: boolean): string {
   return `<article class="sys panel bracket sc-card${i ? '' : ' sc-feature'}" data-reveal style="--i:${
-    STAGGER[i] ?? i % 3
+    (home ? STAGGER_PAIRS : STAGGER)[i] ?? i % 3
   }" data-tags="${esc(it.tags.join(' '))}">
       <div class="sc-lay">
       ${shot(it.link.href)}
@@ -470,15 +472,25 @@ function card(it: SystemCard, i: number): string {
           <span class="label">${esc(it.kicker)}</span>
           <span class="sys-status mono"><i aria-hidden="true">●</i> ${esc(it.status)}</span>
         </div>
-        <h3 class="h3">${rich(it.title)}</h3>
-        <p>${rich(it.body)}</p>
+        <h3 class="h3">${rich((home && it.plainTitle) || it.title)}</h3>
+        <p>${rich((home && it.plain) || it.body)}</p>
         <a class="alink sys-link" href="${esc(it.link.href)}"><span>${esc(it.link.label)}</span><span class="arw" aria-hidden="true">→</span></a>
       </div>
       </div>
     </article>`;
 }
 
-/** The cards alone (each page wraps them in its own section). */
-export function showcaseCards(): string {
-  return `<div class="sys-grid sc-grid">${systems.items.map(card).join('')}</div>`;
+/**
+ * The cards alone (each page wraps them in its own section).
+ *
+ * /work/ lists every item in the engineer's words. The home page
+ * (`home: true`) is read by a business owner under the heading "running
+ * now", so it prints each card's plain title and sentence and leaves out
+ * the practice card, which is a service and not a running system; the
+ * four cards after the feature then sit two to a row.
+ */
+export function showcaseCards(opts: { home?: boolean } = {}): string {
+  const home = !!opts.home;
+  const items = home ? systems.items.filter((it) => it.kind !== 'practice') : systems.items;
+  return `<div class="sys-grid sc-grid${home ? ' sc-grid--pairs' : ''}">${items.map((it, i) => card(it, i, home)).join('')}</div>`;
 }

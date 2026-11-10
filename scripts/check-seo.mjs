@@ -27,7 +27,7 @@
  *   - no title carries an em-dash: the separator is " | " everywhere
  */
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
-import { ORIGIN, PAGES } from './pages.mjs';
+import { OG_MANIFEST, ORIGIN, PAGES, ogTitleOf } from './pages.mjs';
 import { slugOf, twinOf } from './seo.mjs';
 import { walk, ldNodes, typesOf, jsonScripts } from './lib-text.mjs';
 import { pass } from './lib/report.mjs';
@@ -93,6 +93,9 @@ function defined(value, out = new Set()) {
   }
   return out;
 }
+
+/** What each share card was drawn for (gen-og writes it). */
+const ogCards = existsSync(OG_MANIFEST) ? JSON.parse(readFileSync(OG_MANIFEST, 'utf8')) : {};
 
 const titles = new Map();
 const graphs = new Map(); // route → { nodes, ids }
@@ -160,6 +163,20 @@ for (const page of PAGES) {
   const card = `public/og/${slugOf(route)}.jpg`;
   if (!existsSync(card)) fail(`${route} has no share card at ${card}. Run \`npm run og\``);
   else if (statSync(card).size < 8000) fail(`${card} is suspiciously small (${statSync(card).size} bytes)`);
+
+  /* And it has to be the card for THIS headline. The cards are drawn by a
+     local chore with hand-written copy, so one can outlive the headline it
+     was written for: the alt text and og:title say one thing and the image
+     another. gen-og records the og:title each card was drawn for. */
+  const drawn = ogCards[slugOf(route)];
+  const now = ogTitleOf(html);
+  if (!drawn) fail(`${route}: ${OG_MANIFEST} has no entry for its share card. Run \`npm run og\``);
+  else if (drawn.ogTitle !== now) {
+    fail(
+      `${route}: its share card was drawn for og:title "${drawn.ogTitle}" and the page now says "${now}". ` +
+        `Check the card's line in scripts/gen-og.mjs (it reads "${drawn.card}"), then run \`npm run og\``,
+    );
+  }
 
   // ── Structured data ────────────────────────────────────────────
   const blocks = jsonScripts(html, ['application/ld+json']);

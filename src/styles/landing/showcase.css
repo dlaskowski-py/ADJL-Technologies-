@@ -17,8 +17,9 @@
    actually has (one on a phone, two from about 700px, three from about
    1070px, and Source view's narrow column gets what fits there, not what
    the window would),
-   five cards after the feature make three and two with no hole, and
-   whatever the /work/ filter leaves re-flows the same way. Cards in a row
+   five cards after the feature make three and two with no hole (/work/),
+   the home page's four make two and two, and whatever the /work/ filter
+   leaves re-flows the same way. Cards in a row
    are as tall as the tallest. */
 .sys-grid.sc-grid {
   display: flex;
@@ -37,6 +38,12 @@
 /* The feature takes a row to itself at every width. */
 .sc-card.sc-feature {
   flex-basis: 100%;
+}
+/* Home: four cards after the feature. Asking for a little over a third of
+   the row means three never fit, so they sit two and two (and one to a
+   row on a phone, where 340px is the larger ask). */
+.sc-grid--pairs .sc-card:not(.sc-feature) {
+  flex-basis: max(340px, 34%);
 }
 .sc-card:focus-within {
   border-color: var(--rule-3);
@@ -67,6 +74,18 @@
 /* The focus ring hugs the link's words, not the card's width. */
 .sc-copy .sys-link {
   align-self: flex-start;
+}
+/* The whole card is the link's target: the card already answers a hover
+   as one thing, so a click anywhere on it goes where the link goes. The
+   link gives up .alink's own positioning so its ::after can cover the
+   card (.panel is the positioned box); the ring stays on the words. */
+.sc-card .sys-link {
+  position: static;
+}
+.sc-card .sys-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
 }
 /* A narrow card can't always fit the kicker and the status on one line,
    and one card in a row wrapping while its neighbors don't looks like a

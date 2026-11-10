@@ -26,18 +26,22 @@ export type Offer = {
   name: string;
   title: string;
   body: string;
+  /** The label over `points`, when "You get" isn't what they are. */
+  getLabel?: string;
   points: string[];
   link: Link;
 };
 
 export const landing = {
-  /** The hero's typed line. `phrases` are typed after the prompt, one at a
+  /** The hero's typed line. The prompt is what we do, not what's on the
+   *  bench today: a present-tense "now building" would be a claim about
+   *  work in progress. `phrases` are typed after the prompt, one at a
    *  time; keep each to 42 characters and plain ASCII, so the longest one
    *  fits a phone's width in the mono face on one line, and keep "|" out
    *  of them (it separates them in the markup). `summary` is the one
    *  static sentence screen readers and text readers get. */
   typer: {
-    prompt: 'now building',
+    prompt: 'we build',
     phrases: [
       'AI that reads your documents for you',
       'a website that loads in a blink',
@@ -56,7 +60,7 @@ export const landing = {
       'AI assistants',
       'Document automation',
       'Websites',
-      'SEO and AI search',
+      'Pages search engines can read',
       'iPhone and Android apps',
       'Web apps',
       'Dashboards',
@@ -101,8 +105,8 @@ export const landing = {
         title: 'One build, on every screen',
         body: 'We build websites, web apps and apps for iPhone and Android. The phone apps share one codebase, so a fix lands on both at once.',
         points: [
-          'Fast before anyone tunes it',
-          'One codebase for iOS and Android',
+          'Fast from the first version',
+          'One codebase for iPhone and Android',
           'Strict security settings by default',
         ],
         link: { label: 'How we build sites and apps', href: '/services/software/' },
@@ -111,11 +115,12 @@ export const landing = {
         key: 'sys',
         name: 'Systems we run',
         title: 'We run what we build',
-        body: 'We built the engine behind ADJL Capital’s property decisions, and it’s still running. Paste in a listing link and it returns a file where every figure names its source.',
+        body: 'We built the engine behind property decisions at ADJL Capital, a private investment firm, and it’s still running. Paste in a listing link and it returns a file where every figure names its source.',
+        getLabel: 'How we run them',
         points: [
           'Every number says where it came from',
           'Unaudited figures say so',
-          'New methods tried on our own systems first',
+          'New methods tried here first',
         ],
         link: { label: 'See the systems', href: '/work/' },
       },
@@ -123,13 +128,17 @@ export const landing = {
 
     /** The strip that closes the section: a request in plain words, the
      *  code written for it, and the page that comes out. One made-up
-     *  request, drawn as an illustration; `caption` says so in a sentence. */
+     *  request, drawn as an illustration; `caption` says so in a sentence.
+     *  `wrote` and `got` are the two drawings in words, for screen readers
+     *  and the text twins (the drawings themselves are decoration). */
     build: {
       steps: ['You say', 'We write', 'You get'],
       say: '“We need a booking page that takes a deposit.”',
       code: ['<BookingPage>', '  <Calendar />', '  <Deposit />', '</BookingPage>'],
       ui: { title: 'Book a time', button: 'Pay deposit', ready: 'ready' },
-      caption: 'It starts with a sentence. We write the code, test it, and hand you something people can use.',
+      wrote: 'The code for that page.',
+      got: 'A working booking page with a deposit button.',
+      caption: 'An example request. It starts with a sentence. We write the code, test it, and hand you something people can use.',
     },
   },
 
@@ -178,5 +187,7 @@ export const landing = {
     body: 'Send a few lines about what you need, and Daniel will answer you himself.',
     button: { label: 'Start a conversation', href: '#contact' },
     email: CONTACT,
+    /** Under the band: the page changes voice here, so it says so. */
+    next: 'From here down, it’s the proof, and it gets more technical. You can try the next two demos yourself.',
   },
 };

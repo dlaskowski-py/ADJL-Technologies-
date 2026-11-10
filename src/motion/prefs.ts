@@ -171,5 +171,5 @@ export function afterIntro(fn: () => void): void {
        itself, so say so; callers that re-check the attribute then proceed. */
     if (document.documentElement.dataset.intro === 'play') document.documentElement.dataset.intro = 'done';
     go();
-  }, 7000);
+  }, 8000);
 }

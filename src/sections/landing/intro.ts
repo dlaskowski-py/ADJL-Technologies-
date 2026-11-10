@@ -149,7 +149,7 @@ export function renderIntro(): string {
 
   /* `hidden` keeps the markup out of sight even if the stylesheet never
      arrives; the play rule in intro.css overrides it. */
-  return `<div class="intro" hidden data-intro-overlay data-chrome style="--end:${c}">
+  return `<div class="intro" hidden data-intro-overlay data-chrome data-nosnippet style="--end:${c}">
 <svg class="intro-svg" viewBox="0 0 ${W} ${H}" aria-hidden="true">
 <g class="intro-pane"><rect class="intro-box" x=".5" y=".5" width="${W - 1}" height="${HEAD + BODY + 1}" rx="6"/><path class="intro-rule" d="M.5 ${HEAD - 0.5}H${W - 0.5}"/><text class="intro-file" x="${PAD}" y="17">${esc(I.code.file)}</text><text class="intro-dist" x="${PAD}" y="17">${esc(I.build.out)}</text>
 <svg y="${HEAD}" width="${W - 2}" height="${BODY}"><g class="intro-code">${code}${run}</g><g class="intro-oks">${steps.join('')}${checks.join('')}</g><rect class="intro-wipe" width="${W}" height="${BODY}"/><g class="intro-wire">${wire}</g></svg>

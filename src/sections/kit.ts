@@ -63,7 +63,7 @@ export type HeroOpts = {
   /** JSON-LD the hero is described by (service pages: '#service'). */
   ld?: string;
   ldType?: string;
-  /** Extra markup under the CTAs (home: the typed "now building" line). */
+  /** Extra markup under the CTAs (home: the typed "we build" line). */
   after?: string;
 };
 

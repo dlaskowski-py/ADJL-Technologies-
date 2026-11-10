@@ -390,12 +390,21 @@ export type SystemCard = {
   status: string;
   tags: PracticeKey[];
   body: string;
+  /** The same facts as `title` and `body` in a business owner's words.
+   *  The home page prints these; /work/ and the case pages keep the
+   *  engineer's version. Nothing here may say more than `body` does. */
+  plainTitle?: string;
+  plain?: string;
+  /** 'practice': a service, not a system we built. /work/ lists it; the
+   *  home page's "running now" grid leaves it out and links to it. */
+  kind?: 'practice';
   link: Link;
 };
 
-/** The systems in production. Home #systems shows them, and /work/ uses
- *  the same items for its cards, so the two can't describe a system two
- *  different ways. */
+/** The systems in production. Home #systems shows them (in plain words,
+ *  and without the practice card, which isn't a running system), and
+ *  /work/ uses the same items for its cards, so the two can't describe a
+ *  system two different ways. */
 export const systems: {
   eyebrow: string;
   headline: string[];
@@ -406,7 +415,7 @@ export const systems: {
   eyebrow: 'In production',
   headline: ['Things we built', 'that are {em}running now.{/em}'],
   intro:
-    'Each page below walks one system stage by stage. We describe what it does and how. We never describe what it returned, and since the firm is new, you won’t find client logos here either.',
+    'Each card opens a page that walks one system step by step. We show how each one works. We don’t publish what it returned, and since the firm is new, you won’t find client logos here either.',
   items: [
     {
       kicker: 'Real estate',
@@ -414,6 +423,8 @@ export const systems: {
       status: 'Running · ADJL Capital',
       tags: ['ai', 'systems'],
       body: 'Resolves the parcel, pulls live rents and comparables, reads years of public record and models tax through reassessment. Every figure names its source. Anything unaudited says so.',
+      plainTitle: 'A listing link in, a sourced file out.',
+      plain: 'Paste a property listing link. It finds the property, pulls current rents and similar properties, reads years of public records and estimates the property tax after a sale. Every figure names its source.',
       link: { label: 'How the engine works', href: '/work/real-estate-intelligence/' },
     },
     {
@@ -422,6 +433,7 @@ export const systems: {
       status: 'Running · ADJL Capital',
       tags: ['software', 'systems'],
       body: 'Market-data ingestion, execution pipelines and backtests that share the production code path. Plus a daily research pipeline built on {k}point-in-time{/k} index membership.',
+      plain: 'It takes in market data and sends orders out. Tests replay recorded data through the same code that trades live, and each evening it writes a research brief.',
       link: { label: 'How the pipeline works', href: '/work/trading-infrastructure/' },
     },
     {
@@ -430,6 +442,7 @@ export const systems: {
       status: 'Private distribution',
       tags: ['software'],
       body: 'One Expo and React Native codebase for iOS and Android. The underwriting engine runs on the device, and tests hold it to the same answers as the web.',
+      plain: 'An iPhone and Android app. The full property math runs on the phone with no signal, and tests hold it to the same answers as the website.',
       link: { label: 'How the app works', href: '/work/mobile-app/' },
     },
     {
@@ -438,6 +451,8 @@ export const systems: {
       status: 'Private · gated',
       tags: ['software'],
       body: 'Members’ pages are kept out of the public build. An edge function checks a signed session before it serves any of them.',
+      plainTitle: 'Private pages that stay private.',
+      plain: 'A members-only website. The private pages are never published to the public web, and each request is checked before a page is served.',
       link: { label: 'How the lock works', href: '/work/private-site/' },
     },
     {
@@ -446,12 +461,15 @@ export const systems: {
       status: 'Public · you’re on it',
       tags: ['seo', 'software'],
       body: 'Static HTML, a content policy that allows nothing from other origins, structured data on every page, and a build that fails on hype.',
+      plainTitle: 'Fast, and it checks its own claims.',
+      plain: 'The site you’re on. Fast pages, nothing loaded from other companies, and a build that stops if the copy overclaims.',
       link: { label: 'How this site is built', href: '/work/this-site/' },
     },
     {
-      kicker: 'AI practice',
+      kicker: 'AI Engineering',
       title: 'Into the workflow you already run.',
-      status: 'Practice',
+      status: 'Service',
+      kind: 'practice',
       tags: ['ai'],
       body: 'Retrieval, extraction, routing and drafting, with a review gate where mistakes cost money and an evaluation set from day one.',
       link: { label: 'How a rollout runs', href: '/work/ai-implementation/' },
@@ -459,6 +477,10 @@ export const systems: {
   ],
   more: { label: 'All work', href: '/work/' },
 };
+
+/** Home #systems, beside "All work": the way to the practice card the
+ *  grid leaves out. */
+export const systemsPractice: Link = { label: 'How an AI rollout runs', href: '/work/ai-implementation/' };
 
 /** Home #team: the founder, the engagement and the stack, in one section. */
 export const team = {
@@ -572,7 +594,7 @@ export const faq: Faq = {
 export const cta = {
   eyebrow: 'Start here',
   headline: ['Tell us what’s slow,', 'or what {em}can’t be found.{/em}'],
-  body: 'One paragraph is plenty. Name the step that costs the most, or the page that should rank and doesn’t. If you know why the obvious fix hasn’t worked, say that too.',
+  body: 'One paragraph is plenty. Tell us what you want built, the step that costs the most, or the page that should rank and doesn’t. If you know why the obvious fix hasn’t worked, say that too.',
   button: { label: 'Email Daniel', href: `mailto:${CONTACT}` },
   email: CONTACT,
   copy: 'Copy address',

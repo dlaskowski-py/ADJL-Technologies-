@@ -32,12 +32,16 @@
 html[data-intro='play']:not([data-motion='reduced']) .intro {
   /* --end (inline, from the renderer) is how many characters the code and
      the build take. Everything after waits for it. As shipped, --t7 comes
-     to about 4.6s; keep it under 5. */
-  --cps: 4ms;
+     to about 5.4s; keep it under 5.5 (motion/intro.ts gives up at 7).
+     Two numbers set the pace. --cps: at 5ms a line of code takes about a
+     fifth of a second, slow enough to see it typed and not wiped in.
+     --t5: the name is whole for a second and the line under it for as
+     long, which is what it takes to read them. */
+  --cps: 5ms;
   --t1: 0.15s;
   --t3: calc(var(--t1) + var(--end) * var(--cps) + 0.1s);
   --t4: calc(var(--t3) + 0.85s);
-  --t5: calc(var(--t4) + 1.25s);
+  --t5: calc(var(--t4) + 1.6s);
   --t6: calc(var(--t5) + 0.16s);
   --t7: calc(var(--t6) + 0.5s);
   position: fixed;
@@ -104,6 +108,15 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
   font: 11.5px var(--font-mono);
   fill: var(--fg-2);
 }
+/* A phone on its side: the drawing may use the full height (the chip and
+   Skip sit in the corners, clear of it), or it would be a third of the
+   width with code nobody could read. Not under 640px wide, where the chip
+   would touch the drawing. */
+@media (orientation: landscape) and (max-height: 480px) and (min-width: 640px) {
+  .intro-svg {
+    width: min(100% - 32px, 680px, (100vh - 32px) * 0.968);
+  }
+}
 
 /* ── The pane: an editor, then a terminal under it ───────────────── */
 
@@ -124,7 +137,7 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
 /* The title: the source file, then the file the build wrote. */
 .intro-svg .intro-file,
 .intro-svg .intro-dist {
-  font-size: 9.5px;
+  font-size: 10.5px;
   letter-spacing: 0.06em;
   fill: var(--fg-3);
   animation: intro-out 1ms var(--t3) forwards;
@@ -208,7 +221,7 @@ html[data-intro='play']:not([data-motion='reduced']) .intro {
 /* The beat rail: three names, each lit from its beat on. The middle one
    carries --c, the character the command starts on. */
 .intro-beats text {
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   text-anchor: middle;

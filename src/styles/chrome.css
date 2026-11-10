@@ -296,6 +296,12 @@ html:not(.js) .nav-burger {
   border-radius: var(--r-2);
   transition: color var(--d-2) var(--ease-out), border-color var(--d-2) var(--ease-out);
 }
+/* A finger gets the full 44px: this is the control that stops the motion. */
+@media (pointer: coarse) {
+  .pause-btn {
+    min-height: 44px;
+  }
+}
 .pause-btn::before {
   content: '';
   width: 8px;

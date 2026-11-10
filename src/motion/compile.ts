@@ -9,6 +9,9 @@
  *   0ms     the em loses its copper (colour only: no reflow, no new LCP
  *           entry) and `{em}` / `{/em}` appear in the line gap, above-left
  *           of where the emphasis starts and above-right of where it ends
+ *           (not right after the opening sequence: the visitor has just
+ *           watched code being typed, and two more labels on the finished
+ *           headline read as a leftover; the caret and the copper still run)
  *   120ms   a 2px copper caret sweeps each line once, 120ms apart
  *   360ms   the markers fold toward the em's edges as it turns copper again
  *   1.6s    the overlay and the attribute are gone
@@ -51,7 +54,7 @@ function run(h1: HTMLElement): void {
      the line above. Each is kept inside the h1, so nothing overflows. */
   const em = h1.querySelector('em');
   const rects = em ? em.getClientRects() : [];
-  if (rects.length) {
+  if (rects.length && document.documentElement.dataset.intro !== 'done') {
     const first = rects[0];
     const last = rects[rects.length - 1];
     const ch = 0.26 * 0.6 * fs;

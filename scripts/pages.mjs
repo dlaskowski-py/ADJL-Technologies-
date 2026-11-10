@@ -252,3 +252,10 @@ export const PAGES = [
  *  markdown twins. '/' is 'home'. */
 export const slugOf = (route) =>
   route === '/' ? 'home' : route.replace(/^\/|\/$/g, '').replace(/\//g, '-');
+
+/** Where gen-og records which headline each share card was drawn for, and
+ *  how it and check-seo both read a page's og:title: the attribute as
+ *  written, so the two compare like with like. The file isn't under
+ *  public/, so it's committed and never served. */
+export const OG_MANIFEST = 'scripts/og-cards.json';
+export const ogTitleOf = (html) => html.match(/<meta property="og:title" content="([^"]*)"/)?.[1] ?? '';

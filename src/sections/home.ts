@@ -84,8 +84,8 @@ function renderSystems(n: number): string {
         ${headline(s.headline)}
         ${prose([s.intro], 'prose sec-body')}
       </div>
-      ${showcaseCards()}
-      ${linkRow([s.more])}
+      ${showcaseCards({ home: true })}
+      ${linkRow([s.more, C.systemsPractice])}
     </div>
   </section>`;
 }

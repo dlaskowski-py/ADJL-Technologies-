@@ -1,5 +1,5 @@
 /**
- * Typed text: the hero's "now building" line.
+ * Typed text: the hero's "we build" line.
  *
  * Markup contract: [data-typer="phrase|phrase|…"] with one
  * [data-typer-text] inside it, prerendered holding the first phrase.

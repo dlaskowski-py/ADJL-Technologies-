@@ -205,7 +205,7 @@ function panel(o: Offer, getLabel: string): string {
           <p class="label">${esc(o.name)}</p>
           <h3 class="lp-offer-h">${rich(o.title)}</h3>
           <p>${rich(o.body)}</p>
-          <p class="label lp-get">${esc(getLabel)}</p>
+          <p class="label lp-get">${esc(o.getLabel ?? getLabel)}</p>
           ${checklist(o.points)}
           <a class="alink" href="${esc(o.link.href)}"><span>${esc(o.link.label)}</span><span class="arw" aria-hidden="true">→</span></a>
         </div>
@@ -217,8 +217,10 @@ function panel(o: Offer, getLabel: string): string {
 /**
  * One wide panel in three steps, on the same five beats as the scenes: the
  * request arrives a word at a time, the code types, the page assembles.
- * The request is real text in a blockquote; the code and the little page
- * are decoration, and the figcaption says what the three of them show.
+ * The request is real text, in a paragraph and not a blockquote: it's a
+ * made-up example, and a text reader would take a quote for a customer's
+ * words. The code and the little page are decoration, each with one
+ * sr-only line saying what it is; the figcaption says it's an example.
  */
 function buildStrip(): string {
   const B = landing.offers.build;
@@ -239,14 +241,16 @@ function buildStrip(): string {
   return `<figure class="lp-build panel" data-scene="build" data-reveal>
         <div class="lp-build-col">
           ${step(0)}
-          <blockquote class="lp-build-say"><span class="lp-act">${words}</span></blockquote>
+          <p class="lp-build-say"><span class="lp-act">${words}</span></p>
         </div>
         <div class="lp-build-col">
           ${step(1)}
+          <p class="sr-only">${esc(B.wrote)}</p>
           <div class="lp-code" aria-hidden="true" data-chrome><div class="lp-act">${code}</div></div>
         </div>
         <div class="lp-build-col">
           ${step(2)}
+          <p class="sr-only">${esc(B.got)}</p>
           <svg class="lp-art lp-ui" viewBox="0 0 220 138" aria-hidden="true" focusable="false">
             ${rect(c('lp-f'), 1, 1, 218, 136, 6)}${path(c('lp-ln'), 'M1 20h218')}${path(c('lp-sk'), 'M12 8h5v5h-5zM21 8h5v5h-5zM30 8h5v5h-5z')}
             <g class="lp-act">

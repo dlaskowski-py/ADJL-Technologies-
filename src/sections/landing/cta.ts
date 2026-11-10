@@ -5,6 +5,7 @@
  * has seen enough doesn't have to scroll through the proof to get in touch.
  *
  * A band without a rail: it's a pause in the page, not a numbered section.
+ * Its last line tells the reader the page turns technical from here.
  *
  * OWNER: WS-B (landing).
  */
@@ -30,6 +31,7 @@ export function renderCtaBand(): string {
           <a class="alink" href="mailto:${esc(c.email)}">${esc(c.email)}</a>
         </div>
       </div>
+      <p class="lp-cta-next" data-reveal>${rich(c.next)}</p>
     </div>
   </section>`;
 }

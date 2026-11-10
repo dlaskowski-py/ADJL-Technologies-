@@ -14,7 +14,8 @@
  *             Skip. No overflow is toggled, so no scrollbar comes or goes
  *             and nothing under the overlay shifts.
  *   Hand-off  when the timeline's last animation finishes (or Skip, or
- *             Pause motion): remove the overlay, set
+ *             Pause motion): remove the overlay (handing focus back to the
+ *             top of the page if Skip had it), set
  *             <html data-intro="done"> and dispatch `adjl:intro-done` on
  *             window. compile.ts and lattice.ts wait for that event, so
  *             their entrances play where the visitor can see them.
@@ -46,7 +47,19 @@ export function initIntro(): void {
     if (over) return;
     over = true;
     window.removeEventListener('keydown', onKey, true);
+    const had = root.contains(document.activeElement);
     root.remove();
+    if (had) {
+      /* Focus was on Skip, and removing a focused node leaves the browser
+         tabbing on from where it was: past the skip link and the whole nav.
+         Put focus on the body for a moment so Tab starts at the top. (Not
+         on the skip link itself: it shows on focus, and a click on Skip
+         would flash it.) */
+      const b = document.body;
+      b.tabIndex = -1;
+      b.focus({ preventScroll: true });
+      b.removeAttribute('tabindex');
+    }
     html.dataset.intro = 'done';
     window.dispatchEvent(new Event('adjl:intro-done'));
   };
@@ -86,6 +99,6 @@ export function initIntro(): void {
       if (e.target === root && !e.pseudoElement) done();
     });
   }
-  /* A watchdog, for a frame that never comes. */
-  window.setTimeout(done, 6000);
+  /* A watchdog, for a frame that never comes (the timeline is about 5.4s). */
+  window.setTimeout(done, 7000);
 }

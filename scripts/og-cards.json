@@ -1,0 +1,62 @@
+{
+  "home": {
+    "ogTitle": "AI, websites and apps, built for what’s next.",
+    "card": "AI, websites and apps, built for what’s next."
+  },
+  "services": {
+    "ogTitle": "AI, SEO and software, from one team.",
+    "card": "AI, SEO and software, from one team."
+  },
+  "services-ai-engineering": {
+    "ogTitle": "AI agents and automation that show their work.",
+    "card": "AI agents and automation that show their work."
+  },
+  "services-seo": {
+    "ogTitle": "Technical SEO for search and AI answer engines.",
+    "card": "Technical SEO for search and AI answer engines."
+  },
+  "services-software": {
+    "ogTitle": "Websites, apps and the systems behind them.",
+    "card": "Websites, apps and the systems behind them."
+  },
+  "work": {
+    "ogTitle": "What we’ve built, and how it works.",
+    "card": "What we’ve built, and how it works."
+  },
+  "work-real-estate-intelligence": {
+    "ogTitle": "Paste a listing. Get the underwriting.",
+    "card": "Paste a listing. Get the underwriting."
+  },
+  "work-trading-infrastructure": {
+    "ogTitle": "Code that behaves the same on Tuesday as it did on Monday.",
+    "card": "Market data in, orders out."
+  },
+  "work-ai-implementation": {
+    "ogTitle": "We start at the workflow, not the model.",
+    "card": "We start at the workflow, not the model."
+  },
+  "work-mobile-app": {
+    "ogTitle": "The whole engine, on the phone.",
+    "card": "The whole engine, on the phone."
+  },
+  "work-private-site": {
+    "ogTitle": "A private site that says no by default.",
+    "card": "A private site that says no by default."
+  },
+  "work-this-site": {
+    "ogTitle": "The site you’re on is the SEO case study.",
+    "card": "The site you’re on is the SEO case study."
+  },
+  "approach": {
+    "ogTitle": "How the work runs, and where it stops.",
+    "card": "How the work runs, and where it stops."
+  },
+  "legal-privacy": {
+    "ogTitle": "Privacy",
+    "card": "Privacy. No tracking, no cookies."
+  },
+  "legal-terms": {
+    "ogTitle": "Terms of use",
+    "card": "Terms of use."
+  }
+}

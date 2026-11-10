@@ -238,14 +238,16 @@ html.js:not([data-motion='reduced']) .lp-tick-mark {
   max-width: 540px;
   height: auto;
   margin-inline: auto;
-  font: 10px var(--font-mono);
+  /* In viewBox units, so a 390px phone draws these at 10.4px. 10.5 is the
+     most the tightest label ("search engine", in its reader box) allows. */
+  font: 10.5px var(--font-mono);
   color: var(--fg-3);
 }
 .lp-art text {
   fill: currentColor;
 }
 .lp-cap {
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -562,4 +564,11 @@ html[data-motion='full'] [data-playing='true'] .lp-act {
   flex-direction: column;
   align-items: flex-start;
   gap: var(--s-2);
+}
+/* The line under the band: the page turns technical from here. */
+.lp-cta-next {
+  max-width: 60ch;
+  margin-top: var(--s-5);
+  font-size: var(--t-small);
+  color: var(--fg-2);
 }

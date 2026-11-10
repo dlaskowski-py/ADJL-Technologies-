@@ -13,12 +13,19 @@
  * drives a real browser, and Playwright is kept out of devDependencies so
  * Netlify doesn't install it on every deploy. The cards are committed.
  *
+ * So a card can fall behind its page: the copy in CARDS is written by hand,
+ * and the home card once kept the old headline for a build after the hero
+ * changed. Two things stop that. Each run records the og:title every card
+ * was drawn for (scripts/og-cards.json), and check-seo fails the build when
+ * a page's og:title has moved on since. And each card is copied into the
+ * dist/ it was drawn from, so a local preview shows the card just made.
+ *
  *   npx vite build && node scripts/prerender.mjs && node scripts/gen-og.mjs
  *   (needs playwright-core or playwright: npm i --no-save playwright-core)
  */
 import { createRequire } from 'node:module';
-import { existsSync, globSync, mkdirSync, readFileSync, statSync } from 'node:fs';
-import { ORIGIN, PAGES, slugOf } from './pages.mjs';
+import { copyFileSync, existsSync, globSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { OG_MANIFEST, ORIGIN, PAGES, ogTitleOf, slugOf } from './pages.mjs';
 import { BUILD_SHA } from './build-stamp.mjs';
 import { loadTs } from './lib/ts.mjs';
 
@@ -166,14 +173,22 @@ const browser = await chromium
 const ctx = await browser.newContext({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
 const page = await ctx.newPage();
 
+/** Into the build this run read, when it has an og/ folder (vite copies
+ *  public/ before this script can run, so dist/og holds the cards from
+ *  before). */
+const toDist = (file) => existsSync('dist/og') && copyFileSync(`${OUT}/${file}`, `dist/og/${file}`);
+const drawnFor = {};
+
 for (const p of PAGES) {
   const slug = slugOf(p.route);
+  drawnFor[slug] = { ogTitle: ogTitleOf(readFileSync(p.out, 'utf8')), card: CARDS[slug].line.join(' ') };
   await page.setContent(card(p, CARDS[slug], posterOf(p)), { waitUntil: 'load' });
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(120);
   /* JPEG at 88: a share card is scaled down by every platform that shows
      it, and PNG of a hairline drawing is several times the bytes. */
   await page.screenshot({ path: `${OUT}/${slug}.jpg`, type: 'jpeg', quality: 88 });
+  toDist(`${slug}.jpg`);
   console.log(`  ${slug.padEnd(32)} ${(statSync(`${OUT}/${slug}.jpg`).size / 1024).toFixed(0)} kB`);
 }
 
@@ -192,6 +207,8 @@ await page.setContent(
   { waitUntil: 'load' },
 );
 await page.screenshot({ path: `${OUT}/logo-512.png`, type: 'png' });
+toDist('logo-512.png');
+writeFileSync(OG_MANIFEST, `${JSON.stringify(drawnFor, null, 2)}\n`);
 console.log(`  ${'logo-512.png'.padEnd(32)} ${(statSync(`${OUT}/logo-512.png`).size / 1024).toFixed(0)} kB`);
 
 await browser.close();
