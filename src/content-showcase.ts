@@ -65,7 +65,7 @@ export const showcase = {
   },
 
   '/work/mobile-app/': {
-    bar: 'iOS · Android',
+    bar: 'iPhone · Android',
     /* On the phone's screen: 10 characters at most. */
     offline: 'offline',
     slider: 'assumption',

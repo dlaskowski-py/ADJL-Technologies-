@@ -296,10 +296,22 @@ html:not(.js) .nav-burger {
   border-radius: var(--r-2);
   transition: color var(--d-2) var(--ease-out), border-color var(--d-2) var(--ease-out);
 }
-/* A finger gets the full 44px: this is the control that stops the motion. */
+/* A finger gets the full 44px: this is the control that stops the motion.
+   Over the hero figure a pill that tall covers the drawing, so that one
+   keeps its size and takes the same reach above and below itself. */
 @media (pointer: coarse) {
   .pause-btn {
     min-height: 44px;
+  }
+  .hero-pause {
+    min-height: 32px;
+  }
+  /* From the padding box (30px inside the border): 7 above and below
+     makes 44. */
+  .hero-pause::after {
+    content: '';
+    position: absolute;
+    inset: -7px 0;
   }
 }
 .pause-btn::before {
