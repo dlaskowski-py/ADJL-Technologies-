@@ -78,7 +78,7 @@ export const content: SectionPage = {
   ],
   foot: {
     builtUnder: [{ label: 'Websites & Apps', href: '/services/software/' }],
-    next: { label: 'A private site that says no', href: '/work/private-site/' },
+    next: { label: 'How Loep works', href: '/work/loep/' },
   },
 };
 

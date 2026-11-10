@@ -42,6 +42,7 @@ const CARDS = {
   'services-software': { kicker: 'Websites & Apps', line: ['Websites, apps', 'and the systems behind them.'] },
   work: { kicker: 'Work', line: ['What we’ve built,', 'and how it works.'] },
   'work-mobile-app': { kicker: 'Native App', line: ['The whole engine,', 'on the phone.'] },
+  'work-loep': { kicker: 'Loep', line: ['The records behind a price,', 'on one sheet.'] },
   'work-private-site': { kicker: 'Private Site', line: ['A private site', 'that says no by default.'] },
   'work-this-site': { kicker: 'This Website', line: ['The site you’re on', 'is the SEO case study.'] },
   'work-real-estate-intelligence': { kicker: 'Real Estate Intelligence', line: ['Paste a listing.', 'Get the underwriting.'] },

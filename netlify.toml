@@ -118,6 +118,11 @@
   status = 301
 
 [[redirects]]
+  from = "/work/loep"
+  to = "/work/loep/"
+  status = 301
+
+[[redirects]]
   from = "/work/private-site"
   to = "/work/private-site/"
   status = 301

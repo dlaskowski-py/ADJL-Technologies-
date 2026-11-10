@@ -52,11 +52,13 @@ const bm = await loadTs('src/lib/bm25.ts');
 const C = await loadTs('src/content.ts');
 
 /** Index budget, gzipped (spec §9). */
-/* 24 kB, up from 22. The index holds every indexable passage on the site,
-   so it grows with the copy; the landing page added about 0.4 kB of plain-
-   language passages. It's fetched only when a visitor first touches Ask,
-   never on page load, which is why its cap can follow the content. */
-const INDEX_BUDGET = 24 * 1024;
+/* 26 kB. The index holds every indexable passage on the site, so it grows
+   with the copy: 22 at first, 24 when the landing page added plain-language
+   passages, 26 with a sixteenth page (/work/loep/, about 1.7 kB). It's
+   fetched only when a visitor first touches Ask, never on page load, which
+   is why its cap can follow the content. A new page is a reason to raise
+   it; longer copy on an old one isn't. */
+const INDEX_BUDGET = 26 * 1024;
 /** A passage needs this many words to be worth quoting. Shorter <li> and
  *  <dd> are labels ("Week one", "Home"), not answers. */
 const MIN_WORDS = 4;

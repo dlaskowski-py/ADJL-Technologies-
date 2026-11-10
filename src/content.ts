@@ -402,7 +402,7 @@ export type SystemCard = {
   plainTitle?: string;
   plain?: string;
   /** 'practice': a service, not a system we built. /work/ lists it; the
-   *  home page's "running now" grid leaves it out and links to it. */
+   *  home page's "things we built" grid leaves it out and links to it. */
   kind?: 'practice';
   link: Link;
 };
@@ -418,8 +418,10 @@ export const systems: {
   items: SystemCard[];
   more: Link;
 } = {
-  eyebrow: 'In production',
-  headline: ['Things we built', 'that are {em}running now.{/em}'],
+  /* Not "running now": one of these (Loep) is deployed behind a sign-in
+     gate, in private preview, and the heading has to be true of every card. */
+  eyebrow: 'What we’ve built',
+  headline: ['Things we built,', 'and {em}how they work.{/em}'],
   intro:
     'Each card opens a page that walks one system step by step. We show how each one works. We don’t publish what it returned, and since the firm is new, you won’t find client logos here either.',
   items: [
@@ -432,6 +434,17 @@ export const systems: {
       plainTitle: 'A listing link in, a sourced file out.',
       plain: 'Paste a property listing link. It finds the property, pulls current rents and similar properties, reads years of public records and estimates the property tax after a sale. Every figure names its source.',
       link: { label: 'How the engine works', href: '/work/real-estate-intelligence/' },
+    },
+    {
+      /* Deployed behind a sign-in gate, so "private preview" and no link
+         out; see the note at the top of content-case-loep.ts. */
+      kicker: 'Loep',
+      title: 'The records behind a price, on one sheet.',
+      status: 'Private preview',
+      tags: ['software', 'ai'],
+      body: 'A property scanner, company reports read from SEC filings and an analyst for a business for sale. The engines are pure modules that run in the browser. A language model writes one optional note, and no figure comes from it.',
+      plain: 'A research tool for people who aren’t professionals. Give it an address, a stock ticker or a business for sale. It shows the records behind the price and where each figure came from.',
+      link: { label: 'How Loep works', href: '/work/loep/' },
     },
     {
       kicker: 'Trading and research',
@@ -637,6 +650,7 @@ export const footer: {
         { label: 'Trading Infrastructure', href: '/work/trading-infrastructure/' },
         { label: 'AI Implementation', href: '/work/ai-implementation/' },
         { label: 'Mobile App', href: '/work/mobile-app/' },
+        { label: 'Loep', href: '/work/loep/' },
         { label: 'Private Site', href: '/work/private-site/' },
         { label: 'This Site', href: '/work/this-site/' },
         { label: 'All work', href: '/work/' },

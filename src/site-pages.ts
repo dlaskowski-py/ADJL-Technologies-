@@ -15,6 +15,7 @@ export const SITE_PAGES: { route: string; label: string; parent?: string }[] = [
   { route: '/work/trading-infrastructure/', label: 'Trading Infrastructure', parent: '/work/' },
   { route: '/work/ai-implementation/', label: 'AI Implementation', parent: '/work/' },
   { route: '/work/mobile-app/', label: 'Mobile App', parent: '/work/' },
+  { route: '/work/loep/', label: 'Loep', parent: '/work/' },
   { route: '/work/private-site/', label: 'Private Site', parent: '/work/' },
   { route: '/work/this-site/', label: 'This Site', parent: '/work/' },
   { route: '/approach/', label: 'Approach', parent: '/' },

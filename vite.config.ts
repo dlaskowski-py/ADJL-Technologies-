@@ -29,6 +29,7 @@ export default defineConfig({
         'case-trading': resolve(__dirname, 'work/trading-infrastructure/index.html'),
         'case-ai': resolve(__dirname, 'work/ai-implementation/index.html'),
         'case-mobile-app': resolve(__dirname, 'work/mobile-app/index.html'),
+        'case-loep': resolve(__dirname, 'work/loep/index.html'),
         'case-private-site': resolve(__dirname, 'work/private-site/index.html'),
         'case-this-site': resolve(__dirname, 'work/this-site/index.html'),
         'approach': resolve(__dirname, 'approach/index.html'),

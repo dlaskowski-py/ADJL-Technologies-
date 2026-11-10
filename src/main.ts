@@ -26,6 +26,7 @@ const PAGES: Record<string, Loader> = import.meta.env.DEV ? {
   '/work/trading-infrastructure/': () => import('./pages/case-trading'),
   '/work/ai-implementation/': () => import('./pages/case-ai'),
   '/work/mobile-app/': () => import('./pages/case-mobile-app'),
+  '/work/loep/': () => import('./pages/case-loep'),
   '/work/private-site/': () => import('./pages/case-private-site'),
   '/work/this-site/': () => import('./pages/case-this-site'),
   '/approach/': () => import('./pages/approach'),

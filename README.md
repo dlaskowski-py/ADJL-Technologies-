@@ -34,6 +34,7 @@ is wrong. The shapes every module follows are in `src/content-types.ts`.
 | `src/content-case-trading.ts` | `/work/trading-infrastructure/` |
 | `src/content-case-ai.ts` | `/work/ai-implementation/` |
 | `src/content-case-mobile-app.ts` | `/work/mobile-app/` |
+| `src/content-case-loep.ts` | `/work/loep/` |
 | `src/content-case-private-site.ts` | `/work/private-site/` |
 | `src/content-case-this-site.ts` | `/work/this-site/` |
 | `src/content-approach.ts` | `/approach/` |
@@ -127,7 +128,7 @@ this deploy's own output saying so.
 | `check-voice` | The copy drifting back into the AI-essay register. See below |
 | `check-seo` | A missing canonical, a second h1, a relative share image, a dash in a title, a missing markdown twin, or structured data that doesn't hold together: a `data-ld` pin or an `@id` reference that resolves to nothing |
 | `check-provenance` | An instrument with no provenance chip, a chip prerendered as Live (Live is set only after a real measurement in the browser), or a hatched "not shown" area with no label |
-| `check-budget` | A page over its byte budget (HTML 40 kB gz, first-load JS 24 kB, shared CSS 24 kB, page-only CSS 10 kB, each lazy chunk 10 kB, search index 24 kB, everything reachable from home 70 kB), a resource from another origin, anything in `dist/media/`, or a shipped file nothing references |
+| `check-budget` | A page over its byte budget (HTML 40 kB gz, first-load JS 24 kB, shared CSS 24 kB, page-only CSS 10 kB, each lazy chunk 10 kB, search index 26 kB, everything reachable from home 70 kB), a resource from another origin, anything in `dist/media/`, or a shipped file nothing references |
 
 `check-voice` is the unusual one. Every other guard tests a fact; this one
 tests a habit, and it exists because the habit was invisible from the

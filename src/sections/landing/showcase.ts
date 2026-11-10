@@ -450,10 +450,8 @@ function shot(href: string): string {
       </div>`;
 }
 
-/** Reveal order within a row: the feature alone, then three, then two
- *  (/work/), or the feature and then pairs (home). */
-const STAGGER = [0, 0, 1, 2, 0, 1];
-const STAGGER_PAIRS = [0, 0, 1, 0, 1];
+/** Reveal order within a row: the feature alone, then rows of three. */
+const stagger = (i: number) => (i ? (i - 1) % 3 : 0);
 
 /**
  * One card. sc-lay is what lays it out: the preview over the copy, or
@@ -462,9 +460,9 @@ const STAGGER_PAIRS = [0, 0, 1, 0, 1];
  * row, turns without a rule of its own).
  */
 function card(it: SystemCard, i: number, home: boolean): string {
-  return `<article class="sys panel bracket sc-card${i ? '' : ' sc-feature'}" data-reveal style="--i:${
-    (home ? STAGGER_PAIRS : STAGGER)[i] ?? i % 3
-  }" data-tags="${esc(it.tags.join(' '))}">
+  return `<article class="sys panel bracket sc-card${i ? '' : ' sc-feature'}" data-reveal style="--i:${stagger(
+    i,
+  )}" data-tags="${esc(it.tags.join(' '))}">
       <div class="sc-lay">
       ${shot(it.link.href)}
       <div class="sc-copy">
@@ -484,13 +482,14 @@ function card(it: SystemCard, i: number, home: boolean): string {
  * The cards alone (each page wraps them in its own section).
  *
  * /work/ lists every item in the engineer's words. The home page
- * (`home: true`) is read by a business owner under the heading "running
- * now", so it prints each card's plain title and sentence and leaves out
- * the practice card, which is a service and not a running system; the
- * four cards after the feature then sit two to a row.
+ * (`home: true`) is read by a business owner under the heading "things
+ * we built", so it prints each card's plain title and sentence and leaves
+ * out the practice card, which is a service and not a system. After the
+ * feature that's five cards on the home page (three, then two) and six on
+ * /work/ (three and three).
  */
 export function showcaseCards(opts: { home?: boolean } = {}): string {
   const home = !!opts.home;
   const items = home ? systems.items.filter((it) => it.kind !== 'practice') : systems.items;
-  return `<div class="sys-grid sc-grid${home ? ' sc-grid--pairs' : ''}">${items.map((it, i) => card(it, i, home)).join('')}</div>`;
+  return `<div class="sys-grid sc-grid">${items.map((it, i) => card(it, i, home)).join('')}</div>`;
 }

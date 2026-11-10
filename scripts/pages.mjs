@@ -190,6 +190,23 @@ export const PAGES = [
     priority: '0.8',
   },
   {
+    out: 'dist/work/loep/index.html',
+    entry: 'scripts/entry-case-loep.ts',
+    route: '/work/loep/',
+    kind: 'case',
+    content: ['src/content-case-loep.ts'],
+    crumb: 'Loep',
+    parent: '/work/',
+    lattice: true,
+    article: { about: ['#app', '/services/software/#service', '/services/ai-engineering/#service'] },
+    app: {
+      name: 'Loep',
+      operatingSystem: 'Web',
+      applicationCategory: 'FinanceApplication',
+    },
+    priority: '0.8',
+  },
+  {
     out: 'dist/work/private-site/index.html',
     entry: 'scripts/entry-case-private-site.ts',
     route: '/work/private-site/',
