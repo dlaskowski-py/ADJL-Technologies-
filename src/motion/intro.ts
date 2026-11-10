@@ -43,18 +43,26 @@ export function initIntro(): void {
   }
 
   let over = false;
+  /* Did focus ever go into the overlay? Asked here, not at the end: Skip
+     is hidden before the hand-off (by data-skip, or by the timeline as the
+     mark folds), and a browser drops focus to the body the moment a
+     focused element is hidden, while still tabbing on from where it was. */
+  let held = root.contains(document.activeElement);
+  root.addEventListener('focusin', () => {
+    held = true;
+  });
   const done = () => {
     if (over) return;
     over = true;
     window.removeEventListener('keydown', onKey, true);
-    const had = root.contains(document.activeElement);
     root.remove();
-    if (had) {
-      /* Focus was on Skip, and removing a focused node leaves the browser
-         tabbing on from where it was: past the skip link and the whole nav.
-         Put focus on the body for a moment so Tab starts at the top. (Not
-         on the skip link itself: it shows on focus, and a click on Skip
-         would flash it.) */
+    const at = document.activeElement;
+    if (held && (!at || at === document.body)) {
+      /* Focus was on Skip, and the browser would tab on from where the
+         overlay was: past the skip link and the whole nav. Put focus on
+         the body for a moment so Tab starts at the top. (Not on the skip
+         link itself: it shows on focus, and a click on Skip would flash
+         it. And not if focus has since gone somewhere real.) */
       const b = document.body;
       b.tabIndex = -1;
       b.focus({ preventScroll: true });

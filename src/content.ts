@@ -458,7 +458,7 @@ export const systems: {
       tags: ['software'],
       body: 'Members’ pages are kept out of the public build. An edge function checks a signed session before it serves any of them.',
       plainTitle: 'Private pages that stay private.',
-      plain: 'A members-only website. The private pages are never published to the public web, and each request is checked before a page is served.',
+      plain: 'A website with a members’ area. Those pages are never published to the public web, and each request is checked before one is served.',
       link: { label: 'How the lock works', href: '/work/private-site/' },
     },
     {
@@ -467,8 +467,8 @@ export const systems: {
       status: 'Public · you’re on it',
       tags: ['seo', 'software'],
       body: 'Static HTML, a content policy that allows nothing from other origins, structured data on every page, and a build that fails on hype.',
-      plainTitle: 'Fast, and it checks its own claims.',
-      plain: 'The site you’re on. Fast pages, nothing loaded from other companies, and a build that stops if the copy overclaims.',
+      plainTitle: 'A site that checks its own claims.',
+      plain: 'The site you’re on. Every page is complete before any code runs, nothing is loaded from other companies, and the build stops if the copy overclaims.',
       link: { label: 'How this site is built', href: '/work/this-site/' },
     },
     {

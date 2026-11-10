@@ -181,6 +181,17 @@ for (const page of PAGES) {
       `${route}: its share card was drawn for og:title "${drawn.ogTitle}" and the page now says "${now}". ` +
         `Check the card's line in scripts/gen-og.mjs (it reads "${drawn.card}"), then run \`npm run og\``,
     );
+  } else {
+    /* The card's own words have to be the headline's too (a card may say
+       more after it, as the legal ones do), or a bare `npm run og` would
+       clear the failure above without anyone looking at the card. */
+    const bare = (s) => s.replace(/[.\s]+$/, '');
+    if (!bare(drawn.card).startsWith(bare(drawn.ogTitle))) {
+      fail(
+        `${route}: its share card reads "${drawn.card}" but og:title and og:image:alt say "${drawn.ogTitle}". ` +
+          `Change the card's line in scripts/gen-og.mjs, then run \`npm run og\``,
+      );
+    }
   }
 
   // ── Structured data ────────────────────────────────────────────

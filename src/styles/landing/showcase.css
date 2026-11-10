@@ -78,14 +78,17 @@
 /* The whole card is the link's target: the card already answers a hover
    as one thing, so a click anywhere on it goes where the link goes. The
    link gives up .alink's own positioning so its ::after can cover the
-   card (.panel is the positioned box); the ring stays on the words. */
-.sc-card .sys-link {
-  position: static;
-}
-.sc-card .sys-link::after {
-  content: '';
-  position: absolute;
-  inset: 0;
+   card (.panel is the positioned box); the ring stays on the words.
+   Screen only: on paper a link's ::after prints its address (base.css). */
+@media screen {
+  .sc-card .sys-link {
+    position: static;
+  }
+  .sc-card .sys-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
 }
 /* A narrow card can't always fit the kicker and the status on one line,
    and one card in a row wrapping while its neighbors don't looks like a
@@ -104,6 +107,17 @@
 @container (max-width: 289.98px) {
   .sc-dots {
     display: none;
+  }
+  /* And the bar and its chip close up, so "iPhone · Android" still fits
+     beside the chip on a 320px phone. */
+  .sc-bar {
+    gap: 4px;
+    padding-left: 6px;
+  }
+  .sc-bar .prov {
+    gap: 4px;
+    padding-inline: 5px;
+    letter-spacing: 0;
   }
 }
 /* ── The device frame ──────────────────────────────────────────────

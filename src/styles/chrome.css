@@ -530,6 +530,18 @@ html:not(.js) .nav-burger {
     min-height: 22px;
     padding: 0 8px;
   }
+  /* The bar stays 32px; a finger still gets 44. From the padding box
+     (20px inside the border): 19 above, 5 below, down to the screen edge. */
+  @media (pointer: coarse) {
+    .status .pause-btn {
+      position: relative;
+    }
+    .status .pause-btn::after {
+      content: '';
+      position: absolute;
+      inset: -19px 0 -5px;
+    }
+  }
 }
 
 /* ── Footer ──────────────────────────────────────────────────────── */

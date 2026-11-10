@@ -80,9 +80,11 @@ const strip = (html) => html.replace(PRE, '<!--ask:pre-->');
 
 /** Not quotable: the shared exclusion set, plus the Ask panel itself
  *  (it quotes passages, it isn't one), the footer, navigation, anything
- *  hidden, the mono eyebrows and labels, and the hero spec strips (a
- *  label names a thing; it doesn't answer anything). */
-const LABELS = /(^|\s)(eyebrow|label|specs)(\s|$)/;
+ *  hidden, the mono eyebrows and labels, the hero spec strips (a
+ *  label names a thing; it doesn't answer anything), and the home page's
+ *  "You say / We write / You get" strip: its request is a made-up example,
+ *  and Ask quoting it would present it as something a customer said. */
+const LABELS = /(^|\s)(eyebrow|label|specs|lp-build)(\s|$)/;
 const skip = (el) =>
   isExcluded(el.name, el.attrs) ||
   LABELS.test(el.attrs.class ?? '') ||

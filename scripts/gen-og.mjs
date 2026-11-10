@@ -45,7 +45,7 @@ const CARDS = {
   'work-private-site': { kicker: 'Private Site', line: ['A private site', 'that says no by default.'] },
   'work-this-site': { kicker: 'This Website', line: ['The site you’re on', 'is the SEO case study.'] },
   'work-real-estate-intelligence': { kicker: 'Real Estate Intelligence', line: ['Paste a listing.', 'Get the underwriting.'] },
-  'work-trading-infrastructure': { kicker: 'Trading Infrastructure', line: ['Market data in,', 'orders out.'] },
+  'work-trading-infrastructure': { kicker: 'Trading Infrastructure', line: ['Code that behaves the same on Tuesday', 'as it did on Monday.'] },
   'work-ai-implementation': { kicker: 'AI Implementation', line: ['We start at the workflow,', 'not the model.'] },
   approach: { kicker: 'How We Work', line: ['How the work runs,', 'and where it stops.'] },
   'legal-privacy': { kicker: 'Legal', line: ['Privacy.', 'No tracking, no cookies.'] },

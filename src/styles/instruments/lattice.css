@@ -264,7 +264,10 @@
 [data-compiling] em {
   transition: color var(--d-2) linear;
 }
-[data-compiling='in'] em {
+/* Not right after the opening sequence: the headline has just been
+   revealed in copper, and losing it again reads as a blink. The carets
+   still sweep. */
+html:not([data-intro='done']) [data-compiling='in'] em {
   color: var(--fg);
 }
 [data-compile-layer] {

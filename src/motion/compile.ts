@@ -10,8 +10,8 @@
  *           entry) and `{em}` / `{/em}` appear in the line gap, above-left
  *           of where the emphasis starts and above-right of where it ends
  *           (not right after the opening sequence: the visitor has just
- *           watched code being typed, and two more labels on the finished
- *           headline read as a leftover; the caret and the copper still run)
+ *           watched code being typed, so the labels are left out and the
+ *           em keeps its copper, see lattice.css; only the carets sweep)
  *   120ms   a 2px copper caret sweeps each line once, 120ms apart
  *   360ms   the markers fold toward the em's edges as it turns copper again
  *   1.6s    the overlay and the attribute are gone
