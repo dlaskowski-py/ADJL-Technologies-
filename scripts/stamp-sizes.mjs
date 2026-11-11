@@ -135,10 +135,14 @@ const directives = cspValue
   .filter(Boolean);
 {
   /* Every deployed directive should carry an annotation, and every
-     annotation should name a deployed directive. A mismatch is reported,
-     not fatal: the <pre> always shows the deployed policy. */
-  const notes = new Set(thisSite.csp.map((c) => c.directive.split(/\s+/)[0]));
-  const live = new Set(directives.map((d) => d.split(/\s+/)[0]));
+     annotation should name a deployed directive, values included: compared
+     on the whole directive, so form-action going from 'none' to 'self' in
+     netlify.toml warns until the note under the panel is rewritten to match.
+     A mismatch is reported, not fatal: the <pre> always shows the deployed
+     policy. */
+  const norm = (d) => d.trim().split(/\s+/).join(' ');
+  const notes = new Set(thisSite.csp.map((c) => norm(c.directive)));
+  const live = new Set(directives.map(norm));
   for (const d of live) if (!notes.has(d)) console.warn(`stamp-sizes: CSP directive "${d}" has no annotation in content-case-this-site.ts#csp`);
   for (const d of notes) if (!live.has(d)) console.warn(`stamp-sizes: annotated directive "${d}" isn't in netlify.toml's policy`);
 }

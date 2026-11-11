@@ -380,13 +380,18 @@ else {
   if (lastmods.length !== INDEXED.length) fail(`sitemap has ${lastmods.length} <lastmod> for ${INDEXED.length} indexable pages`);
   for (const d of lastmods) if (Number.isNaN(Date.parse(d))) fail(`sitemap lastmod "${d}" isn't a date`);
 }
-/* Where else a noindex page must not turn up: the answer-engine index and
-   Ask's passages. Each is generated from INDEXED; this is the proof. */
+/* Where else a noindex page must not turn up: as an entry in llms.txt, as
+   a page in llms-full.txt (each page there opens with its "Page:" line),
+   or in Ask's passages. Each is generated from INDEXED; this is the proof.
+   Another page's prose may still LINK to it; that's check-links' business. */
 const hidden = PAGES.filter((p) => p.noindex);
-for (const f of ['dist/llms.txt', 'dist/llms-full.txt']) {
-  if (!existsSync(f)) continue;
-  const text = readFileSync(f, 'utf8');
-  for (const p of hidden) if (text.includes(`${ORIGIN}${p.route}`)) fail(`${f} names ${p.route}, which is noindex`);
+if (existsSync('dist/llms.txt')) {
+  const text = readFileSync('dist/llms.txt', 'utf8');
+  for (const p of hidden) if (text.includes(`](${ORIGIN}${p.route})`)) fail(`llms.txt lists ${p.route}, which is noindex`);
+}
+if (existsSync('dist/llms-full.txt')) {
+  const text = readFileSync('dist/llms-full.txt', 'utf8');
+  for (const p of hidden) if (text.includes(`Page: ${ORIGIN}${p.route}\n`)) fail(`llms-full.txt carries ${p.route}, which is noindex`);
 }
 if (existsSync('dist/search-index.json') && hidden.length) {
   const cited = new Set();

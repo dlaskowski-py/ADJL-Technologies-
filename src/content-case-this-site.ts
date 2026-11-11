@@ -60,7 +60,7 @@ export const csp: { directive: string; note: string }[] = [
   { directive: "object-src 'none'", note: 'No plugins.' },
   { directive: "frame-ancestors 'none'", note: 'Nobody can frame this site.' },
   { directive: "base-uri 'self'", note: 'Relative links can’t be pointed elsewhere.' },
-  { directive: "form-action 'none'", note: 'There’s no form, so nothing can be submitted.' },
+  { directive: "form-action 'self'", note: 'A form can post only back to this site.' },
   { directive: 'upgrade-insecure-requests', note: 'Any plain http request is upgraded.' },
 ];
 
@@ -186,7 +186,7 @@ export const content: SectionPage = {
       eyebrow: 'Left out',
       headline: ['What it', '{em}doesn’t do.{/em}'],
       body: [
-        'No cookies. No trackers. No third-party scripts. There’s no form, so the policy forbids form submissions outright. No language model runs on this site, and Ask This Site is retrieval only.',
+        'No cookies. No trackers. No third-party scripts. A form can post only back to this site. No language model runs on this site, and Ask This Site is retrieval only.',
       ],
     },
   ],
