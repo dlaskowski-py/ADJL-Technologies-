@@ -43,19 +43,25 @@ export function renderFaq(f: Faq, n: number, src: string): string {
 }
 
 /**
- * The contact block, id="contact" on every page. The address stays a real
- * mailto: link and visible text; Copy is an addition to it, never a
- * replacement, because clipboard access is refused more often than people
- * expect.
+ * The contact block, id="contact" on every page. Its first action is
+ * "Start a project" (/start/, the intake form). The address stays beside
+ * it as a real mailto: link and visible text, the way in that needs no
+ * form; Copy is an addition to it, never a replacement, because clipboard
+ * access is refused more often than people expect.
+ *
+ * `opts.start: false` drops the Start button, for a page that IS the way
+ * in (/start/ itself), where it would only link to itself.
  */
 export function renderContact(
   n: number,
   override?: { eyebrow: string; headline: string[]; body: string },
+  opts: { start?: boolean } = {},
 ): string {
   /* A page may say its own first line about getting in touch (the
      approach page does); the address, buttons and note are always the
      shared ones. */
   const c = { ...CTA, ...(override ?? {}) };
+  const start = opts.start !== false;
   return `${sectionOpen({
     id: 'contact',
     src: 'content.ts#cta',
@@ -69,13 +75,22 @@ export function renderContact(
           ${eyebrow(c.eyebrow)}
           ${headline(c.headline)}
           <p class="lead contact-body" data-reveal>${rich(c.body)}</p>
+          ${
+            start
+              ? `<div class="actions" data-reveal>
+            <a class="btn btn--primary" href="${esc(c.start.href)}"><span>${esc(c.start.label)}</span><span class="arw" aria-hidden="true">→</span></a>
+          </div>`
+              : ''
+          }
         </div>
         <div class="contact-card panel" data-reveal>
           <div class="panel-head" data-chrome><span class="panel-title">Email</span></div>
           <div class="contact-card-body">
             <a class="contact-mail mono" href="mailto:${esc(c.email)}">${esc(c.email)}</a>
             <div class="actions">
-              <a class="btn btn--primary" href="${esc(c.button.href)}"><span>${esc(c.button.label)}</span><span class="arw" aria-hidden="true">→</span></a>
+              <a class="btn ${start ? 'btn--ghost' : 'btn--primary'}" href="${esc(c.button.href)}"><span>${esc(c.button.label)}</span>${
+                start ? '' : '<span class="arw" aria-hidden="true">→</span>'
+              }</a>
               <button class="btn btn--ghost" type="button" data-copy="${esc(c.email)}" data-js-only>
                 <span class="copy-idle">${esc(c.copy)}</span><span class="copy-done" aria-live="polite">${esc(c.copied)}</span>
               </button>

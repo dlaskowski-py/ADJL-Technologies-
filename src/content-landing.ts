@@ -172,7 +172,7 @@ export const landing = {
   cta: {
     headline: ['Have something in mind?', 'Let’s {em}build it.{/em}'],
     body: 'Send a few lines about what you need, and Daniel will answer you himself.',
-    button: { label: 'Start a conversation', href: '#contact' },
+    button: { label: 'Start a project', href: '/start/' },
     email: CONTACT,
     /** Under the band: the page changes voice here, so it says so. */
     next: 'From here down, it’s the proof, and it gets more technical. You can try the next two demos yourself.',

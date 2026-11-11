@@ -29,6 +29,7 @@ is wrong. The shapes every module follows are in `src/content-types.ts`.
 | `src/content-service-ai.ts` | `/services/ai-engineering/` |
 | `src/content-service-seo.ts` | `/services/seo/` |
 | `src/content-service-software.ts` | `/services/software/` |
+| `src/content-audit.ts` | `/services/seo/audit/` |
 | `src/content-work.ts` | `/work/` (its cards come from `content.ts` `systems.items`) |
 | `src/content-case-real-estate.ts` | `/work/real-estate-intelligence/` |
 | `src/content-case-trading.ts` | `/work/trading-infrastructure/` |
@@ -37,13 +38,29 @@ is wrong. The shapes every module follows are in `src/content-types.ts`.
 | `src/content-case-loep.ts` | `/work/loep/` |
 | `src/content-case-private-site.ts` | `/work/private-site/` |
 | `src/content-case-this-site.ts` | `/work/this-site/` |
+| `src/content-case-research.ts` | `/work/agentic-research/` |
+| `src/content-notes.ts` | `/notes/` and each note under it |
 | `src/content-approach.ts` | `/approach/` |
+| `src/content-scan.ts` | `/scan/` |
+| `src/content-start.ts` | `/start/` and `/start/sent/` (the form's thank-you page, noindex) |
+| `src/content-agents.ts` | `/agents/` |
+| `src/content-changelog.ts` | `/changelog/` |
 | `src/content-legal.ts` | `/legal/privacy/` and `/legal/terms/` |
 
 `scripts/pages.mjs` is the one list of pages. Each entry names its content
 modules (their last git commit is the page's `dateModified` and sitemap
-`lastmod`), its kind (home, hub, service, case, firm, legal) and what its
-structured data says about it (FAQ, Service, TechArticle, collection, app).
+`lastmod`), its kind (home, hub, service, case, note, firm, legal) and what
+its structured data says about it (FAQ, Service, TechArticle, BlogPosting,
+collection, app). A page marked `noindex` (only `/start/sent/`) is
+prerendered and checked like any other, carries a robots noindex tag, and is
+left out of the sitemap, `llms.txt`, the markdown twins and Ask's index.
+
+Adding a page means an entry there and in `src/site-pages.ts`, a line in
+`vite.config.ts` and `src/main.ts`, a shell (`<route>/index.html`), a
+prerender entry (`scripts/entry-*.ts`), a page module (`src/pages/*.ts`),
+its share-card copy in `scripts/gen-og.mjs` and a trailing-slash redirect in
+`netlify.toml`. A page's own stylesheet lives in `src/styles/pages/` and is
+linked from its shell.
 
 Conventions in the content files:
 
@@ -122,7 +139,7 @@ this deploy's own output saying so.
 | `check-links` | A link to a page that wasn't built, a fragment that doesn't exist on its target, a built page nothing links to, a link to a machine-readable file the build didn't write, or an Ask citation pointing at a missing anchor |
 | `check-claims` | Fabricated claims and hype, in the pages, their structured data and JSON, and every machine-readable file. See below |
 | `check-contact` | The contact address missing, unlinked, or half-migrated |
-| `check-motion` | A motion module whose markup contract appears on no page: dead JavaScript, the same argument `check-css` makes about dead rules |
+| `check-motion` | A motion module whose markup contract appears on no page: dead JavaScript, the same argument `check-css` makes about dead rules. A module whose markup is still being written can sit on its explicit `PENDING` list, which the guard's own summary line names in the build report |
 | `check-markers` | An authoring marker (`{em}`, `{k}`) reaching production as literal text, or a headline without exactly one `{em}` |
 | `check-usage` | A British spelling, the old plural name, or a meta description that's missing, repeated or over 160 characters |
 | `check-voice` | The copy drifting back into the AI-essay register. See below |
@@ -193,7 +210,7 @@ of it can describe a site that no longer exists.
 
 | File | Written by | What it is |
 |---|---|---|
-| `/llms.txt` | `gen-llms.mjs` | A plain-markdown index for answer engines: the firm in two sentences, then every page grouped under Services, Work, Firm and Legal, then the machine-readable files. `llms.txt` is a proposed convention, not a standard. |
+| `/llms.txt` | `gen-llms.mjs` | A plain-markdown index for answer engines: the firm in two sentences, then every page grouped under Services, Work, Notes, Firm and Legal, then the machine-readable files. `llms.txt` is a proposed convention, not a standard. |
 | `/llms-full.txt` | `gen-llms.mjs` | Every page's prose as markdown, in one file |
 | `/{route}index.md` | `gen-llms.mjs` | A markdown twin of every page (home is `/index.md`), linked from its page with `<link rel="alternate" type="text/markdown">`. `_headers` serves each as `text/markdown` with a `Link: rel="canonical"` back to the page. |
 | `/search-index.json` | `gen-machine.mjs` | Ask This Site's passages, `noindex` |
@@ -277,6 +294,9 @@ every page.
 | `leaders.ts` | `[data-leaders]` | Leader-line diagrams (parity, seal, point-in-time, two clocks) |
 | `headers.ts` | `[data-headers]` | This page's real response headers, `curl -I` style |
 | `palette.ts` | `[data-palette]` | ⌘K: jump anywhere |
+| `scan.ts` | `[data-scan]` | The scanner on `/scan/`: what a crawler or answer engine is handed from a page you name, via `/api/scan` |
+| `assistant.ts` | `[data-assistant]` | The scoping assistant on `/start/`, via `/api/assistant`; the form works without it |
+| `read.ts` | `[data-read-toggle]` | The Plain / Technical reading switch |
 | `reveal.ts`, `scrub.ts`, `wordmark.ts`, `flow.ts` | `[data-reveal]`, `[data-scrub]`, `wm-mark`, `[data-flow]` | One-shot reveals, the shared scroll-progress primitive, the mark's pulse, the case pages' stage traces |
 
 `check-motion` fails the build if a module's contract appears on no page.
@@ -288,11 +308,19 @@ styles hang off `html.js`, which `public/js-on.js` sets.
 
 ## Deploying
 
-Netlify builds from this repo with no extra configuration.
-[`netlify.toml`](netlify.toml) sets the build command, publish directory,
-Node version, cache headers, trailing-slash redirects for every route, and a
+Netlify builds from this repo. [`netlify.toml`](netlify.toml) sets the
+build command, publish directory, Node version, cache headers,
+trailing-slash redirects for every route, the functions directory, and a
 Content-Security-Policy that's genuinely strict: no inline script, no
-third-party origin, `media-src 'none'`, `form-action 'none'`. The site is
-static and has nothing that needs the exceptions. `dist/_headers` adds the
+third-party origin, `media-src 'none'`, `form-action 'self'` (the one form,
+the intake form on `/start/`, posts to this origin for Netlify Forms).
+
+Three Netlify Functions live in `netlify/functions/`, each routed by its
+own `config.path`: `/api/scan` (the scanner), `/api/assistant` (the scoping
+assistant, through the Anthropic SDK) and `/mcp` (the MCP endpoint for AI
+agents). The assistant needs `ANTHROPIC_API_KEY` set in the Netlify UI with
+the Functions scope; until it is, the assistant says it isn't switched on
+and the form still works. No secret is ever in this repository or in the
+browser. `dist/_headers` adds the
 per-file headers the build knows about (markdown twins, noindex on the
 machine files).

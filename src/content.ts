@@ -75,7 +75,7 @@ export const nav = {
     { label: 'Work', href: '/work/' },
     { label: 'Approach', href: '/approach/' },
   ],
-  cta: { label: 'Start a conversation', href: '/#contact' },
+  cta: { label: 'Start a project', href: '/start/' },
   jump: 'Jump to',
   menu: { open: 'Open menu', close: 'Close menu' },
 };
@@ -133,7 +133,7 @@ export const hero = {
   headline: ['AI, websites and apps,', 'built for {em}what’s next.{/em}'],
   body: 'ADJL Technology builds AI that handles the busywork, websites people can find, and apps for iPhone and Android. Everything on this page was built by us. Scroll down and try it.',
   primary: { label: 'See what we’ve built', href: '#systems' },
-  secondary: { label: 'Talk to Daniel', href: '#contact' },
+  secondary: { label: 'See what AI sees on your site', href: '/scan/' },
   figure: {
     captionBuild: 'This page’s own structure, drawn at build from its HTML.',
     /* JS fills {ms} after the live graph draws. Never prerendered. */
@@ -608,12 +608,14 @@ export const faq: Faq = {
   ],
 };
 
-/** The shared contact block (`#contact`). Every page uses it, except
- *  /approach/, which keeps its own. */
+/** The shared contact block (`#contact`). Every page uses it; /approach/
+ *  says its own first lines. `start` is the way in (/start/, the form);
+ *  the address stays on show beside it as the way in with no form. */
 export const cta = {
   eyebrow: 'Start here',
   headline: ['Tell us what’s slow,', 'or what {em}can’t be found.{/em}'],
   body: 'One paragraph is plenty. Tell us what you want built, the step that costs the most, or the page that should rank and doesn’t. If you know why the obvious fix hasn’t worked, say that too.',
+  start: { label: 'Start a project', href: '/start/' },
   button: { label: 'Email Daniel', href: `mailto:${CONTACT}` },
   email: CONTACT,
   copy: 'Copy address',
@@ -640,6 +642,7 @@ export const footer: {
         { label: 'AI Engineering', href: '/services/ai-engineering/' },
         { label: 'SEO & AI Search', href: '/services/seo/' },
         { label: 'Websites & Apps', href: '/services/software/' },
+        { label: 'Website audit', href: '/services/seo/audit/' },
         { label: 'All services', href: '/services/' },
       ],
     },
@@ -653,6 +656,7 @@ export const footer: {
         { label: 'Loep', href: '/work/loep/' },
         { label: 'Private Site', href: '/work/private-site/' },
         { label: 'This Site', href: '/work/this-site/' },
+        { label: 'Agentic Research', href: '/work/agentic-research/' },
         { label: 'All work', href: '/work/' },
       ],
     },
@@ -660,7 +664,11 @@ export const footer: {
       name: 'Firm',
       links: [
         { label: 'Approach', href: '/approach/' },
-        { label: 'Contact', href: '/#contact' },
+        { label: 'Notes', href: '/notes/' },
+        { label: 'Changelog', href: '/changelog/' },
+        { label: 'Scan your site', href: '/scan/' },
+        { label: 'For AI agents', href: '/agents/' },
+        { label: 'Start a project', href: '/start/' },
       ],
     },
     {

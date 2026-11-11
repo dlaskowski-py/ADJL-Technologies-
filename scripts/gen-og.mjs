@@ -51,6 +51,19 @@ const CARDS = {
   approach: { kicker: 'How We Work', line: ['How the work runs,', 'and where it stops.'] },
   'legal-privacy': { kicker: 'Legal', line: ['Privacy.', 'No tracking, no cookies.'] },
   'legal-terms': { kicker: 'Legal', line: ['Terms of use.'] },
+  /* Build 2. Drawn from the stubs' headlines; each owner's real headline
+     needs its line here too (check-seo fails until it matches). */
+  'services-seo-audit': { kicker: 'Website audit', line: ['A website audit,', 'priced by quote.'] },
+  'work-agentic-research': { kicker: 'Agentic Research', line: ['Research run', 'with AI agents.'] },
+  notes: { kicker: 'Notes', line: ['Field notes', 'from real work.'] },
+  'notes-what-ai-crawlers-read': { kicker: 'Field note', line: ['What AI', 'crawlers read.'] },
+  'notes-a-build-that-refuses-to-overclaim': { kicker: 'Field note', line: ['A build that refuses', 'to overclaim.'] },
+  'notes-research-that-cannot-fool-itself': { kicker: 'Field note', line: ['Research that', 'can’t fool itself.'] },
+  scan: { kicker: 'Scan your site', line: ['See what AI', 'sees on your site.'] },
+  start: { kicker: 'Start a project', line: ['Tell us what', 'you want built.'] },
+  'start-sent': { kicker: 'Message sent', line: ['Your message', 'is on its way.'] },
+  agents: { kicker: 'For AI agents', line: ['A front door', 'for AI agents.'] },
+  changelog: { kicker: 'Changelog', line: ['What changed,', 'and when.'] },
 };
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
