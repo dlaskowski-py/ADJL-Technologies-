@@ -31,7 +31,6 @@ export const intro = {
       '  return [',
       '    renderIntro(),',
       "    pageHero({ route: '/', figure: true }),",
-      '    renderTicker(),',
       '    renderOffers(2),',
       '    renderSystems(3),',
       '    renderCtaBand(),',

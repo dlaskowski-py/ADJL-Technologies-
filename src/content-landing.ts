@@ -54,19 +54,6 @@ export const landing = {
       'We build AI that reads documents, fast websites, iPhone and Android apps, pages that search engines and AI can read, automation and dashboards.',
   },
 
-  /** The moving line under the hero. */
-  ticker: {
-    items: [
-      'AI assistants',
-      'Document automation',
-      'Websites',
-      'Pages search engines can read',
-      'iPhone and Android apps',
-      'Web apps',
-      'Dashboards',
-      'Data pipelines',
-    ],
-  },
 
   offers: {
     eyebrow: 'What we do',

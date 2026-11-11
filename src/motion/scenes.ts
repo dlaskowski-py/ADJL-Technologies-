@@ -1,5 +1,5 @@
 /**
- * Scenes: small looping illustrations (the ticker, the offer panels, the
+ * Scenes: small looping illustrations (the offer panels, the
  * portfolio previews), drawn in CSS and SVG.
  *
  * Markup contract: [data-scene] on the scene's root. This module only

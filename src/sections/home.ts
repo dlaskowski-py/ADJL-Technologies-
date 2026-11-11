@@ -18,7 +18,6 @@ import { renderAsk } from './instruments/ask';
 import { renderPipeline } from './instruments/pipeline';
 import { renderIntro } from './landing/intro';
 import { renderTyper } from './landing/typer';
-import { renderTicker } from './landing/ticker';
 import { renderOffers } from './landing/offers';
 import { renderCtaBand } from './landing/cta';
 import { showcaseCards } from './landing/showcase';
@@ -160,7 +159,6 @@ export function renderPage(): { navHtml: string; pageHtml: string } {
         after: renderTyper(),
       }),
       /* What we do and what we've built, in plain words… */
-      renderTicker(),
       renderOffers(2),
       renderSystems(3),
       renderCtaBand(),

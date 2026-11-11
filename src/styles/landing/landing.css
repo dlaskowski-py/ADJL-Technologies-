@@ -1,4 +1,4 @@
-/* Landing styles: the hero's typed line, the ticker, the offer panels with
+/* Landing styles: the hero's typed line, the offer panels with
    their four scenes, the closing strip and the call-to-action band.
    Home-page only. Owner: WS-B.
 
@@ -71,90 +71,6 @@
     align-items: baseline;
     gap: var(--s-4);
     font-size: var(--t-code);
-  }
-}
-
-/* ── The ticker ────────────────────────────────────────────────────
-   At rest: one list, wrapped and centered, no twin and no dividers.
-   Wherever it's going to move (a script is running and motion isn't
-   reduced) it's one row from the first paint, so the band is the same
-   height before and after scenes.ts starts it. */
-.lp-tick {
-  overflow: hidden;
-  padding-block: var(--s-5);
-  background: var(--ground-2);
-  border-block: 1px solid var(--rule);
-}
-.lp-tick-run {
-  display: flex;
-}
-.lp-tick-track {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--s-2) var(--s-6);
-  padding-inline: var(--gut);
-  list-style: none;
-}
-.lp-tick-track--twin {
-  display: none;
-}
-.lp-tick-item {
-  display: flex;
-  align-items: center;
-  font-size: clamp(1.25rem, 0.9rem + 1.5vw, 2.125rem);
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.03em;
-  white-space: nowrap;
-  color: var(--fg);
-}
-.lp-tick-item:nth-child(even) {
-  font-weight: 300;
-  color: var(--fg-2);
-}
-/* The mark's three bars, the middle one copper: the divider in the
-   moving line. */
-.lp-tick-mark {
-  display: none;
-  width: 17px;
-  height: 0.62em;
-  margin-inline: clamp(14px, 2.2vw, 32px);
-  background: linear-gradient(
-    90deg,
-    var(--fg-faint) 4px,
-    transparent 0 6.5px,
-    var(--signal) 0 10.5px,
-    transparent 0 13px,
-    var(--fg-faint) 0
-  );
-}
-html.js:not([data-motion='reduced']) .lp-tick {
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6% 94%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 6% 94%, transparent);
-}
-html.js:not([data-motion='reduced']) .lp-tick-run {
-  width: max-content;
-}
-html.js:not([data-motion='reduced']) .lp-tick-track {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 0;
-  padding: 0;
-}
-html.js:not([data-motion='reduced']) .lp-tick-mark {
-  display: block;
-}
-[data-playing='true'] > .lp-tick-run {
-  animation: lp-tick 44s linear infinite;
-}
-.lp-tick:hover > .lp-tick-run,
-.lp-tick:focus-within > .lp-tick-run {
-  animation-play-state: paused;
-}
-@keyframes lp-tick {
-  to {
-    transform: translateX(-50%);
   }
 }
 
