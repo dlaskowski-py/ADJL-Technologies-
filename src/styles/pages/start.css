@@ -1,7 +1,520 @@
 /**
- * Page-only styles for /start/ and /start/sent/, linked from those shells and nowhere
- * else, so no other page pays for them (check-budget: page-only CSS
- * ≤ 10 kB gz per page). Use the tokens; prefix classes for the page.
+ * Page-only styles for /start/ and /start/sent/, linked from those shells and
+ * nowhere else, so no other page pays for them (check-budget: page-only CSS
+ * ≤ 10 kB gz per page).
  *
- * OWNER: WS-A (assistant + intake). Empty until that workstream fills it.
+ * Two pieces: the scoping assistant (.asst, .asst-side) and the intake form
+ * (.intake). What src/motion/assistant.ts builds (the messages, the sources
+ * list, the confirmation) is styled by attribute selectors under
+ * [data-assistant], never by classes.
+ *
+ * Nothing here may move the page after it paints. The assistant's stage has
+ * a fixed height in every state (loading, on, off, unreachable), the
+ * composer keeps its size whether it's enabled or not, and the sources list
+ * scrolls inside a fixed box, so a streaming reply grows inside the panel and
+ * never pushes the form down. Copper is the visitor's side, violet the
+ * model's, as everywhere on the site.
+ *
+ * OWNER: WS-A (assistant + intake).
  */
+
+[data-assistant] [hidden] {
+  display: none !important;
+}
+
+/* ── Section heads ──────────────────────────────────────────────────── */
+
+.start-head {
+  max-width: 62rem;
+  margin-bottom: var(--s-7);
+}
+.start-body {
+  margin-top: var(--s-5);
+}
+.start-list {
+  margin-top: var(--s-5);
+}
+
+/* ── The assistant ──────────────────────────────────────────────────── */
+
+.asst-grid {
+  display: grid;
+  gap: var(--col-gap);
+}
+@media (min-width: 1100px) {
+  .asst-grid {
+    grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+    align-items: start;
+  }
+}
+
+.asst {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.asst-left {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The stage: status, conversation and starters share one fixed box. */
+.asst-stage {
+  position: relative;
+  height: clamp(20rem, 44vh, 27rem);
+  border-bottom: 1px solid var(--rule);
+}
+html:not(.js) .asst-stage {
+  height: auto;
+  min-height: 7rem;
+  border-bottom: none;
+}
+
+.asst-status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--s-5);
+  text-align: center;
+}
+html:not(.js) .asst-status {
+  position: static;
+}
+.asst-status p {
+  display: none;
+  max-width: 34ch;
+  font-size: var(--t-small);
+  color: var(--fg-2);
+}
+html:not(.js) .asst-status [data-s='nojs'],
+html.js [data-asst]:not([data-state]) [data-s='loading'],
+[data-asst][data-state='loading'] [data-s='loading'],
+[data-asst][data-state='off'] [data-s='off'],
+[data-asst][data-state='unreachable'] [data-s='unreachable'] {
+  display: block;
+}
+[data-asst]:is([data-state='on'], [data-state='ended']) .asst-status {
+  display: none;
+}
+
+.asst-log {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+[data-asst]:not([data-state='on']):not([data-state='ended']) .asst-log {
+  display: none;
+}
+
+/* Starters sit at the foot of the stage until the conversation starts. */
+.asst-ideas {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  padding: var(--s-4) var(--s-5) var(--s-5);
+}
+[data-asst][data-state='on']:not([data-started]) .asst-ideas {
+  display: block;
+}
+.asst-ideas .label {
+  margin-bottom: var(--s-3);
+}
+.asst-starters {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.asst-starter {
+  min-height: 44px;
+  padding: 8px 14px;
+  font-size: var(--t-small);
+  line-height: 1.35;
+  text-align: left;
+  color: var(--fg-2);
+  background: var(--panel-2);
+  border: 1px solid var(--rule-3);
+  border-radius: var(--r-2);
+  transition: border-color var(--d-1) var(--ease-out), color var(--d-1) var(--ease-out);
+}
+.asst-starter:hover {
+  border-color: var(--fg-3);
+  color: var(--fg);
+}
+
+/* Messages, built by the module. */
+[data-assistant] [data-msg] {
+  max-width: min(85%, 62ch);
+}
+[data-assistant] [data-msg='user'] {
+  align-self: flex-end;
+  padding: 10px 14px;
+  color: var(--fg);
+  background: color-mix(in srgb, var(--signal) 10%, var(--panel-2));
+  border: 1px solid color-mix(in srgb, var(--signal) 32%, transparent);
+  border-radius: var(--r-2);
+}
+[data-assistant] :is([data-msg='assistant'], [data-msg='intro']) {
+  align-self: flex-start;
+  padding-left: 14px;
+  border-left: 2px solid var(--model-dim);
+}
+[data-assistant] [data-who] {
+  margin-bottom: 4px;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+[data-assistant] :is([data-msg='assistant'], [data-msg='intro']) [data-who] {
+  color: var(--model);
+}
+[data-assistant] [data-body] p {
+  color: var(--fg);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+[data-assistant] [data-body] p + p {
+  margin-top: var(--s-2);
+}
+[data-assistant] [data-from] {
+  margin-top: var(--s-2);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  color: var(--fg-3);
+}
+[data-assistant] [data-from] a {
+  color: var(--signal-hi);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+[data-assistant] [data-flag] {
+  margin-top: var(--s-2);
+  font-size: var(--t-small);
+  color: var(--warn);
+}
+[data-assistant] [data-flag]::before {
+  content: '△ ' / '';
+}
+
+/* "Writing" and three dots that pulse; still under reduced motion and Pause. */
+[data-assistant] [data-typing] {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  color: var(--fg-3);
+}
+[data-assistant] [data-typing] span {
+  margin-right: 4px;
+}
+[data-assistant] [data-typing] i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--model);
+  opacity: 0.3;
+  animation: asst-dot 1.2s var(--ease-io) infinite;
+}
+[data-assistant] [data-typing] i:nth-of-type(2) {
+  animation-delay: 0.15s;
+}
+[data-assistant] [data-typing] i:nth-of-type(3) {
+  animation-delay: 0.3s;
+}
+@keyframes asst-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+html[data-motion='reduced'] [data-assistant] [data-typing] i {
+  animation: none;
+  opacity: 0.7;
+}
+
+/* The composer: laid out from first paint with a script, enabled when on. */
+.asst-compose {
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-4) var(--s-5) var(--s-4);
+}
+.asst-input {
+  width: 100%;
+  min-height: 5.5rem;
+  padding: 12px 14px;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--fg);
+  background: var(--panel-2);
+  border: 1px solid var(--fg-3);
+  border-radius: var(--r-2);
+  resize: none;
+  transition: border-color var(--d-1) var(--ease-out);
+}
+.asst-input::placeholder {
+  color: var(--fg-3);
+  opacity: 1;
+}
+.asst-input:hover:not(:disabled) {
+  border-color: var(--fg-2);
+}
+.asst-input:focus-visible {
+  outline-offset: 2px;
+  border-color: var(--signal-hi);
+}
+.asst-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3) var(--s-4);
+}
+.asst-count {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-3);
+}
+.asst-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+[data-asst] :is(.btn, .asst-starter, .asst-input):disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+[data-asst] .btn[aria-disabled='true'] {
+  opacity: 0.6;
+  cursor: progress;
+}
+.asst-note {
+  min-height: 3.2em;
+  font-size: var(--t-small);
+  line-height: 1.6;
+  color: var(--fg-2);
+}
+
+/* "How it works": the facts, then the pages the replies cited. */
+.asst-side {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.asst-facts {
+  padding: 0 var(--s-5);
+}
+.asst-fact {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.asst-fact dt {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.asst-fact dd {
+  margin-top: 4px;
+  font-size: var(--t-small);
+  line-height: 1.55;
+  color: var(--fg-2);
+}
+.asst-srcs {
+  display: grid;
+  grid-template-rows: auto 8.5rem;
+  gap: var(--s-2);
+  padding: var(--s-4) var(--s-5) 0;
+}
+.asst-src-list,
+.asst-src-none {
+  grid-area: 2 / 1;
+}
+.asst-src-list {
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.asst-src-none {
+  font-size: var(--t-small);
+  color: var(--fg-3);
+}
+[data-assistant] [data-sources] li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--s-2);
+  min-height: 44px;
+  border-bottom: 1px solid var(--rule);
+}
+[data-assistant] [data-sources] a {
+  color: var(--signal-hi);
+  font-size: var(--t-small);
+}
+[data-assistant] [data-sources] a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+[data-assistant] [data-route] {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+.asst-privacy {
+  margin: var(--s-2) var(--s-5) var(--s-3);
+}
+
+/* ── The intake form ────────────────────────────────────────────────── */
+
+.intake {
+  display: grid;
+  padding: clamp(20px, 3vw, 32px);
+}
+.intake:has([data-done]) {
+  align-content: center;
+}
+.intake-form {
+  display: grid;
+  gap: var(--s-5);
+}
+/* Netlify's honeypot: for bots only, so not shown or read at all. */
+.intake-hp {
+  display: none;
+}
+.intake-grid {
+  display: grid;
+  gap: var(--s-5);
+}
+@media (min-width: 720px) {
+  .intake-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .field--wide {
+    grid-column: 1 / -1;
+  }
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  min-width: 0;
+}
+.field-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+.field-hint {
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--fg-3);
+}
+.field-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--fg);
+  background: var(--panel-2);
+  border: 1px solid var(--fg-3);
+  border-radius: var(--r-2);
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color var(--d-1) var(--ease-out);
+}
+.field-input:hover {
+  border-color: var(--fg-2);
+}
+.field-input:focus-visible {
+  outline-offset: 2px;
+  border-color: var(--signal-hi);
+}
+.field-input[aria-invalid='true'] {
+  border-color: var(--fail);
+}
+/* A chevron drawn with two gradients: no image, no icon font. */
+.field-select {
+  padding-right: 44px;
+  cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--fg-2) 50%),
+    linear-gradient(135deg, var(--fg-2) 50%, transparent 50%);
+  background-position: calc(100% - 22px) 50%, calc(100% - 16px) 50%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+.field-area {
+  min-height: 12rem;
+  line-height: 1.55;
+  resize: vertical;
+}
+.field-err {
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--fail);
+}
+.field-err:empty {
+  display: none;
+}
+.field-err::before {
+  content: '✕ ' / '';
+}
+
+.intake-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-4) var(--s-5);
+}
+.intake-note {
+  max-width: 42ch;
+  font-size: var(--t-small);
+  line-height: 1.55;
+  color: var(--fg-3);
+}
+.intake-alert {
+  font-size: var(--t-small);
+  color: var(--fail);
+}
+.intake-alert:empty {
+  display: none;
+}
+
+/* Sent with a script: the confirmation takes the form's place. */
+[data-assistant] [data-done] {
+  display: grid;
+  align-content: center;
+  gap: var(--s-3);
+  padding: var(--s-4) 0;
+}
+[data-assistant] [data-done] p {
+  max-width: 48ch;
+  color: var(--fg-2);
+}
+[data-assistant] [data-done] [data-done-title] {
+  font-size: var(--t-h3);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}

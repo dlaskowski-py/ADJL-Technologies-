@@ -2,15 +2,23 @@
  * ADJL Technology: the legal pages.
  *
  * These are short because the site is genuinely simple, and that's worth
- * stating instead of padding around. It's static HTML on a CDN. There's no
- * form, no login, no analytics script, no advertising pixel and no cookie.
- * The only way to contact the firm is an email address, so the only
- * personal data involved is the message you choose to send.
+ * stating instead of padding around. It's static HTML on a CDN, with no
+ * login, no analytics script, no advertising pixel and no cookie. Reading
+ * it tells us nothing about you.
  *
- * Three things the site does in the browser are described here because
- * they ship with this page: the Pause motion preference (session storage),
- * the same-origin measurement fetches, and Ask This Site, which never sends
- * the question anywhere. If any of those changes, this page changes with it.
+ * Three tools send what a visitor types, and each has its own section:
+ * the intake form on /start/ (Netlify Forms: stored by Netlify, filtered
+ * for spam, emailed to Daniel), the scoping assistant on /start/ (the
+ * conversation goes to Anthropic through netlify/functions/assistant.mjs;
+ * nothing is stored but per-visitor daily counts under a salted hash of
+ * the IP) and the scanner on /scan/ (it fetches the page named and stores
+ * nothing, per netlify/functions/scan.mjs).
+ *
+ * What the site keeps in the browser is described too: the Pause motion
+ * preference and the opening note (session storage), the reading switch
+ * (local storage), the same-origin measurement fetches, and Ask This Site,
+ * which never sends the question anywhere. If any of those changes, or a
+ * function starts keeping something, this page changes with it.
  *
  * A boilerplate policy listing cookie categories and third-party processors
  * this site does not have would be longer, more professional-looking, and
@@ -29,10 +37,10 @@ export const privacy: LegalDoc = {
   meta: {
     title: 'Privacy | ADJL Technology',
     description:
-      'What this site collects, which is almost nothing. No analytics, no cookies, no tracking. The only personal data involved is an email you choose to send.',
+      'What this site collects. No analytics, no cookies, no tracking. What the form, the assistant and the scanner send, and where it goes.',
     ogTitle: 'Privacy',
     ogDescription:
-      'This site doesn’t track you. There’s no analytics script, no advertising pixel and no cookie set by us, and no form to fill in.',
+      'This site doesn’t track you. No analytics script, no advertising pixel, no cookie set by us. Here’s what the form, the assistant and the scanner send.',
   },
   route: '/legal/privacy/',
   eyebrow: 'Legal',
@@ -41,21 +49,22 @@ export const privacy: LegalDoc = {
   labels: LABELS,
   secondary: { label: 'Talk to Daniel', href: '/#contact' },
   intro:
-    'This site doesn’t track you. There’s no analytics script, no advertising pixel and no cookie set by us, and no form to fill in. Unless you email us, we learn nothing about you at all.',
+    'This site doesn’t track you. There’s no analytics script, no advertising pixel and no cookie set by us, and reading it tells us nothing about you. Three tools send what you type: the form, which goes to Daniel, the scoping assistant, which uses Anthropic’s model to reply, and the scanner, which fetches the page you name. Each one is described below.',
   sections: [
     {
       id: 'collect',
       heading: 'What this site collects',
       paragraphs: [
-        'Nothing, through the site itself. These pages are static files served from a content delivery network. No script here sets a cookie. No analytics or session-recording service is loaded, and no third-party embed appears on any page.',
+        'Nothing, just from reading. These pages are static files served from a content delivery network. No script here sets a cookie. No analytics or session-recording service is loaded, and no third-party embed appears on any page.',
         'Your browser may keep the usual local cache of images, fonts and scripts so pages load faster on a second visit. That cache lives on your device. Your browser controls it, and we can’t read it.',
       ],
     },
     {
       id: 'motion',
-      heading: 'Motion preference',
+      heading: 'Preferences kept in your browser',
       paragraphs: [
         'If you press Pause motion, your browser remembers the choice in its own session storage so the next page stays still. The home page’s opening animation plays once per visit, and your browser notes there that it has played. Neither note leaves your device, and both are erased when you close the tab.',
+        'The reading switch (Plain or Technical) is remembered in your browser’s local storage so the next page reads the same way. It never leaves your device.',
       ],
     },
     {
@@ -73,6 +82,31 @@ export const privacy: LegalDoc = {
       ],
     },
     {
+      id: 'form',
+      heading: 'If you send the form',
+      paragraphs: [
+        'The form on the start page asks for your name, your email, a topic and a message. It also notes how the message was written: by you, drafted with the assistant, or sent for you by an AI agent through this site’s MCP endpoint.',
+        'Netlify, which hosts this site, receives the form. It runs each submission through a spam filter (Akismet), stores it in this site’s Netlify account and emails it to Daniel. We use it to reply to you, and to do the work if we end up working together. It isn’t added to a mailing list, and it isn’t sold, rented or shared.',
+        `To have a submission deleted, write to ${CONTACT}. Daniel deletes it from Netlify and from his inbox.`,
+      ],
+    },
+    {
+      id: 'assistant',
+      heading: 'The scoping assistant',
+      paragraphs: [
+        'The assistant on the start page sends what you type, with the conversation so far, to a function on this site. The function passes it to Anthropic, along with this site’s own pages, and Anthropic’s Claude model writes the reply. Anthropic handles that data under its own terms and privacy policy, not this one.',
+        'This site doesn’t store the conversation. It lives in your browser tab and is gone when you close or reload the page. If you press Draft my brief, the draft goes into the form on the same page, and it reaches Daniel only if you send the form.',
+        'To keep the assistant from being overused, the function counts requests for each visitor, per day. It records a one-way hash of your IP address, mixed with a secret and the date, and never the address itself. Each day’s records are deleted after that day, the next time the assistant runs.',
+      ],
+    },
+    {
+      id: 'scan',
+      heading: 'The scanner',
+      paragraphs: [
+        'The address you type into the scanner goes to a function on this site. It fetches that page from Netlify’s servers, the way a crawler would, and shows you what came back. Nothing is stored: not the address, not the page and not your IP address.',
+      ],
+    },
+    {
       id: 'hosting',
       heading: 'Hosting and server logs',
       paragraphs: [
@@ -83,7 +117,7 @@ export const privacy: LegalDoc = {
       id: 'email',
       heading: 'If you email us',
       paragraphs: [
-        `The only way to contact the firm from this site is the address ${CONTACT}, which opens your own mail client. We receive whatever you send, which means your address, your name if you sign it, and the content of your message.`,
+        `You can also write to ${CONTACT}, which opens your own mail client. We receive whatever you send, which means your address, your name if you sign it, and the content of your message.`,
         'We use that message to reply to you, and to do the work if we end up working together. It isn’t added to a mailing list, fed to any sequence or drip campaign, or sold, rented or shared with anyone. If you’d like it deleted, ask, and it will be.',
       ],
     },
@@ -99,7 +133,7 @@ export const privacy: LegalDoc = {
       id: 'rights',
       heading: 'Your rights',
       paragraphs: [
-        'Depending on where you live, you may have the right to ask what personal data is held about you, to have it corrected, to have it deleted, or to object to its processing. The only thing that exists here is an email you sent, so exercising any of those just means asking.',
+        'Depending on where you live, you may have the right to ask what personal data is held about you, to have it corrected, to have it deleted, or to object to its processing. What exists here is what you sent us, an email or a form, so exercising any of those just means asking.',
         `Write to ${CONTACT} and Daniel Laskowski handles it directly. He’s the person responsible for this site and for the firm.`,
       ],
     },
@@ -107,7 +141,7 @@ export const privacy: LegalDoc = {
       id: 'changes',
       heading: 'Changes to this page',
       paragraphs: [
-        'If the site ever gains a form, an analytics tool or anything else that collects data, this page changes first and says exactly what was added. The date at the top is the date of the last change.',
+        'If the site adds anything that collects data, this page changes first and says exactly what was added. The form, the assistant and the scanner were added that way. The date at the top is the date of the last change.',
       ],
     },
   ],

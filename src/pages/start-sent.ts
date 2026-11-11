@@ -1,10 +1,12 @@
 /* One page: its renderer and its meta. Imported by the prerender entry in
    scripts/ and, in the dev shell only, lazily by src/main.ts.
 
-   /start/sent/ is noindex (scripts/pages.mjs). STUB from the foundation;
-   WS-A owns the body. The generic renderer names each section's copy as
-   `content.…` for Source view; this page's copy is `sent`, so the paths
-   are corrected here. */
+   /start/sent/ is the intake form's action, where a visitor lands when the
+   form is sent without a script (noindex, scripts/pages.mjs). The generic
+   section page renders it, and names each section's copy as `content.…`
+   for Source view; this page's copy is the `sent` export, so the paths are
+   corrected here. The contact block keeps its "Start a project" button:
+   from here, it's the way back. */
 import { sent } from '../content-start';
 import { renderSectionPage } from '../sections/sectionpage';
 
