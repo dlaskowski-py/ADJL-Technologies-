@@ -82,7 +82,10 @@ for (const page of PAGES) {
       continue;
     }
 
-    const [path, frag] = href.split('#');
+    /* A query string selects something ON a page (/start/?topic=audit
+       preselects the form's topic); the page is the path before it. */
+    const [pathq, frag] = href.split('#');
+    const path = pathq.split('?')[0];
     if (assets.has(path)) {
       linkedAssets.add(path);
       if (assets.get(path) && !existsSync(assetFile(path))) {
@@ -211,13 +214,29 @@ for (const [host, why] of ALLOWED_HOSTS) {
 }
 
 // Every built page must be reachable from somewhere, or it is a page nobody
-// can find and nobody will remember to update.
+// can find and nobody will remember to update. A form's action counts: the
+// intake form's thank-you page is reached by sending the form, and by
+// nothing else.
 const all = PAGES.map((p) => readFileSync(p.out, 'utf8')).join('\n');
 for (const route of ROUTES) {
   if (route === '/') continue;
-  if (!new RegExp(`<a\\s[^>]*?href="${route}"`).test(all)) {
+  const linked = new RegExp(`<a\\s[^>]*?href="${route}(\\?[^"#]*)?"`).test(all);
+  const posted = new RegExp(`<form\\s[^>]*?action="${route}"`).test(all);
+  if (!linked && !posted) {
     console.error(`check-links: ${route} is built but nothing links to it`);
     bad++;
+  }
+}
+/* And a form may only post to a page that was built (or, for an endpoint,
+   to one of the site's own functions). */
+for (const page of PAGES) {
+  const html = readFileSync(page.out, 'utf8');
+  for (const m of html.matchAll(/<form\s[^>]*?action="([^"]*)"/g)) {
+    const action = m[1].split(/[?#]/)[0];
+    if (!ROUTES.has(action) && !/^\/api\//.test(action)) {
+      console.error(`check-links: ${page.route} has a form posting to "${m[1]}", which isn't a built page`);
+      bad++;
+    }
   }
 }
 

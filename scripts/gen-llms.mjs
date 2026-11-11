@@ -27,7 +27,7 @@
  */
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { ORIGIN, PAGES } from './pages.mjs';
+import { INDEXED, ORIGIN } from './pages.mjs';
 import { dateModifiedOf, llmsLine, ORG_DESCRIPTION, shortTitle, twinOf } from './seo.mjs';
 import { walk, isExcluded, classes, INLINE } from './lib-text.mjs';
 import { addHeaders } from './lib/headers.mjs';
@@ -295,7 +295,9 @@ function head(html) {
   return { title: squash(title), description: squash(description) };
 }
 
-const pages = PAGES.map((p) => {
+/* INDEXED, not PAGES: a noindex page (the form's thank-you page) gets no
+   twin and no line in llms.txt or llms-full.txt. */
+const pages = INDEXED.map((p) => {
   const html = readFileSync(p.out, 'utf8');
   const { title, description } = head(html);
   const body = toMarkdown(html, p.route);
@@ -330,6 +332,7 @@ for (const p of pages) {
 const groups = [
   ['Services', (p) => p.route.startsWith('/services/')],
   ['Work', (p) => p.route.startsWith('/work/')],
+  ['Notes', (p) => p.route.startsWith('/notes/')],
   ['Firm', (p) => p.kind === 'home' || p.kind === 'firm'],
   ['Legal', (p) => p.kind === 'legal'],
 ];

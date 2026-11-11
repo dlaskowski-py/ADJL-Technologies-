@@ -63,6 +63,15 @@ export const llmsLine = ({ origin, route, title, description }) =>
 export const resolveRef = (origin, route, ref) =>
   ref.startsWith('#') ? `${origin}${route}${ref}` : ref.startsWith('/') ? `${origin}${ref}` : ref;
 
+/** The pages a hub lists, by its pages.mjs `collection`. check-seo reads
+ *  the same function, so the ItemList and the check can't disagree. */
+export function collectionOf(name, pages) {
+  if (name === 'services') return [...pages.filter((p) => p.kind === 'service'), ...pages.filter((p) => p.route === '/work/')];
+  if (name === 'work') return pages.filter((p) => p.kind === 'case');
+  if (name === 'notes') return pages.filter((p) => p.kind === 'note');
+  throw new Error(`seo: unknown collection "${name}"`);
+}
+
 /* ── dateModified ─────────────────────────────────────────────────────
    The last commit that touched any of the page's content modules. Falls
    back to the HEAD commit's date (a checkout with no history for the file,
@@ -82,17 +91,24 @@ const BUILD_TIME = new Date().toISOString().replace(/\.\d{3}Z$/, '+00:00');
 let headDate;
 const modified = new Map();
 
-/** ISO 8601 (with offset) of the last change to a page's content. */
+/** ISO 8601 (with offset) of the last change to a page's content.
+ *
+ *  A field note can't have changed before it was published, but git can
+ *  say it did (its words were committed, then it went live), so a note's
+ *  date is never earlier than its pages.mjs `published`. */
 export function dateModifiedOf(page) {
   const key = (page.content ?? []).join('\n');
-  if (modified.has(key)) return modified.get(key);
-  let date = page.content?.length ? git(['log', '-1', '--format=%cI', '--', ...page.content]) : '';
+  let date = modified.get(key);
   if (!date) {
-    headDate ??= git(['log', '-1', '--format=%cI']);
-    date = headDate || BUILD_TIME;
+    date = page.content?.length ? git(['log', '-1', '--format=%cI', '--', ...page.content]) : '';
+    if (!date) {
+      headDate ??= git(['log', '-1', '--format=%cI']);
+      date = headDate || BUILD_TIME;
+    }
+    modified.set(key, date);
   }
-  modified.set(key, date);
-  return date;
+  const published = page.note?.published;
+  return published && Date.parse(date) < Date.parse(published) ? published : date;
 }
 
 /* ── The firm ─────────────────────────────────────────────────────── */
@@ -159,10 +175,16 @@ export function buildHead({ origin, page, pages, meta, faq, h1 }) {
   /* ── Tags ───────────────────────────────────────────────────────── */
   const tags = [
     `<link rel="canonical" href="${url}" />`,
-    /* The same page as markdown, for answer engines and anything else that
-       would rather not parse our markup. gen-llms writes it; check-seo fails
-       if this points at a file that wasn't written. */
-    `<link rel="alternate" type="text/markdown" href="${twinOf(page.route)}" title="${esc(shortTitle(meta.title))} (markdown)" />`,
+    /* A noindex page (the form's thank-you page) says so, and has no
+       markdown twin to advertise: gen-llms writes twins only for INDEXED. */
+    ...(page.noindex
+      ? [`<meta name="robots" content="noindex, follow" />`]
+      : [
+          /* The same page as markdown, for answer engines and anything else
+             that would rather not parse our markup. gen-llms writes it;
+             check-seo fails if this points at a file that wasn't written. */
+          `<link rel="alternate" type="text/markdown" href="${twinOf(page.route)}" title="${esc(shortTitle(meta.title))} (markdown)" />`,
+        ]),
     `<meta property="og:url" content="${url}" />`,
     `<meta property="og:site_name" content="ADJL Technology" />`,
     `<meta property="og:locale" content="en_US" />`,
@@ -308,17 +330,14 @@ export function buildHead({ origin, page, pages, meta, faq, h1 }) {
       acceptedAnswer: { '@type': 'Answer', text: it.a },
     }));
   } else if (page.collection) webpage.mainEntity = { '@id': listId };
-  else if (page.article) webpage.mainEntity = { '@id': articleId };
+  else if (page.article || page.note) webpage.mainEntity = { '@id': articleId };
   else if (page.service) webpage.mainEntity = { '@id': serviceId };
   graph.push(webpage);
 
-  /* Collections: the services hub lists the three service pages and the
-     work hub; the work hub lists the case pages. */
+  /* Collections: the services hub lists the service pages and the work
+     hub; the work hub lists the case pages; the notes hub, the notes. */
   if (page.collection) {
-    const members =
-      page.collection === 'services'
-        ? [...servicePages, ...pages.filter((p) => p.route === '/work/')]
-        : pages.filter((p) => p.kind === 'case');
+    const members = collectionOf(page.collection, pages);
     graph.push({
       '@type': 'ItemList',
       '@id': listId,
@@ -389,6 +408,30 @@ export function buildHead({ origin, page, pages, meta, faq, h1 }) {
       dateModified,
       inLanguage: 'en-US',
     });
+  }
+
+  if (page.note) {
+    /* A field note: a dated post by Daniel. BlogPosting, not the case
+       pages' TechArticle, because what sets a note apart is that it was
+       published on a day and says so. datePublished is set once in
+       pages.mjs; dateModified is the git date every page carries. */
+    graph.push({
+      '@type': 'BlogPosting',
+      '@id': articleId,
+      headline: String(h1 ?? meta.ogTitle ?? meta.title).replace(/\s+/g, ' ').trim(),
+      description: meta.description,
+      author: { '@id': personId },
+      publisher: { '@id': orgId },
+      datePublished: page.note.published,
+      dateModified,
+      about: page.note.about.map((ref) => ({ '@id': resolveRef(origin, page.route, ref) })),
+      isPartOf: { '@id': `${origin}${page.parent}#webpage` },
+      mainEntityOfPage: { '@id': pageId },
+      image,
+      inLanguage: 'en-US',
+    });
+    tags.push(`<meta property="article:published_time" content="${esc(page.note.published)}" />`);
+    tags.push(`<meta property="article:modified_time" content="${esc(dateModified)}" />`);
   }
 
   tags.push(jsonld({ '@context': 'https://schema.org', '@graph': graph }));

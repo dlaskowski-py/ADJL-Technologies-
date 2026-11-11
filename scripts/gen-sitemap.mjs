@@ -7,12 +7,16 @@
  * notice learn to ignore the field. The same value is each case page's
  * TechArticle dateModified, from the same helper in seo.mjs, so the two
  * can't disagree.
+ *
+ * Built from INDEXED, not PAGES: a noindex page (the form's thank-you
+ * page) is left out, since listing a page in the sitemap asks for exactly
+ * what its robots tag refuses.
  */
 import { writeFileSync } from 'node:fs';
-import { ORIGIN, PAGES } from './pages.mjs';
+import { INDEXED, ORIGIN, PAGES } from './pages.mjs';
 import { dateModifiedOf } from './seo.mjs';
 
-const urls = PAGES.map(
+const urls = INDEXED.map(
   (p) => `  <url>
     <loc>${ORIGIN}${p.route}</loc>
     <lastmod>${dateModifiedOf(p)}</lastmod>
@@ -29,5 +33,6 @@ ${urls}
 `,
 );
 
-const distinct = new Set(PAGES.map(dateModifiedOf)).size;
-console.log(`sitemap: ${PAGES.length} urls, ${distinct} distinct lastmod dates from git`);
+const distinct = new Set(INDEXED.map(dateModifiedOf)).size;
+const left = PAGES.length - INDEXED.length;
+console.log(`sitemap: ${INDEXED.length} urls, ${distinct} distinct lastmod dates from git${left ? `, ${left} noindex page${left === 1 ? '' : 's'} left out` : ''}`);

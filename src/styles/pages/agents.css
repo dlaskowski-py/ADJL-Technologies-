@@ -1,0 +1,7 @@
+/**
+ * Page-only styles for /agents/, linked from those shells and nowhere
+ * else, so no other page pays for them (check-budget: page-only CSS
+ * ≤ 10 kB gz per page). Use the tokens; prefix classes for the page.
+ *
+ * OWNER: WS-M (agents). Empty until that workstream fills it.
+ */

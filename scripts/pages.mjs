@@ -7,9 +7,9 @@
  * Each page carries what the build, the search engines and the share cards
  * need:
  *
- *   kind        home | hub | service | case | firm | legal — drives which
- *               structured-data nodes the page gets and how it's grouped in
- *               llms.txt.
+ *   kind        home | hub | service | case | note | firm | legal — drives
+ *               which structured-data nodes the page gets and how it's
+ *               grouped in llms.txt.
  *   content     the content modules the page is written from. Their last
  *               git commit is the page's dateModified and sitemap lastmod,
  *               and Source view shows them.
@@ -22,7 +22,18 @@
  *   article     case pages: a TechArticle node, `about` listing the @ids it
  *               describes. '#frag' is relative to this page; '/path#frag' is
  *               relative to the origin.
- *   collection  hubs: the WebPage is also a CollectionPage with an ItemList.
+ *   collection  hubs: the WebPage is also a CollectionPage with an ItemList
+ *               ('services', 'work' or 'notes').
+ *   note        field notes: a BlogPosting by Daniel at #article, with the
+ *               date it was first published (`published`, YYYY-MM-DD, set
+ *               once and never moved) and `about`, read like `article`'s.
+ *               dateModified comes from git, as everywhere else.
+ *   noindex     a page that exists for one visitor at one moment (the
+ *               form's thank-you page): <meta name="robots"> says noindex,
+ *               and it's left out of the sitemap, llms.txt, llms-full.txt,
+ *               the markdown twins and Ask's search index. check-seo holds
+ *               both directions: a noindex page carries the tag, and no
+ *               other page does.
  */
 
 /** Where the site lives. ONE definition — the canonicals, the share cards,
@@ -109,6 +120,23 @@ export const PAGES = [
       serviceType: 'Custom software development',
     },
     priority: '0.9',
+  },
+  {
+    out: 'dist/services/seo/audit/index.html',
+    entry: 'scripts/entry-audit.ts',
+    route: '/services/seo/audit/',
+    kind: 'service',
+    content: ['src/content-audit.ts'],
+    crumb: 'Website audit',
+    parent: '/services/seo/',
+    lattice: true,
+    faq: true,
+    service: {
+      name: 'Website audit for search engines and AI answer engines',
+      alternateName: 'Website audit',
+      serviceType: 'Technical SEO audit',
+    },
+    priority: '0.8',
   },
 
   /* ── Work ─────────────────────────────────────────────────────────── */
@@ -230,6 +258,68 @@ export const PAGES = [
     article: { about: ['/#website', '/services/seo/#service', '/services/software/#service'] },
     priority: '0.8',
   },
+  {
+    out: 'dist/work/agentic-research/index.html',
+    entry: 'scripts/entry-case-research.ts',
+    route: '/work/agentic-research/',
+    kind: 'case',
+    content: ['src/content-case-research.ts'],
+    crumb: 'Agentic Research',
+    parent: '/work/',
+    lattice: true,
+    article: { about: ['/services/ai-engineering/#service', '/work/loep/#app'] },
+    priority: '0.8',
+  },
+
+  /* ── Notes ────────────────────────────────────────────────────────── */
+  {
+    out: 'dist/notes/index.html',
+    entry: 'scripts/entry-notes.ts',
+    route: '/notes/',
+    kind: 'hub',
+    content: ['src/content-notes.ts'],
+    crumb: 'Notes',
+    parent: '/',
+    lattice: true,
+    collection: 'notes',
+    priority: '0.7',
+  },
+  {
+    out: 'dist/notes/what-ai-crawlers-read/index.html',
+    entry: 'scripts/entry-note-crawlers.ts',
+    route: '/notes/what-ai-crawlers-read/',
+    kind: 'note',
+    content: ['src/content-notes.ts'],
+    crumb: 'What AI crawlers read',
+    parent: '/notes/',
+    lattice: true,
+    note: { published: '2026-11-11', about: ['/services/seo/#service', '/work/this-site/#article'] },
+    priority: '0.6',
+  },
+  {
+    out: 'dist/notes/a-build-that-refuses-to-overclaim/index.html',
+    entry: 'scripts/entry-note-overclaim.ts',
+    route: '/notes/a-build-that-refuses-to-overclaim/',
+    kind: 'note',
+    content: ['src/content-notes.ts'],
+    crumb: 'A build that refuses to overclaim',
+    parent: '/notes/',
+    lattice: true,
+    note: { published: '2026-11-11', about: ['/#website', '/work/this-site/#article'] },
+    priority: '0.6',
+  },
+  {
+    out: 'dist/notes/research-that-cannot-fool-itself/index.html',
+    entry: 'scripts/entry-note-research.ts',
+    route: '/notes/research-that-cannot-fool-itself/',
+    kind: 'note',
+    content: ['src/content-notes.ts'],
+    crumb: 'Research that can’t fool itself',
+    parent: '/notes/',
+    lattice: true,
+    note: { published: '2026-11-11', about: ['/services/ai-engineering/#service', '/work/agentic-research/#article'] },
+    priority: '0.6',
+  },
 
   /* ── Firm and legal ───────────────────────────────────────────────── */
   {
@@ -242,6 +332,61 @@ export const PAGES = [
     parent: '/',
     lattice: true,
     priority: '0.8',
+  },
+  {
+    out: 'dist/scan/index.html',
+    entry: 'scripts/entry-scan.ts',
+    route: '/scan/',
+    kind: 'firm',
+    content: ['src/content-scan.ts'],
+    crumb: 'Scan your site',
+    parent: '/',
+    lattice: true,
+    priority: '0.8',
+  },
+  {
+    out: 'dist/start/index.html',
+    entry: 'scripts/entry-start.ts',
+    route: '/start/',
+    kind: 'firm',
+    content: ['src/content-start.ts'],
+    crumb: 'Start a project',
+    parent: '/',
+    lattice: true,
+    priority: '0.8',
+  },
+  {
+    /* The intake form's action: what a visitor sees after sending. */
+    out: 'dist/start/sent/index.html',
+    entry: 'scripts/entry-start-sent.ts',
+    route: '/start/sent/',
+    kind: 'firm',
+    content: ['src/content-start.ts'],
+    crumb: 'Message sent',
+    parent: '/start/',
+    noindex: true,
+  },
+  {
+    out: 'dist/agents/index.html',
+    entry: 'scripts/entry-agents.ts',
+    route: '/agents/',
+    kind: 'firm',
+    content: ['src/content-agents.ts'],
+    crumb: 'For AI agents',
+    parent: '/',
+    lattice: true,
+    priority: '0.7',
+  },
+  {
+    out: 'dist/changelog/index.html',
+    entry: 'scripts/entry-changelog.ts',
+    route: '/changelog/',
+    kind: 'firm',
+    content: ['src/content-changelog.ts'],
+    crumb: 'Changelog',
+    parent: '/',
+    lattice: true,
+    priority: '0.5',
   },
   {
     out: 'dist/legal/privacy/index.html',
@@ -264,6 +409,12 @@ export const PAGES = [
     priority: '0.3',
   },
 ];
+
+/** The pages a search engine or an answer engine should be pointed at:
+ *  everything but the noindex ones. The sitemap, llms.txt, the markdown
+ *  twins and Ask's search index are built from this list; PAGES itself is
+ *  what gets prerendered and checked. */
+export const INDEXED = PAGES.filter((p) => !p.noindex);
 
 /** Route → filename slug, used for share cards, source JSON and the
  *  markdown twins. '/' is 'home'. */

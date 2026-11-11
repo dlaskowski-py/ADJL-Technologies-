@@ -85,6 +85,11 @@ export function boot(): void {
   lazyOn('[data-replay]', () => import('./motion/replay').then((m) => m.initReplay()));
   lazyOn('[data-leaders]', () => import('./motion/leaders').then((m) => m.initLeaders()));
   lazyOn('[data-headers]', () => import('./motion/headers').then((m) => m.initHeaders()));
+  lazyOn('[data-scan]', () => import('./motion/scan').then((m) => m.initScan()));
+  lazyOn('[data-assistant]', () => import('./motion/assistant').then((m) => m.initAssistant()));
+  /* The reading switch sits in the nav, so it's in view at once on every
+     page and this loads straight away. */
+  lazyOn('[data-read-toggle]', () => import('./motion/read').then((m) => m.initRead()));
 
   /* The hero graph: full tier only, after load and at idle, so the h1
      paints and settles as the LCP before a shader compiles. */

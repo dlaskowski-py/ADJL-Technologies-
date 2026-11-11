@@ -315,6 +315,8 @@ const seen = new Set();
 const list = [];
 let dupes = 0;
 for (const pg of pages) {
+  /* A noindex page (the form's thank-you page) is nothing Ask should cite. */
+  if (pg.page.noindex) continue;
   for (const p of pg.passages) {
     if (seen.has(p.text)) {
       dupes++;

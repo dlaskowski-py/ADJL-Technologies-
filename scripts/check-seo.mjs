@@ -25,10 +25,17 @@
  *     dist/_headers serves it as text/markdown with a canonical Link back
  *     to its page (and marks the search index and source sheets noindex)
  *   - no title carries an em-dash: the separator is " | " everywhere
+ *   - noindex holds both ways: a page pages.mjs marks noindex (the form's
+ *     thank-you page) carries <meta name="robots" content="noindex">, has
+ *     no markdown twin, and is in neither the sitemap, llms.txt,
+ *     llms-full.txt nor Ask's search index; and NO other page carries
+ *     noindex, because one stray tag quietly drops a real page from search
+ *   - each field note carries a BlogPosting by Daniel with a datePublished
+ *     no later than its dateModified
  */
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
-import { OG_MANIFEST, ORIGIN, PAGES, ogTitleOf } from './pages.mjs';
-import { ORG_SLOGAN, slugOf, twinOf } from './seo.mjs';
+import { INDEXED, OG_MANIFEST, ORIGIN, PAGES, ogTitleOf } from './pages.mjs';
+import { ORG_SLOGAN, collectionOf, slugOf, twinOf } from './seo.mjs';
 import { walk, ldNodes, typesOf, jsonScripts } from './lib-text.mjs';
 import { pass } from './lib/report.mjs';
 import { readHeaders } from './lib/headers.mjs';
@@ -118,11 +125,22 @@ for (const page of PAGES) {
   if (canon.length !== 1) fail(`${route} has ${canon.length} canonical links; there must be exactly one`);
   if (canon[0] && canon[0].href !== `${ORIGIN}${route}`) fail(`${route} canonical points at ${canon[0].href}`);
 
+  // ── Robots ─────────────────────────────────────────────────────
+  const robots = head.metas.filter((m) => (m.name ?? '').toLowerCase() === 'robots').map((m) => m.content ?? '');
+  const noindexed = robots.some((c) => /noindex/i.test(c));
+  if (page.noindex && !noindexed) fail(`${route} is noindex in pages.mjs, but carries no <meta name="robots" content="noindex">`);
+  if (!page.noindex && noindexed) fail(`${route} carries robots noindex, and pages.mjs doesn't mark it noindex. A stray tag drops a real page from search.`);
+  if (robots.length > 1) fail(`${route} has ${robots.length} robots meta tags`);
+
   // ── Markdown twin ──────────────────────────────────────────────
   const alt = head.links.filter(
     (l) => (l.rel ?? '').split(/\s+/).includes('alternate') && (l.type ?? '').toLowerCase() === 'text/markdown',
   );
-  if (alt.length !== 1) fail(`${route} has ${alt.length} markdown alternate links; there must be exactly one`);
+  if (page.noindex) {
+    /* A twin of a page nobody should be sent to is a second copy of it. */
+    if (alt.length) fail(`${route} is noindex but advertises a markdown twin`);
+    if (existsSync(`dist${twinOf(route)}`)) fail(`${route} is noindex but dist${twinOf(route)} was written`);
+  } else if (alt.length !== 1) fail(`${route} has ${alt.length} markdown alternate links; there must be exactly one`);
   else {
     const href = alt[0].href ?? '';
     if (href !== twinOf(route)) fail(`${route} markdown alternate is "${href}", expected "${twinOf(route)}"`);
@@ -240,15 +258,29 @@ for (const page of PAGES) {
     }
   }
 
+  if (page.note) {
+    const post = byType('BlogPosting').find((n) => n['@id'] === `${ORIGIN}${route}#article`);
+    if (!post) fail(`${route} is a field note but its JSON-LD has no BlogPosting at #article`);
+    else {
+      if (!post.headline) fail(`${route} BlogPosting has no headline`);
+      if (post.author?.['@id'] !== `${ORIGIN}/#daniel`) fail(`${route} BlogPosting author isn't ${ORIGIN}/#daniel`);
+      const pub = Date.parse(post.datePublished);
+      const mod = Date.parse(post.dateModified);
+      if (!/^\d{4}-\d{2}-\d{2}/.test(post.datePublished ?? '') || Number.isNaN(pub)) fail(`${route} BlogPosting datePublished "${post.datePublished}" isn't a date`);
+      if (Number.isNaN(mod)) fail(`${route} BlogPosting dateModified "${post.dateModified}" isn't a date`);
+      if (pub > mod) fail(`${route} BlogPosting was modified (${post.dateModified}) before it was published (${post.datePublished})`);
+      if (!Array.isArray(post.about) || post.about.length !== page.note.about.length) {
+        fail(`${route} BlogPosting about doesn't list the ${page.note.about.length} @ids in pages.mjs`);
+      }
+    }
+  }
+
   if (page.collection) {
     if (!(webpage && typesOf(webpage).includes('CollectionPage'))) fail(`${route} is a hub but its WebPage isn't also a CollectionPage`);
     const list = byType('ItemList').find((n) => n['@id'] === `${ORIGIN}${route}#itemlist`);
     if (!list) fail(`${route} is a hub but has no ItemList at #itemlist`);
     else {
-      const want =
-        page.collection === 'services'
-          ? [...PAGES.filter((p) => p.kind === 'service').map((p) => p.route), '/work/']
-          : PAGES.filter((p) => p.kind === 'case').map((p) => p.route);
+      const want = collectionOf(page.collection, PAGES).map((p) => p.route);
       const got = (list.itemListElement ?? []).map((li) => String(li.url ?? li.item?.['@id'] ?? '').replace(ORIGIN, ''));
       const missing = want.filter((r) => !got.includes(r));
       if (missing.length) fail(`${route} ItemList is missing ${missing.join(', ')}`);
@@ -318,7 +350,7 @@ const headerOf = (path, name) => {
   }
   return value;
 };
-for (const page of PAGES) {
+for (const page of INDEXED) {
   const twin = twinOf(page.route);
   const type = headerOf(twin, 'Content-Type') ?? '';
   if (!/^text\/markdown\b/.test(type) || !/charset=utf-8/i.test(type)) {
@@ -340,12 +372,39 @@ if (!existsSync('dist/sitemap.xml')) fail('no dist/sitemap.xml');
 else {
   const xml = readFileSync('dist/sitemap.xml', 'utf8');
   for (const page of PAGES) {
-    if (!xml.includes(`<loc>${ORIGIN}${page.route}</loc>`)) fail(`sitemap is missing ${page.route}`);
+    const listed = xml.includes(`<loc>${ORIGIN}${page.route}</loc>`);
+    if (!page.noindex && !listed) fail(`sitemap is missing ${page.route}`);
+    if (page.noindex && listed) fail(`sitemap lists ${page.route}, which is noindex`);
   }
   const lastmods = [...xml.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map((m) => m[1]);
-  if (lastmods.length !== PAGES.length) fail(`sitemap has ${lastmods.length} <lastmod> for ${PAGES.length} pages`);
+  if (lastmods.length !== INDEXED.length) fail(`sitemap has ${lastmods.length} <lastmod> for ${INDEXED.length} indexable pages`);
   for (const d of lastmods) if (Number.isNaN(Date.parse(d))) fail(`sitemap lastmod "${d}" isn't a date`);
 }
+/* Where else a noindex page must not turn up: the answer-engine index and
+   Ask's passages. Each is generated from INDEXED; this is the proof. */
+const hidden = PAGES.filter((p) => p.noindex);
+for (const f of ['dist/llms.txt', 'dist/llms-full.txt']) {
+  if (!existsSync(f)) continue;
+  const text = readFileSync(f, 'utf8');
+  for (const p of hidden) if (text.includes(`${ORIGIN}${p.route}`)) fail(`${f} names ${p.route}, which is noindex`);
+}
+if (existsSync('dist/search-index.json') && hidden.length) {
+  const cited = new Set();
+  const collect = (v) => {
+    if (Array.isArray(v)) v.forEach(collect);
+    else if (v && typeof v === 'object') {
+      if (typeof v.route === 'string') cited.add(v.route);
+      Object.values(v).forEach(collect);
+    }
+  };
+  try {
+    collect(JSON.parse(readFileSync('dist/search-index.json', 'utf8')));
+  } catch {
+    /* check-links reports an index that doesn't parse */
+  }
+  for (const p of hidden) if (cited.has(p.route)) fail(`search-index.json holds passages from ${p.route}, which is noindex`);
+}
+
 if (!existsSync('dist/og/logo-512.png')) {
   fail('no dist/og/logo-512.png. The Organization logo in the JSON-LD points at it');
 }
@@ -376,8 +435,9 @@ if (bad) {
   process.exit(1);
 }
 const articles = PAGES.filter((p) => p.article).length;
+const posts = PAGES.filter((p) => p.note).length;
 const hubs = PAGES.filter((p) => p.collection).length;
 pass(
   'check-seo',
-  `${PAGES.length} pages, one h1 each, canonical, markdown twin, absolute og:image, JSON-LD graph resolves (${articles} TechArticles, ${hubs} collections, every data-ld pinned), sitemap, robots, 404`,
+  `${PAGES.length} pages, one h1 each, canonical, markdown twin, absolute og:image, JSON-LD graph resolves (${articles} TechArticles, ${posts} BlogPostings, ${hubs} collections, every data-ld pinned), sitemap, robots, 404${hidden.length ? `, ${hidden.length} noindex page${hidden.length === 1 ? '' : 's'} kept out of the sitemap, llms.txt and search` : ''}`,
 );

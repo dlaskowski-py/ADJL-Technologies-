@@ -33,6 +33,21 @@ const CONTRACTS = {
   'headers.ts': '[data-headers]',   'palette.ts': '[data-palette]',
   'scenes.ts': '[data-scene]',      'typer.ts': '[data-typer]',
   'intro.ts': '[data-intro-overlay]',
+  'scan.ts': '[data-scan]',         'assistant.ts': '[data-assistant]',
+  'read.ts': '[data-read-toggle]',
+};
+
+/**
+ * Modules wired in boot.ts whose markup hasn't been written YET, each with
+ * who owes it. This is the one sanctioned exception to the rule above, and
+ * it's built to be uncomfortable: every pending module is named in this
+ * guard's summary line, which is printed into /build-report.json and onto
+ * the site's own build readouts, so a pending module can't ship quietly. A
+ * module on this list whose markup has arrived is an error: take it off.
+ * The list is meant to be empty whenever the site is published.
+ */
+const PENDING = {
+  'read.ts': 'the reading switch, owed by src/sections/nav.ts',
 };
 
 /** Files in src/motion/ that aren't modules with markup of their own. */
@@ -53,6 +68,8 @@ const present = (needle) => {
 };
 
 let bad = 0;
+/** Pending modules that are, in fact, still waiting for their markup. */
+const waiting = [];
 
 for (const mod of modules) {
   if (INFRASTRUCTURE.has(mod)) continue;
@@ -63,10 +80,25 @@ for (const mod of modules) {
     bad++;
     continue;
   }
+  if (PENDING[mod]) {
+    if (present(needle)) {
+      console.error(
+        `check-motion: src/motion/${mod} is listed as PENDING, but "${needle}" is on a built page now. Take it off PENDING in this file.`,
+      );
+      bad++;
+    } else waiting.push(mod);
+    continue;
+  }
   if (!present(needle)) {
     console.error(
       `check-motion: src/motion/${mod} looks for "${needle}", which appears on no built page. The module is dead: use it or delete it.`,
     );
+    bad++;
+  }
+}
+for (const mod of Object.keys(PENDING)) {
+  if (!CONTRACTS[mod]) {
+    console.error(`check-motion: PENDING lists ${mod}, which has no contract in CONTRACTS.`);
     bad++;
   }
 }
@@ -83,4 +115,11 @@ for (const mod of Object.keys(CONTRACTS)) {
 
 if (bad) process.exit(1);
 const count = modules.filter((m) => !INFRASTRUCTURE.has(m)).length;
-pass('check-motion', `${count} modules, every one has markup to animate`);
+pass(
+  'check-motion',
+  waiting.length
+    ? `${count - waiting.length} of ${count} modules have markup to animate; ${waiting.length} still waiting for it: ${waiting
+        .map((m) => `${m} (${PENDING[m]})`)
+        .join(', ')}`
+    : `${count} modules, every one has markup to animate`,
+);
