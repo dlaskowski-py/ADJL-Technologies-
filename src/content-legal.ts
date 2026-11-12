@@ -12,7 +12,11 @@
  * conversation goes to Anthropic through netlify/functions/assistant.mjs;
  * nothing is stored but per-visitor daily counts under a salted hash of
  * the IP) and the scanner on /scan/ (it fetches the page named and stores
- * nothing, per netlify/functions/scan.mjs).
+ * nothing, per netlify/functions/scan.mjs). The form section also covers
+ * the MCP endpoint's start_conversation (netlify/functions/mcp.mjs, WS-M):
+ * per day, one record per message under a hash of the caller's IP mixed
+ * with a daily random value, and a hash of each message to send it once,
+ * all deleted after the day. Re-check those against mcp.mjs if it changes.
  *
  * What the site keeps in the browser is described too: the Pause motion
  * preference and the opening note (session storage), the reading switch
@@ -87,6 +91,7 @@ export const privacy: LegalDoc = {
       paragraphs: [
         'The form on the start page asks for your name, your email, a topic and a message. It also notes how the message was written: by you, drafted with the assistant, or sent for you by an AI agent through this site’s MCP endpoint.',
         'Netlify, which hosts this site, receives the form. It runs each submission through a spam filter (Akismet), stores it in this site’s Netlify account and emails it to Daniel. We use it to reply to you, and to do the work if we end up working together. It isn’t added to a mailing list, and it isn’t sold, rented or shared.',
+        'If an AI agent sends the form for you through this site’s MCP endpoint, the endpoint keeps two kinds of record for that day: one for each message, so no single caller can send more than a few, and a fingerprint of each message, so the same one isn’t sent twice. Both are one-way hashes mixed with a random value made each day. Neither holds the caller’s IP address or the words of the message, and both are deleted after that day. What an agent searches for or reads through the endpoint isn’t stored.',
         `To have a submission deleted, write to ${CONTACT}. Daniel deletes it from Netlify and from his inbox.`,
       ],
     },
@@ -95,8 +100,8 @@ export const privacy: LegalDoc = {
       heading: 'The scoping assistant',
       paragraphs: [
         'The assistant on the start page sends what you type, with the conversation so far, to a function on this site. The function passes it to Anthropic, along with this site’s own pages, and Anthropic’s Claude model writes the reply. Anthropic handles that data under its own terms and privacy policy, not this one.',
-        'This site doesn’t store the conversation. It lives in your browser tab and is gone when you close or reload the page. If you press Draft my brief, the draft goes into the form on the same page, and it reaches Daniel only if you send the form.',
-        'To keep the assistant from being overused, the function counts requests for each visitor, per day. It records a one-way hash of your IP address, mixed with a secret and the date, and never the address itself. Each day’s records are deleted after that day, the next time the assistant runs.',
+        'This site doesn’t store the conversation. It lives in your browser tab and is gone when you close or reload the page. If something goes wrong, the function’s log notes the kind of error, never your words. If you press Draft my brief, the draft goes into the form on the same page, and it reaches Daniel only if you send the form.',
+        'To keep the assistant from being overused, the function counts requests for each visitor, per day. For each request it records the time and a one-way hash of your IP address, mixed with a secret and the date, and never the address itself. Each day’s records are deleted after that day, the next time the assistant runs.',
       ],
     },
     {
@@ -133,7 +138,7 @@ export const privacy: LegalDoc = {
       id: 'rights',
       heading: 'Your rights',
       paragraphs: [
-        'Depending on where you live, you may have the right to ask what personal data is held about you, to have it corrected, to have it deleted, or to object to its processing. What exists here is what you sent us, an email or a form, so exercising any of those just means asking.',
+        'Depending on where you live, you may have the right to ask what personal data is held about you, to have it corrected, to have it deleted, or to object to its processing. What exists here is what you sent us, an email or a form, and, for a day, the hashed records described above if you used the assistant or an agent sent the form for you. Exercising any of those just means asking.',
         `Write to ${CONTACT} and Daniel Laskowski handles it directly. He’s the person responsible for this site and for the firm.`,
       ],
     },

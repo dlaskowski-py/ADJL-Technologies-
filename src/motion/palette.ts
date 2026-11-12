@@ -18,6 +18,7 @@
  */
 
 import { palette as P } from '../content-palette';
+import { reading as R } from '../content-glossary';
 import { CONTACT } from '../content';
 import { SITE_PAGES } from '../site-pages';
 import { isPaused, setPaused } from './prefs';
@@ -94,6 +95,9 @@ async function curl(): Promise<void> {
 function commands(): Cmd[] {
   const cmds: Cmd[] = [];
   for (const p of SITE_PAGES) {
+    /* A noindex page (the form's thank-you page) is somewhere you land,
+       not somewhere to jump to. */
+    if (p.noindex) continue;
     cmds.push({
       id: `page${p.route}`,
       group: P.groups.pages,
@@ -164,6 +168,21 @@ function commands(): Cmd[] {
         } catch {
           /* Clipboard refused: the address is in the hint, readable. */
         }
+      },
+    },
+    {
+      /* The reading switch (motion/read.ts, which owns the state). The
+         palette closes first, so the switch is announced to a page that
+         isn't behind a modal. */
+      id: 'read',
+      group: P.groups.commands,
+      label: document.documentElement.dataset.read === 'technical' ? R.palette.toPlain : R.palette.toTechnical,
+      hint: `${R.plain} · ${R.technical}`,
+      run: async () => {
+        const to = document.documentElement.dataset.read === 'technical' ? 'plain' : 'technical';
+        close();
+        const m = await import('./read');
+        m.setRead(to);
       },
     },
     {

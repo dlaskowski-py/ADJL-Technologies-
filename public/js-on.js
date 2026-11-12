@@ -1,4 +1,4 @@
-/* Runs in the head, before first paint. Three jobs.
+/* Runs in the head, before first paint. Four jobs.
  *
  * 1. Set html.js. Reveal styles hide content only under .js, so with
  *    scripting off (or this file failing to load) nothing is hidden.
@@ -72,4 +72,29 @@
   ) {
     d.setAttribute('data-intro', 'play');
   }
+
+  /* 4. The reading switch (src/motion/read.ts): Plain or Technical, from
+   *    local storage, so a page paints in the reading the visitor chose
+   *    and never paints the other one first. Plain is the default, and
+   *    anything unreadable falls back to it. With scripting off there's
+   *    no attribute at all, which base.css reads as plain.
+   *
+   *    A page restored from the back/forward cache, or a switch made in
+   *    another tab, catches up here too: read.ts may not have loaded (on
+   *    a phone the switch sits in the closed menu), so the attribute
+   *    can't depend on it. */
+  var read = function () {
+    var r = 'plain';
+    try {
+      if (localStorage.getItem('adjl:read') === 'technical') r = 'technical';
+    } catch (e) {}
+    if (d.getAttribute('data-read') !== r) d.setAttribute('data-read', r);
+  };
+  read();
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) read();
+  });
+  window.addEventListener('storage', function (e) {
+    if (!e.key || e.key === 'adjl:read') read();
+  });
 })();

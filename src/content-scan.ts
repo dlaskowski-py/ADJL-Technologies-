@@ -8,48 +8,59 @@
  *   - src/sections/scan.ts renders the page at build, with a recorded scan
  *     of this site as the example (`example`, below);
  *   - src/motion/scan.ts draws a visitor's own scan in the browser, reading
- *     `scanCopy` from a JSON block the page carries (so this module never
- *     ships as JavaScript);
+ *     `scanCopy`, `scanErrors` and `content.form` from a JSON block the
+ *     page carries (so this module never ships as JavaScript);
  *   - netlify/functions/scan.mjs reads `crawlers` (which crawlers to check
  *     robots.txt for) and `scanErrors` (what to say when a scan can't run).
  *
  * The crawler list was checked against each operator's own documentation
- * in November 2026: OpenAI (developers.openai.com/api/docs/bots), Anthropic
- * (support.claude.com, "Does Anthropic crawl data from the web"),
- * Perplexity (docs.perplexity.ai/guides/bots), Google ("Google's common
- * crawlers"), Apple (support.apple.com/119829) and Common Crawl
- * (commoncrawl.org/ccbot). ByteDance publishes little about Bytespider, so
- * its line says what's reported, not what's documented. Recheck it when
- * adding a crawler: names and purposes change.
+ * on November 11, 2026: OpenAI (developers.openai.com/api/docs/bots),
+ * Anthropic (support.claude.com article 8896518), Perplexity
+ * (docs.perplexity.ai/guides/bots), Google ("Google's common crawlers"),
+ * Apple (support.apple.com/119829), Meta (developers.facebook.com, "Meta
+ * Web Crawlers") and Common Crawl (commoncrawl.org/ccbot). ByteDance
+ * publishes little about Bytespider, so its line says what's reported, not
+ * what's documented. Recheck the list when adding a crawler: names and
+ * purposes change.
  *
  * Same conventions as src/content.ts: headlines are arrays of lines,
  * {em}…{/em} marks one emphasized phrase per headline, and {k}…{/k} marks a
  * technical term in body copy (page copy only; the report's copy is plain
- * text, since the browser draws it). {name} in the report copy is a value
- * filled in from the scan. Edit words here, never in a renderer.
+ * text, since the browser draws it too). {name} in the report copy is a
+ * value filled in from the scan. Edit words here, never in a renderer.
  */
 
 import type { Hero, Link, Meta, Section } from './content-types';
 import type { Crawler, ScanCopy, ScanResult } from './sections/scan-kit';
 
+/** The form's words. The browser reads these from the page's JSON block. */
+export type ScanForm = {
+  label: string;
+  placeholder: string;
+  button: string;
+  busy: string;
+  note: string;
+  /** Shown instead of the form when JavaScript is off. */
+  nojs: string;
+  nojsLink: Link;
+  stepsLabel: string;
+  steps: Record<'fetch' | 'parse' | 'robots' | 'files', string>;
+  /** A step's state, read out after its name. {ms} is filled in. */
+  stepState: { wait: string; run: string; done: string; failed: string; skip: string };
+  /** Announced, and shown under the steps. {host}, {fix}, {improve}, {first}. */
+  status: { start: string; done: string; clear: string; failed: string };
+  /** The chip on a visitor's own report. */
+  liveChip: string;
+  liveTitle: string;
+};
+
 export type ScanPage = {
   meta: Meta;
   hero: Hero;
-  form: {
-    label: string;
-    placeholder: string;
-    button: string;
-    busy: string;
-    note: string;
-    /* Shown instead of the form when JavaScript is off. */
-    nojs: string;
-    nojsLink: Link;
-    steps: Record<'fetch' | 'parse' | 'robots' | 'files', string>;
-    stepsLabel: string;
-    /* Announced and shown under the steps. {host}, {ms}, {fix}, {improve}. */
-    status: { start: string; done: string; failed: string };
-  };
-  report: Section & { exampleChip: string; liveChip: string; liveTitle: string };
+  form: ScanForm;
+  /** The report section. {date} in `body` and `exampleChip` is the day the
+   *  example was recorded. */
+  report: Section & { exampleChip: string };
   how: Section;
   audit: Section & { primary: Link; secondary: Link };
 };
@@ -82,11 +93,15 @@ export const content: ScanPage = {
       robots: 'Read robots.txt',
       files: 'Look for a sitemap and llms.txt',
     },
+    stepState: { wait: 'waiting', run: 'running', done: '{ms}', failed: 'stopped', skip: 'not run' },
     status: {
       start: 'Scanning {host}. This takes a few seconds.',
-      done: 'Done. {fix} to fix and {improve} to improve. The report is below.',
+      done: 'Done. {fix} to fix and {improve} to improve. First: {first} The report is below.',
+      clear: 'Done. Nothing to fix. The report is below.',
       failed: 'The scan stopped.',
     },
+    liveChip: 'Live · fetched just now',
+    liveTitle: 'Fetched by our server when you pressed Scan, read the same way, and not kept.',
   },
   report: {
     id: 'report',
@@ -94,11 +109,9 @@ export const content: ScanPage = {
     headline: ['Every page has', '{em}three readers.{/em}'],
     body: [
       'People read the words. Crawlers follow the links and the rules. Machines parse the structured data. The report reads your page the way each one does, then lists what to fix first.',
-      'Until you scan a page, it shows a recorded scan of this site.',
+      'Until you scan a page, it shows a scan of this site’s home page, recorded on {date}.',
     ],
-    exampleChip: 'a scan of this site',
-    liveChip: 'Live · fetched just now',
-    liveTitle: 'Fetched by our server when you pressed Scan, read the same way, and not kept.',
+    exampleChip: '{date}',
   },
   how: {
     id: 'how',
@@ -106,7 +119,7 @@ export const content: ScanPage = {
     headline: ['A first look,', '{em}not an audit.{/em}'],
     body: [
       'The scanner fetches one page from our server and reads the HTML it gets back, with no scripts run. Many AI crawlers read pages the same way. It also reads your {k}robots.txt{/k} and looks for a sitemap and an {k}llms.txt{/k} file.',
-      'It can’t see your rankings, your traffic or what an AI answer says about you today. Nobody outside those companies can. It doesn’t check every page or judge your writing.',
+      'It can’t see your rankings, your traffic or what an AI answer says about you today. It doesn’t check every page or judge your writing.',
       'We don’t store the address you scan or anything we fetch. The report goes back to your browser and nowhere else.',
     ],
   },
@@ -137,12 +150,23 @@ export const crawlers: { items: Crawler[] } = {
       group: 'search',
       what: 'Crawls pages for Google Search. AI Overviews in Search use the same index.',
     },
-    { token: 'Bingbot', by: 'Microsoft', group: 'search', what: 'Crawls pages for Bing search.' },
+    {
+      token: 'Bingbot',
+      by: 'Microsoft',
+      group: 'search',
+      what: 'Crawls pages for Bing search, which Copilot’s web answers draw on.',
+    },
+    {
+      token: 'Applebot',
+      by: 'Apple',
+      group: 'search',
+      what: 'Crawls pages for search in Siri, Spotlight and Safari. Apple says it may also use them to train its models.',
+    },
     {
       token: 'OAI-SearchBot',
       by: 'OpenAI',
       group: 'answers',
-      what: 'Finds pages to show and link in ChatGPT search. OpenAI says it isn’t used for training.',
+      what: 'Finds pages to show and link in ChatGPT search. OpenAI’s separate GPTBot does the training crawls.',
     },
     {
       token: 'Claude-SearchBot',
@@ -157,6 +181,12 @@ export const crawlers: { items: Crawler[] } = {
       what: 'Finds and links pages in Perplexity’s answers. Perplexity says it isn’t used for training.',
     },
     {
+      token: 'Meta-WebIndexer',
+      by: 'Meta',
+      group: 'answers',
+      what: 'Reads pages to improve Meta AI’s search results and citations.',
+    },
+    {
       token: 'ChatGPT-User',
       by: 'OpenAI',
       group: 'fetch',
@@ -166,7 +196,7 @@ export const crawlers: { items: Crawler[] } = {
       token: 'Claude-User',
       by: 'Anthropic',
       group: 'fetch',
-      what: 'Visits a page when someone’s question to Claude needs it.',
+      what: 'Visits a page when someone’s question to Claude needs it. Anthropic says it follows robots.txt.',
     },
     {
       token: 'Perplexity-User',
@@ -190,13 +220,19 @@ export const crawlers: { items: Crawler[] } = {
       token: 'Google-Extended',
       by: 'Google',
       group: 'training',
-      what: 'Not a crawler. A switch for whether Google may use your pages to train Gemini. It doesn’t affect Google Search.',
+      what: 'Not a crawler. A switch for whether Google may use your pages to train Gemini and ground its answers. It doesn’t affect Google Search.',
     },
     {
       token: 'Applebot-Extended',
       by: 'Apple',
       group: 'training',
-      what: 'Not a crawler. A switch for whether Apple may use your pages to train its AI models. Apple’s search isn’t affected.',
+      what: 'Not a crawler. A switch for whether Apple may use what Applebot collects to train its models. Apple’s search isn’t affected.',
+    },
+    {
+      token: 'Meta-ExternalAgent',
+      by: 'Meta',
+      group: 'training',
+      what: 'Collects pages for uses such as training Meta’s AI models.',
     },
     {
       token: 'CCBot',
@@ -208,7 +244,7 @@ export const crawlers: { items: Crawler[] } = {
       token: 'Bytespider',
       by: 'ByteDance',
       group: 'training',
-      what: 'The crawler of TikTok’s parent company. Widely reported to gather data for its AI models.',
+      what: 'The crawler of TikTok’s parent company. ByteDance says little about it. It’s widely reported to gather data for AI models.',
     },
   ],
 };
@@ -220,11 +256,11 @@ export const scanCopy: ScanCopy = {
   request: { method: 'GET', status: 'Status', time: 'Answered in', size: 'HTML', redirects: 'Redirects', none: 'none' },
   summary: {
     label: 'Start here',
-    tally: { fix: 'to fix', improve: 'to improve', note: 'worth a look', ok: 'already right' },
+    tally: { fix: 'to fix', improve: 'to improve', note: 'worth a look', ok: 'fine' },
     clear: 'Nothing to fix. Here’s what we checked.',
     checked: 'What we checked',
   },
-  levels: { fix: 'Fix', improve: 'Improve', note: 'Worth a look', ok: 'Right' },
+  levels: { fix: 'Fix', improve: 'Improve', note: 'Worth a look', ok: 'Fine' },
   todo: 'What to do:',
   layers: {
     people: {
@@ -274,7 +310,7 @@ export const scanCopy: ScanCopy = {
     noImages: 'no images',
     robotsDefault: 'not set (index, follow)',
     links: '{internal} internal · {external} external · {nofollow} nofollow',
-    robotsFound: 'found · {n} sitemap lines',
+    robotsFound: 'found · Sitemap lines: {n}',
     declared: 'named in robots.txt',
     missing: 'not found ({status})',
     unreadable: 'answers, but not with a usable file',
@@ -282,8 +318,8 @@ export const scanCopy: ScanCopy = {
     error: 'server error ({status})',
     unreachable: 'couldn’t be fetched',
     found: 'found',
-    blocks: '{n} JSON-LD blocks · {bad} broken',
-    items: '{n} items',
+    blocks: 'JSON-LD blocks: {n} · broken: {bad}',
+    items: 'items: {n}',
   },
   findings: {
     /* Fix: these keep the page out of results or leave it unreadable. */
@@ -304,7 +340,7 @@ export const scanCopy: ScanCopy = {
     },
     'no-text': {
       title: 'Only {n} words arrive before scripts run.',
-      why: 'The words are added by JavaScript after the page loads. Crawlers that don’t run scripts, and many AI crawlers don’t, see an almost empty page.',
+      why: 'The page looks built to be drawn by JavaScript after it loads. Crawlers that don’t run scripts, and many AI crawlers don’t, see an almost empty page.',
       fix: 'Send the words in the HTML itself, by prerendering the page or rendering it on the server.',
     },
     'title-missing': {
@@ -318,6 +354,11 @@ export const scanCopy: ScanCopy = {
       fix: 'Run the block through a JSON validator and fix the error. A stray comma or quote is the usual cause.',
     },
     /* Improve: these cost the page something. */
+    thin: {
+      title: 'Only {n} words on the page before scripts run.',
+      why: 'That’s very little for search engines and AI answer engines to read. If more is added by JavaScript later, many AI crawlers never see it.',
+      fix: 'Make sure the words that say what you offer are in the HTML itself. If the page really is this short, say more about what it offers and who it’s for.',
+    },
     'answers-blocked': {
       title: 'robots.txt blocks AI search crawlers: {names}.',
       why: 'These crawlers find the pages AI answers quote and link to. Blocking them keeps you out of those answers. Blocking only the training crawlers doesn’t.',
@@ -424,7 +465,7 @@ export const scanCopy: ScanCopy = {
       why: 'It’s a proposed convention, a plain-text summary of a site for language models. Some AI tools read it and many don’t.',
       fix: 'Add one if it’s cheap to keep up to date. Don’t expect much from it yet.',
     },
-    /* Already right: a line each. */
+    /* Fine: a line each. */
     'status-ok': { title: 'The page answers {status}.' },
     indexable: { title: 'Nothing tells search engines to skip it.' },
     'text-ok': { title: '{n} words arrive before any script runs.' },
@@ -462,8 +503,11 @@ export const scanCopy: ScanCopy = {
 
 /* ── When a scan can't run ──────────────────────────────────────────── */
 
-/** By error code. {host}, {type} and {n} are filled in by the function. */
+/** By error code. {host}, {type} and {n} are filled in by the function.
+ *  `empty` and `network` are the browser's own: nothing reached the
+ *  server. */
 export const scanErrors: Record<string, { title: string; body: string }> = {
+  empty: { title: 'Type a web address first.', body: 'Something like yourbusiness.com works.' },
   bad_url: {
     title: 'That doesn’t look like a web address.',
     body: 'Try something like yourbusiness.com or https://yourbusiness.com/services/.',
@@ -493,7 +537,7 @@ export const scanErrors: Record<string, { title: string; body: string }> = {
   },
   timeout: {
     title: 'The site took too long.',
-    body: 'We wait up to 8 seconds for a scan. A page that slow is worth a look on its own.',
+    body: 'We wait up to 6 seconds for the page to arrive. A page that slow is worth a look on its own.',
   },
   too_large: {
     title: 'The page is too large to scan.',
@@ -515,10 +559,429 @@ export const scanErrors: Record<string, { title: string; body: string }> = {
 
 /**
  * A recorded scan: netlify/functions/scan.mjs run against
- * https://adjltechnology.com/ on the date in `at`, its JSON pasted here
- * unchanged. The page labels it Recorded, with that date. Re-record it
- * after a change the scan would see (a new title, a robots.txt edit):
- * import the function in Node 22 and paste the `result` of
- * `await (await handler(new Request(...))).json()`.
+ * https://adjltechnology.com/ at the time in `at`, its `result` pasted
+ * here unchanged. The page labels it Recorded, with that date. Re-record
+ * it after a change the scan would see (a new title, a robots.txt edit, a
+ * new crawler in the list above):
+ *
+ *   node -e "import('./netlify/functions/scan.mjs').then(async (m) => {
+ *     const r = await m.scan('https://adjltechnology.com/');
+ *     console.log(JSON.stringify(r, null, 2)); })"
  */
-export const example: ScanResult = null as unknown as ScanResult;
+export const example: ScanResult = {
+  "v": 1,
+  "url": "https://adjltechnology.com/",
+  "finalUrl": "https://adjltechnology.com/",
+  "at": "2026-11-12T00:43:31.713Z",
+  "fetch": {
+    "status": 200,
+    "ms": 1006,
+    "firstByte": 986,
+    "bytes": 139605,
+    "transfer": 31074,
+    "type": "text/html; charset=UTF-8",
+    "encoding": "gzip",
+    "redirects": [],
+    "xRobots": ""
+  },
+  "page": {
+    "title": "AI Engineering, SEO and Software Studio | ADJL Technology",
+    "titles": 1,
+    "description": "ADJL Technology builds AI agents and automation, websites and native apps, and the technical SEO that gets them found by search and AI answer engines.",
+    "lang": "en",
+    "h1s": [
+      "AI, websites and apps, built for what’s next."
+    ],
+    "h1Count": 1,
+    "headings": [
+      {
+        "level": 1,
+        "text": "AI, websites and apps, built for what’s next."
+      },
+      {
+        "level": 2,
+        "text": "What we can build for you."
+      },
+      {
+        "level": 3,
+        "text": "AI that does the busywork"
+      },
+      {
+        "level": 3,
+        "text": "Easy to find, easy to quote"
+      },
+      {
+        "level": 3,
+        "text": "One build, on every screen"
+      },
+      {
+        "level": 3,
+        "text": "We run what we build"
+      },
+      {
+        "level": 2,
+        "text": "Things we built, and how they work."
+      },
+      {
+        "level": 3,
+        "text": "A listing link in, a sourced file out."
+      },
+      {
+        "level": 3,
+        "text": "The records behind a price, on one sheet."
+      },
+      {
+        "level": 3,
+        "text": "From the feed to the evening brief."
+      },
+      {
+        "level": 3,
+        "text": "The whole engine, offline, on a phone."
+      },
+      {
+        "level": 3,
+        "text": "Private pages that stay private."
+      },
+      {
+        "level": 3,
+        "text": "A site that checks its own claims."
+      },
+      {
+        "level": 2,
+        "text": "Have something in mind? Let’s build it."
+      },
+      {
+        "level": 2,
+        "text": "What a machine reads on this page."
+      },
+      {
+        "level": 2,
+        "text": "Ask this site. It cites or it stays quiet."
+      },
+      {
+        "level": 2,
+        "text": "Every build runs the same six steps."
+      },
+      {
+        "level": 3,
+        "text": "01Trace the work"
+      },
+      {
+        "level": 3,
+        "text": "02Pick one step"
+      },
+      {
+        "level": 3,
+        "text": "03Write down what right looks like"
+      },
+      {
+        "level": 3,
+        "text": "04Build it narrow"
+      },
+      {
+        "level": 3,
+        "text": "05Put guards where mistakes cost"
+      },
+      {
+        "level": 3,
+        "text": "06Hand it over running"
+      },
+      {
+        "level": 2,
+        "text": "You talk to Daniel. A team builds it."
+      },
+      {
+        "level": 3,
+        "text": "You describe the problem"
+      },
+      {
+        "level": 3,
+        "text": "We watch it happen"
+      },
+      {
+        "level": 3,
+        "text": "A scope, in writing"
+      },
+      {
+        "level": 3,
+        "text": "Built, measured, handed over"
+      },
+      {
+        "level": 2,
+        "text": "The things you’re actually thinking."
+      },
+      {
+        "level": 2,
+        "text": "Tell us what’s slow, or what can’t be found."
+      }
+    ],
+    "headingCount": 30,
+    "words": 3863,
+    "mainWords": 3822,
+    "shell": {
+      "root": "",
+      "scripts": 2,
+      "noscriptJs": false
+    },
+    "links": {
+      "internal": 62,
+      "external": 0,
+      "nofollow": 0,
+      "targets": 22
+    },
+    "images": {
+      "total": 0,
+      "missingAlt": 0
+    },
+    "canonical": "https://adjltechnology.com/",
+    "canonicals": 1,
+    "robotsMeta": "",
+    "botMeta": "",
+    "refresh": "",
+    "og": {
+      "title": "AI, websites and apps, built for what’s next.",
+      "description": "ADJL Technology builds AI that handles the busywork, websites people can find, and apps for iPhone and Android. Everything on the page was built by us.",
+      "image": "https://adjltechnology.com/og/home.jpg",
+      "type": "website",
+      "url": "https://adjltechnology.com/",
+      "site_name": "ADJL Technology"
+    },
+    "twitter": {
+      "card": "summary_large_image",
+      "title": "AI, websites and apps, built for what’s next.",
+      "description": "ADJL Technology builds AI that handles the busywork, websites people can find, and apps for iPhone and Android. Everything on the page was built by us.",
+      "image": "https://adjltechnology.com/og/home.jpg"
+    },
+    "jsonld": {
+      "blocks": 1,
+      "invalid": 0,
+      "types": [
+        "Organization",
+        "ImageObject",
+        "Person",
+        "OfferCatalog",
+        "ListItem",
+        "WebSite",
+        "WebPage",
+        "FAQPage",
+        "Question",
+        "Answer"
+      ]
+    },
+    "microdata": 0
+  },
+  "robots": {
+    "state": "found",
+    "status": 200,
+    "bytes": 316,
+    "sitemaps": [
+      "https://adjltechnology.com/sitemap.xml"
+    ]
+  },
+  "sitemap": {
+    "url": "https://adjltechnology.com/sitemap.xml",
+    "declared": true,
+    "state": "found",
+    "status": 200,
+    "kind": "urlset",
+    "urls": 16,
+    "truncated": false
+  },
+  "llms": {
+    "state": "found",
+    "status": 200,
+    "bytes": 4605,
+    "heading": "ADJL Technology"
+  },
+  "agents": [
+    {
+      "token": "Googlebot",
+      "verdict": "allowed",
+      "rule": "all",
+      "line": "Allow: /"
+    },
+    {
+      "token": "Bingbot",
+      "verdict": "allowed",
+      "rule": "all",
+      "line": "Allow: /"
+    },
+    {
+      "token": "Applebot",
+      "verdict": "allowed",
+      "rule": "all",
+      "line": "Allow: /"
+    },
+    {
+      "token": "OAI-SearchBot",
+      "verdict": "allowed",
+      "rule": "all",
+      "line": "Allow: /"
+    },
+    {
+      "token": "Claude-SearchBot",
+      "verdict": "allowed",
+      "rule": "all",
+      "line": "Allow: /"
+    },
+    {
+      "token": "PerplexityBot",
+      "verdict": "allowed",
+      "rule": "own",
+      "line": "Allow: /"
+    },
+    {
+      "token": "Meta-WebIndexer",
+      "verdict": "allowed",
+      "rule": "all",
+      "line": "Allow: /"
+    },
+    {
+      "token": "ChatGPT-User",
+      "verdict": "allowed",
+      "rule": "all",
+      "line": "Allow: /"
+    },
+    {
+      "token": "Claude-User",
+      "verdict": "allowed",
+      "rule": "all",
+      "line": "Allow: /"
+    },
+    {
+      "token": "Perplexity-User",
+      "verdict": "allowed",
+      "rule": "all",
+      "line": "Allow: /"
+    },
+    {
+      "token": "GPTBot",
+      "verdict": "allowed",
+      "rule": "own",
+      "line": "Allow: /"
+    },
+    {
+      "token": "ClaudeBot",
+      "verdict": "allowed",
+      "rule": "own",
+      "line": "Allow: /"
+    },
+    {
+      "token": "Google-Extended",
+      "verdict": "allowed",
+      "rule": "own",
+      "line": "Allow: /"
+    },
+    {
+      "token": "Applebot-Extended",
+      "verdict": "allowed",
+      "rule": "all",
+      "line": "Allow: /"
+    },
+    {
+      "token": "Meta-ExternalAgent",
+      "verdict": "allowed",
+      "rule": "all",
+      "line": "Allow: /"
+    },
+    {
+      "token": "CCBot",
+      "verdict": "allowed",
+      "rule": "all",
+      "line": "Allow: /"
+    },
+    {
+      "token": "Bytespider",
+      "verdict": "allowed",
+      "rule": "all",
+      "line": "Allow: /"
+    }
+  ],
+  "ms": 1813,
+  "findings": [
+    {
+      "id": "status-ok",
+      "layer": "crawlers",
+      "level": "ok",
+      "vars": {
+        "status": 200
+      }
+    },
+    {
+      "id": "indexable",
+      "layer": "crawlers",
+      "level": "ok",
+      "vars": {}
+    },
+    {
+      "id": "text-ok",
+      "layer": "people",
+      "level": "ok",
+      "vars": {
+        "n": 3863
+      }
+    },
+    {
+      "id": "title-ok",
+      "layer": "people",
+      "level": "ok",
+      "vars": {
+        "len": 57
+      }
+    },
+    {
+      "id": "desc-ok",
+      "layer": "people",
+      "level": "ok",
+      "vars": {
+        "len": 150
+      }
+    },
+    {
+      "id": "h1-ok",
+      "layer": "people",
+      "level": "ok",
+      "vars": {}
+    },
+    {
+      "id": "canonical-ok",
+      "layer": "crawlers",
+      "level": "ok",
+      "vars": {}
+    },
+    {
+      "id": "robots-ok",
+      "layer": "crawlers",
+      "level": "ok",
+      "vars": {}
+    },
+    {
+      "id": "sitemap-ok",
+      "layer": "crawlers",
+      "level": "ok",
+      "vars": {
+        "url": "https://adjltechnology.com/sitemap.xml"
+      }
+    },
+    {
+      "id": "jsonld-ok",
+      "layer": "machines",
+      "level": "ok",
+      "vars": {
+        "types": "Organization, ImageObject, Person, OfferCatalog, ListItem, WebSite"
+      }
+    },
+    {
+      "id": "og-ok",
+      "layer": "machines",
+      "level": "ok",
+      "vars": {}
+    },
+    {
+      "id": "llms-ok",
+      "layer": "machines",
+      "level": "ok",
+      "vars": {}
+    }
+  ]
+};

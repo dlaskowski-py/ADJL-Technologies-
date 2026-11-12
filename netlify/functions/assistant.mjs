@@ -45,18 +45,28 @@
  * here sends anything anywhere else.
  *
  * LIMITS, all checked before the API is called, all failing closed:
- *   - 8 visitor messages per conversation, 1,500 characters each, and a
- *     40 kB body cap
+ *   - 8 visitor messages per conversation, 1,500 characters each. Earlier
+ *     replies, as the browser sends them back, are cut to 2,000 characters
+ *     (the browser keeps no more than that): a reply that ran long is
+ *     shortened, never a reason to refuse the conversation. The body cap
+ *     is 100 kB, above the most a valid conversation can weigh in UTF-8
+ *     ((8 x 1,500 + 7 x 2,000) characters x 3 bytes, about 78 kB), so it
+ *     only ever stops a request the page didn't build
  *   - per visitor: 6 requests a minute and 40 a day. Netlify's own rate
- *     limiter isn't used here: the site's plan allows two code-based rules
- *     per project, and /api/scan and /mcp hold them
+ *     limiter (config.rateLimit) isn't used here: Free and Personal plans
+ *     allow two code-based rules per project, /api/scan and /mcp use them,
+ *     and a third would fail on those plans. Counting in Blobs works on any
+ *     plan, and it can hold a daily count, which a sliding window can't
  *   - for the whole site, ASSISTANT_DAILY_LIMIT requests a day (default
  *     300; 0 switches the assistant off without a deploy)
  *   Counts live in Netlify Blobs (store "assistant-limits") as one empty
- *   record per request under day/visitor/time. The visitor part is a
- *   salted SHA-256 of the IP address and the date, never the address: the
- *   salt is ASSISTANT_SALT, or the API key when that's unset, so the hash
- *   can't be reversed by trying every address. Records from earlier days
+ *   record per request under day/visitor/time. The store is opened with
+ *   strong consistency, so every count reads the store itself, never an
+ *   edge cache that can be up to a minute behind (the default, eventual
+ *   consistency, would let a burst inside that minute pass every cap).
+ *   The visitor part is a salted SHA-256 of the IP address and the date,
+ *   never the address: the salt is ASSISTANT_SALT, or the API key when
+ *   that's unset, so the hash can't be reversed by trying every address. Records from earlier days
  *   are deleted the next time the function runs. If the store can't be
  *   read, the request is refused (503), not waved through.
  *
@@ -67,12 +77,25 @@
  * brief is a few hundred tokens of JSON, plus the same thinking headroom.
  * A reply that hits the cap still arrives, marked as cut short.
  *
+ * TIME. A synchronous Netlify function, streaming or not, is stopped at
+ * 60 s. Both requests stream from the API (the draft is streamed and read
+ * whole), so the response starts as soon as the API accepts the request,
+ * before anything is generated. The SDK's 25 s per attempt covers only
+ * that wait for the response to start, and it retries once, so a retry
+ * only ever follows an attempt that produced nothing (a rate limit, an
+ * overload, a dropped connection), never a generation in progress. On top
+ * of that, every request carries an abort signal that fires 50 s after
+ * the function was called. A reply still streaming then ends as cut short
+ * ({"t":"done","stop":"timeout"}), and anything else is a 504 "timeout".
+ * So the visitor always gets an ending, never a connection Netlify cut.
+ *
  * WIRE. A chat reply is application/x-ndjson, one JSON object per line:
  *   {"t":"model","model":"claude-opus-5-5"}         which model is answering
  *   {"t":"text","v":"..."}                           a piece of the reply
  *   {"t":"cite","route":"/services/seo/","title":"…"} a page it drew on (once per page)
  *   {"t":"fallback","from":"…","to":"…"}             a backup model took over
  *   {"t":"done","stop":"end_turn","model":"…","left":5}
+ *                       stop is the API's stop_reason, or "timeout" (above)
  *   {"t":"refusal"}                                  discard the partial reply
  *   {"t":"error","code":"busy"}                      the stream broke midway
  * Errors before the first byte are JSON {ok:false, error} with a status.
@@ -98,16 +121,21 @@ export const BETAS = ['server-side-fallback-2026-07-01'];
 export const LIMITS = {
   turns: 8,
   chars: 1500,
-  /** An earlier reply, as the browser sends it back. Ours are far shorter. */
-  replyChars: 4000,
-  bodyBytes: 40_000,
+  /** An earlier reply, as the browser sends it back: cut to this, never
+   *  refused. The browser keeps the same 2,000; replies aim for ~120 words. */
+  replyChars: 2000,
+  /** Above the heaviest valid conversation in UTF-8 (see LIMITS above). */
+  bodyBytes: 100_000,
   chatTokens: 2000,
   draftTokens: 2500,
   perMinute: 6,
   perDay: 40,
   daily: 300,
-  /** Inside Netlify's 60 s for a synchronous function. */
-  timeoutMs: 45_000,
+  /** Per attempt, until the API's response starts (the SDK retries once).
+   *  Both requests stream, so this never runs into generation time. */
+  timeoutMs: 25_000,
+  /** From the function's start to the last byte: inside Netlify's 60 s. */
+  deadlineMs: 50_000,
 };
 
 /** The intake form's topics, verbatim (src/content-start.ts). */
@@ -131,7 +159,7 @@ export const BRIEF_SCHEMA = {
 
 /* Frozen text: nothing per request goes in here, so the cached prefix
    (system prompt, then the documents) is byte-identical every time. */
-export const SYSTEM_CHAT = `You're the scoping assistant on adjltechnology.com, the website of ADJL Technology. ADJL Technology is a small studio founded and led by Daniel Laskowski. The documents at the start of the conversation are this website's own pages. They are your only source of facts about ADJL Technology.
+export const SYSTEM_CHAT = `You're the scoping assistant on adjltechnology.com, the website of ADJL Technology. ADJL Technology is the studio Daniel Laskowski founded and leads. The documents at the start of the conversation are this website's own pages. They are your only source of facts about ADJL Technology.
 
 Your job is to help a business owner describe a project clearly enough that Daniel can reply usefully. You don't sell, quote or promise anything.
 
@@ -312,8 +340,10 @@ export function validate(body) {
     const text = clean(m.text);
     if (!text) return { error: 'bad_request' };
     if (role === 'user' && text.length > LIMITS.chars) return { error: 'too_long' };
-    if (role === 'assistant' && text.length > LIMITS.replyChars) return { error: 'bad_request' };
-    out.push({ role, text });
+    /* An earlier reply that ran long (cut off at max_tokens, say) is
+       shortened, not refused: refusing it would stall the conversation for
+       good, since the browser sends it back on every turn. */
+    out.push({ role, text: role === 'assistant' ? text.slice(0, LIMITS.replyChars) : text });
   }
   const turns = out.filter((m) => m.role === 'user').length;
   if (turns > LIMITS.turns) return { error: 'turn_limit' };
@@ -386,18 +416,32 @@ export async function sweep(store, now) {
 /* ── Errors ───────────────────────────────────────────────────────── */
 
 /** SDK errors to a status and a code the page has words for. Most
- *  specific first: every class here extends Anthropic.APIError. */
+ *  specific first: every class here extends Anthropic.APIError, and the
+ *  SDK nests some (OverloadedError and GatewayTimeoutError are
+ *  InternalServerErrors; APIConnectionTimeoutError is an
+ *  APIConnectionError), so a subclass is always tested before its parent.
+ *  An abort is ours: the deadline, or the visitor leaving. */
 export function classify(err) {
-  if (err instanceof Anthropic.APIUserAbortError) return { status: 499, code: 'aborted' };
+  if (err instanceof Anthropic.APIUserAbortError) return { status: 504, code: 'timeout' };
   if (err instanceof Anthropic.RateLimitError) return { status: 503, code: 'busy' };
   if (err instanceof Anthropic.OverloadedError) return { status: 503, code: 'busy' };
+  if (err instanceof Anthropic.GatewayTimeoutError) return { status: 504, code: 'timeout' };
+  if (err instanceof Anthropic.InternalServerError) return { status: 503, code: 'busy' };
   if (err instanceof Anthropic.AuthenticationError) return { status: 503, code: 'disabled' };
   if (err instanceof Anthropic.PermissionDeniedError) return { status: 503, code: 'disabled' };
+  if (err instanceof Anthropic.RequestTimeoutError) return { status: 504, code: 'timeout' };
   if (err instanceof Anthropic.BadRequestError) return { status: 502, code: 'generic' };
   if (err instanceof Anthropic.APIConnectionTimeoutError) return { status: 504, code: 'timeout' };
   if (err instanceof Anthropic.APIConnectionError) return { status: 502, code: 'unreachable' };
-  if (err instanceof Anthropic.InternalServerError) return { status: 503, code: 'busy' };
-  if (err instanceof Anthropic.APIError) return { status: 502, code: 'generic' };
+  if (err instanceof Anthropic.APIError) {
+    /* An error event inside a stream that had already started arrives as
+       a plain APIError with no status; its body still names the type. */
+    const type = err.error?.error?.type;
+    if (type === 'overloaded_error' || type === 'rate_limit_error' || type === 'api_error') {
+      return { status: 503, code: 'busy' };
+    }
+    return { status: 502, code: 'generic' };
+  }
   return { status: 500, code: 'generic' };
 }
 
@@ -421,18 +465,31 @@ const STATUS = {
   daily_limit: 429,
 };
 
+/** An abort signal that fires `ms` from now, and whether it has. */
+function deadline(ms) {
+  const ctl = new AbortController();
+  const d = { signal: ctl.signal, passed: false, clear: () => clearTimeout(timer) };
+  const timer = setTimeout(() => {
+    d.passed = true;
+    ctl.abort();
+  }, Math.max(0, ms));
+  return d;
+}
+
 /**
  * The chat reply as NDJSON. The first event is awaited before the
  * Response exists, so an error that happens before any output (a bad key,
  * a rate limit, an overload) still gets a real status and JSON body.
  */
-async function streamChat(client, params, { docs, left }) {
-  const stream = client.beta.messages.stream(params);
+async function streamChat(client, params, { docs, left, ms }) {
+  const due = deadline(ms);
+  const stream = client.beta.messages.stream(params, { signal: due.signal });
   const it = stream[Symbol.asyncIterator]();
   let first;
   try {
     first = await it.next();
   } catch (err) {
+    due.clear();
     logError('chat', err);
     const { status, code } = classify(err);
     return fail(code, status);
@@ -445,6 +502,7 @@ async function streamChat(client, params, { docs, left }) {
   let stop = null;
   let pending = first;
   let finished = false;
+  let wrote = false;
 
   /** One stream event to zero or more wire lines. */
   const lines = (ev) => {
@@ -459,7 +517,10 @@ async function streamChat(client, params, { docs, left }) {
         return [];
       case 'content_block_delta': {
         const d = ev.delta;
-        if (d?.type === 'text_delta' && d.text) return [{ t: 'text', v: d.text }];
+        if (d?.type === 'text_delta' && d.text) {
+          wrote = true;
+          return [{ t: 'text', v: d.text }];
+        }
         if (d?.type === 'citations_delta') {
           const i = d.citation?.document_index;
           const doc = Number.isInteger(i) ? docs[i] : undefined;
@@ -478,6 +539,10 @@ async function streamChat(client, params, { docs, left }) {
     }
   };
 
+  /* Out of time with part of a reply sent: end it as cut short, which the
+     page shows as such. With nothing sent yet, it's an error. */
+  const late = () => (wrote ? { t: 'done', stop: 'timeout', model, left } : { t: 'error', code: 'timeout' });
+
   const body = new ReadableStream({
     async pull(controller) {
       try {
@@ -488,6 +553,12 @@ async function streamChat(client, params, { docs, left }) {
           pending = null;
           if (r.done) {
             finished = true;
+            due.clear();
+            if (due.passed) {
+              controller.enqueue(line(late()));
+              controller.close();
+              return;
+            }
             try {
               const final = await stream.finalMessage();
               stop = final.stop_reason ?? stop;
@@ -495,6 +566,8 @@ async function streamChat(client, params, { docs, left }) {
             } catch {
               /* The events already said how it ended. */
             }
+            /* Branch on stop_reason: a refusal at the end means the whole
+               fallback chain declined, so the partial reply is void. */
             controller.enqueue(
               line(stop === 'refusal' ? { t: 'refusal' } : { t: 'done', stop: stop ?? 'end_turn', model, left }),
             );
@@ -509,13 +582,19 @@ async function streamChat(client, params, { docs, left }) {
         }
       } catch (err) {
         finished = true;
-        logError('chat stream', err);
-        controller.enqueue(line({ t: 'error', code: classify(err).code }));
+        due.clear();
+        if (due.passed) {
+          controller.enqueue(line(late()));
+        } else {
+          logError('chat stream', err);
+          controller.enqueue(line({ t: 'error', code: classify(err).code }));
+        }
         controller.close();
       }
     },
     cancel() {
       /* The visitor left: stop generating, stop paying for it. */
+      due.clear();
       if (!finished) stream.abort?.();
     },
   });
@@ -526,14 +605,25 @@ async function streamChat(client, params, { docs, left }) {
   });
 }
 
-async function draft(client, params) {
+/**
+ * The brief, streamed and read whole. Not create(): the SDK's per-attempt
+ * timeout covers the wait for the response to start, and a non-streamed
+ * response starts only once the whole brief is written. A slow draft
+ * would be cut off at 25 s and generated again from scratch by the retry,
+ * twice billed and then out of time. Streamed, it starts at once, and the
+ * one limit on writing it is the deadline.
+ */
+async function draft(client, params, { ms }) {
+  const due = deadline(ms);
   let msg;
   try {
-    msg = await client.beta.messages.create(params);
+    msg = await client.beta.messages.stream(params, { signal: due.signal }).finalMessage();
   } catch (err) {
-    logError('draft', err);
-    const { status, code } = classify(err);
+    if (!due.passed) logError('draft', err);
+    const { status, code } = due.passed ? { status: 504, code: 'timeout' } : classify(err);
     return fail(code, status);
+  } finally {
+    due.clear();
   }
   /* Branch on stop_reason before reading content. */
   if (msg.stop_reason === 'refusal') return fail('refusal', 422);
@@ -556,22 +646,27 @@ function defaultClient(apiKey) {
 
 /**
  * The function, with its dependencies injectable:
- *   client(apiKey)  an Anthropic client (anything with beta.messages.stream
- *                   and beta.messages.create)
+ *   client(apiKey)  an Anthropic client (anything with beta.messages.stream)
  *   store()         a Blobs store (list, set, delete)
  *   corpus()        the documents, or null if the text isn't bundled
  *   env(name)       configuration
- *   now()           the clock
+ *   now()           the clock (the rate-limit records and the day)
+ *   deadlineMs      the time budget (LIMITS.deadlineMs), shortened in tests
  */
 export function createHandler(deps = {}) {
   const env = deps.env ?? readEnv;
   const makeClient = deps.client ?? defaultClient;
-  const openStore = deps.store ?? (() => getStore('assistant-limits'));
+  /* Strong: a count must read the store, not a cached list (LIMITS). */
+  const openStore = deps.store ?? (() => getStore({ name: 'assistant-limits', consistency: 'strong' }));
   const corpus = deps.corpus ?? loadCorpus;
   const now = deps.now ?? Date.now;
+  const budget = deps.deadlineMs ?? LIMITS.deadlineMs;
   let swept = '';
 
   return async (req, context = {}) => {
+    const started = performance.now();
+    /* What's left of the time budget, after the limits were checked. */
+    const remaining = () => budget - (performance.now() - started);
     const key = env('ANTHROPIC_API_KEY');
     const docs = key ? corpus() : null;
     const enabled = Boolean(key && docs?.length);
@@ -599,7 +694,9 @@ export function createHandler(deps = {}) {
     const site = req.headers.get('sec-fetch-site');
     if (site && site !== 'same-origin' && site !== 'none') return fail('forbidden', 403);
     if (!(req.headers.get('content-type') ?? '').includes('application/json')) return fail('bad_request', 415);
-    if (Number(req.headers.get('content-length') ?? 0) > LIMITS.bodyBytes) return fail('too_long', 413);
+    /* Not "too_long": that's the visitor's 1,500 characters, and the page
+       says so. A body this size never comes from the page. */
+    if (Number(req.headers.get('content-length') ?? 0) > LIMITS.bodyBytes) return fail('too_big', 413);
 
     let raw;
     try {
@@ -607,7 +704,7 @@ export function createHandler(deps = {}) {
     } catch {
       return fail('bad_request', 400);
     }
-    if (raw.length > LIMITS.bodyBytes) return fail('too_long', 413);
+    if (raw.length > LIMITS.bodyBytes) return fail('too_big', 413);
     let parsed;
     try {
       parsed = JSON.parse(raw);
@@ -638,8 +735,12 @@ export function createHandler(deps = {}) {
     housekeeping();
 
     const client = makeClient(key);
-    if (v.mode === 'draft') return draft(client, draftParams(v.messages));
-    return streamChat(client, chatParams(docs, v.messages), { docs, left: LIMITS.turns - v.turns });
+    if (v.mode === 'draft') return draft(client, draftParams(v.messages), { ms: remaining() });
+    return streamChat(client, chatParams(docs, v.messages), {
+      docs,
+      left: LIMITS.turns - v.turns,
+      ms: remaining(),
+    });
   };
 }
 

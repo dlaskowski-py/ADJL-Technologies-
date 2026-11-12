@@ -41,9 +41,20 @@
   display: grid;
   gap: var(--col-gap);
 }
+/* Side by side, the two panels share one height: the side panel's is set
+   by its prerendered text, and the conversation's stage takes up the rest,
+   so neither ever changes size once the page has painted. */
 @media (min-width: 1100px) {
   .asst-grid {
     grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+  }
+  html.js .asst-stage {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 27rem;
+  }
+  /* With no script the panel holds one line: don't stretch it. */
+  html:not(.js) .asst-grid {
     align-items: start;
   }
 }
@@ -57,11 +68,23 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* The stage: status, conversation and starters share one fixed box. */
+/* The stage: status, conversation and starters share one fixed box. The
+   conversation takes what the starters leave, and scrolls inside it, so
+   the two can't overlap at any size. Phones get a taller box (svh: the
+   height with the browser's bars showing, which doesn't jump as they
+   hide), since four starters stack there. */
 .asst-stage {
   position: relative;
+  display: flex;
+  flex-direction: column;
   height: clamp(20rem, 44vh, 27rem);
   border-bottom: 1px solid var(--rule);
+}
+@media (max-width: 719px) {
+  .asst-stage {
+    height: clamp(22rem, 58vh, 30rem);
+    height: clamp(22rem, 58svh, 30rem);
+  }
 }
 html:not(.js) .asst-stage {
   height: auto;
@@ -73,7 +96,9 @@ html:not(.js) .asst-stage {
   position: absolute;
   inset: 0;
   display: grid;
-  place-items: center;
+  align-content: center;
+  justify-items: center;
+  gap: var(--s-3);
   padding: var(--s-5);
   text-align: center;
 }
@@ -96,10 +121,22 @@ html.js [data-asst]:not([data-state]) [data-s='loading'],
 [data-asst]:is([data-state='on'], [data-state='ended']) .asst-status {
   display: none;
 }
+/* When it can't help (no script, not switched on, not reachable), the
+   status points on to the form. Not while it's still checking. */
+.asst-to-form {
+  display: none;
+}
+html:not(.js) .asst-to-form,
+[data-asst]:is([data-state='off'], [data-state='unreachable']) .asst-to-form {
+  display: inline-flex;
+}
+.asst-to-form:hover .arw {
+  transform: translateY(3px);
+}
 
 .asst-log {
-  position: absolute;
-  inset: 0;
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: var(--s-4);
@@ -113,10 +150,7 @@ html.js [data-asst]:not([data-state]) [data-s='loading'],
 
 /* Starters sit at the foot of the stage until the conversation starts. */
 .asst-ideas {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  flex: none;
   display: none;
   padding: var(--s-4) var(--s-5) var(--s-5);
 }
@@ -297,12 +331,23 @@ html[data-motion='reduced'] [data-assistant] [data-typing] i {
   flex-wrap: wrap;
   gap: var(--s-3);
 }
-[data-asst] :is(.btn, .asst-starter, .asst-input):disabled {
-  opacity: 0.45;
+/* Off, or waiting: drawn as an outline in the caption grey, never faded
+   with opacity, so the words stay readable (5.4:1) while the controls
+   plainly can't be used. */
+[data-asst] :is(.btn, .asst-starter):disabled {
+  background: transparent;
+  border: 1px solid var(--rule-2);
+  color: var(--fg-3);
+  cursor: not-allowed;
+}
+[data-asst] .btn:disabled:hover::before {
+  opacity: 0;
+}
+[data-asst] .asst-input:disabled {
+  border-color: var(--rule-2);
   cursor: not-allowed;
 }
 [data-asst] .btn[aria-disabled='true'] {
-  opacity: 0.6;
   cursor: progress;
 }
 .asst-note {
@@ -367,6 +412,9 @@ html[data-motion='reduced'] [data-assistant] [data-typing] i {
   border-bottom: 1px solid var(--rule);
 }
 [data-assistant] [data-sources] a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--signal-hi);
   font-size: var(--t-small);
 }

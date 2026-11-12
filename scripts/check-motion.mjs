@@ -46,9 +46,7 @@ const CONTRACTS = {
  * module on this list whose markup has arrived is an error: take it off.
  * The list is meant to be empty whenever the site is published.
  */
-const PENDING = {
-  'read.ts': 'the reading switch, owed by src/sections/nav.ts',
-};
+const PENDING = {};
 
 /** Files in src/motion/ that aren't modules with markup of their own. */
 const INFRASTRUCTURE = new Set([

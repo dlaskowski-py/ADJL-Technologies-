@@ -6,7 +6,8 @@
  *   #assistant  [data-assistant="chat"]  the scoping assistant. Prerendered
  *               at rest: the panel, its status wordings (CSS shows the one
  *               matching data-state), the composer (data-js-only) and the
- *               "How it works" panel. src/motion/assistant.ts asks
+ *               "How it works" panel, whose list of cited pages is
+ *               data-js-only too: with no script it could never fill. src/motion/assistant.ts asks
  *               /api/assistant whether it's switched on and builds the
  *               conversation inside [data-log].
  *   #form       [data-assistant="form"]  the intake form. Netlify Forms,
@@ -17,7 +18,11 @@
  * The form's contract is shared with the MCP endpoint (netlify/functions/
  * mcp.mjs submits it server-side with source=agent): name="start", the
  * fields name, email, topic, message and source, and the honeypot
- * company-website. Topic values are the labels themselves.
+ * company-website. Topic values are the labels themselves. The hidden
+ * form-name is what Netlify adds to the deployed HTML anyway; written here
+ * too, so the page's own fetch and a plain post carry it either way. Field
+ * order matters to Netlify's submission list, which titles each entry with
+ * the first visible text input: the name, so the honeypot comes last.
  *
  * Pure string functions, like every renderer: no DOM, no window.
  */
@@ -78,6 +83,9 @@ export type StartPage = {
     panel: {
       title: string;
       status: { nojs: string; loading: string; off: string; unreachable: string };
+      /** Shown with every status but "loading": the way on when the
+       *  assistant can't help. */
+      toForm: Link;
       startersLabel: string;
       starters: string[];
       label: string;
@@ -154,6 +162,7 @@ function renderAssistant(c: StartPage['assistant'], copy: AssistantCopy, n: numb
               <p data-s="loading">${rich(p.status.loading)}</p>
               <p data-s="off">${rich(p.status.off)}</p>
               <p data-s="unreachable">${rich(p.status.unreachable)}</p>
+              <a class="alink asst-to-form" href="${esc(p.toForm.href)}"><span>${esc(p.toForm.label)}</span><span class="arw" aria-hidden="true">↓</span></a>
             </div>
             <div class="asst-log" data-log role="log" aria-live="polite" aria-label="${esc(p.title)}" tabindex="0"></div>
             <div class="asst-ideas" data-js-only data-chrome>
@@ -183,7 +192,7 @@ function renderAssistant(c: StartPage['assistant'], copy: AssistantCopy, n: numb
           <dl class="asst-facts">${s.facts
             .map((f) => `<div class="asst-fact"><dt>${esc(f.label)}</dt><dd>${rich(f.value)}</dd></div>`)
             .join('')}</dl>
-          <div class="asst-srcs" data-chrome>
+          <div class="asst-srcs" data-chrome data-js-only>
             <p class="label">${esc(s.sources)}</p>
             <ul class="asst-src-list" data-sources></ul>
             <p class="asst-src-none" data-none>${esc(s.none)}</p>
@@ -197,12 +206,17 @@ function renderAssistant(c: StartPage['assistant'], copy: AssistantCopy, n: numb
 }
 
 /** One labeled field: the label, an optional hint, the control, and an
- *  error line the browser module fills (empty, and so silent, until then). */
-function field(o: { id: string; label: string; hint?: string; control: string; wide?: boolean }): string {
+ *  error line the browser module fills (empty, and so silent, until then).
+ *  A hint goes above the control, where it's read before typing, unless
+ *  `below`: side by side, a hint above one input and not the other would
+ *  set the two inputs at different heights. */
+function field(o: { id: string; label: string; hint?: string; below?: boolean; control: string; wide?: boolean }): string {
+  const hint = o.hint ? `<p class="field-hint" id="${o.id}-hint">${rich(o.hint)}</p>` : '';
   return `<div class="field${o.wide ? ' field--wide' : ''}">
     <label class="field-label" for="${o.id}">${esc(o.label)}</label>
-    ${o.hint ? `<p class="field-hint" id="${o.id}-hint">${rich(o.hint)}</p>` : ''}
+    ${o.below ? '' : hint}
     ${o.control}
+    ${o.below ? hint : ''}
     <p class="field-err" id="${o.id}-err" data-err></p>
   </div>`;
 }
@@ -227,7 +241,7 @@ function renderForm(c: StartPage['form'], topics: Topic[], n: number): string {
         </div>
         <div class="intake panel" data-intake data-chrome>
           <form class="intake-form" name="start" method="POST" action="/start/sent/" data-netlify="true" netlify-honeypot="company-website" data-form>
-            <p class="intake-hp" aria-hidden="true"><label>${esc(f.honeypot)} <input name="company-website" tabindex="-1" autocomplete="off" /></label></p>
+            <input type="hidden" name="form-name" value="start" />
             <input type="hidden" name="source" value="form" data-source />
             <div class="intake-grid">
               ${field({
@@ -239,6 +253,7 @@ function renderForm(c: StartPage['form'], topics: Topic[], n: number): string {
                 id: 'f-email',
                 label: f.email,
                 hint: f.emailHint,
+                below: true,
                 control: `<input class="field-input" id="f-email" name="email" type="email" autocomplete="email" spellcheck="false" required maxlength="200" ${describe('f-email', true)} />`,
               })}
               ${field({
@@ -258,6 +273,7 @@ function renderForm(c: StartPage['form'], topics: Topic[], n: number): string {
                 control: `<textarea class="field-input field-area" id="f-message" name="message" rows="8" required maxlength="${MESSAGE_MAX}" ${describe('f-message', true)}></textarea>`,
               })}
             </div>
+            <p class="intake-hp" aria-hidden="true"><label>${esc(f.honeypot)} <input name="company-website" tabindex="-1" autocomplete="off" /></label></p>
             <div class="intake-foot">
               <button class="btn btn--primary" type="submit" data-submit><span>${esc(c.submit)}</span><span class="arw" aria-hidden="true">→</span></button>
               <p class="intake-note">${rich(c.note)} <a class="tlink" href="${esc(c.privacy.href)}">${esc(c.privacy.label)}</a></p>

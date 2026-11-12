@@ -70,6 +70,7 @@ export const content: StartPage = {
         off: OFF,
         unreachable: UNREACHABLE,
       },
+      toForm: { label: 'Go to the form', href: '#form' },
       startersLabel: 'Or start with one of these',
       starters: [
         'We need a website for our business.',

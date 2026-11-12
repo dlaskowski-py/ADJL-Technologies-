@@ -3,5 +3,333 @@
  * else, so no other page pays for them (check-budget: page-only CSS
  * ≤ 10 kB gz per page). Use the tokens; prefix classes for the page.
  *
- * OWNER: WS-N (notes + changelog). Empty until that workstream fills it.
+ * OWNER: WS-N (notes + changelog). `nt-` is a note or the notes hub,
+ * `cl-` the changelog. Everything here is static: no motion of its own
+ * beyond hover, so reduced motion and Pause have nothing to stop.
  */
+
+/* ── A note: the byline under the summary ────────────────────────── */
+
+.nt-byline {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+/* A phone has room for two: the author takes the first row whole, the
+   date and reading time share the second. */
+@media (max-width: 559px) {
+  .nt-byline {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .nt-byline .spec:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ── A note: contents beside one column of prose ─────────────────── */
+
+.nt-layout {
+  display: grid;
+  gap: var(--s-6);
+}
+@media (min-width: 1100px) {
+  .nt-layout {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
+    gap: var(--col-gap);
+    align-items: start;
+  }
+  .nt-toc {
+    position: sticky;
+    top: calc(var(--nav-h) + 24px);
+  }
+}
+
+.nt-toc {
+  border-left: 1px solid var(--rule-2);
+  padding-left: var(--s-4);
+}
+.nt-toc ol {
+  list-style: none;
+  margin-top: var(--s-2);
+  counter-reset: nt-toc;
+}
+.nt-toc li {
+  counter-increment: nt-toc;
+}
+.nt-toc a {
+  display: flex;
+  gap: var(--s-3);
+  align-items: baseline;
+  min-height: 44px;
+  padding: 10px 0;
+  font-size: var(--t-small);
+  line-height: 1.45;
+  color: var(--fg-2);
+  transition: color var(--d-2) var(--ease-out);
+}
+.nt-toc a::before {
+  content: counter(nt-toc, decimal-leading-zero);
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+.nt-toc a:hover {
+  color: var(--signal-hi);
+}
+/* The reading column. A ch is the width of a zero, wider than Manrope's
+   average letter, so 54ch sets about 70 characters a line, measured in
+   the browser: the middle of the comfortable range. */
+.nt-body {
+  max-width: 54ch;
+  font-size: clamp(1.0625rem, 0.98rem + 0.25vw, 1.1875rem);
+  line-height: 1.72;
+  color: var(--fg-2);
+}
+.nt-body p + p,
+.nt-body p + .nt-list,
+.nt-body .nt-list + p {
+  margin-top: 1.05em;
+}
+.nt-h {
+  font-family: var(--font-sans);
+  font-size: var(--t-h3);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+  text-wrap: balance;
+  margin: 2.2em 0 0.65em;
+  scroll-margin-top: calc(var(--nav-h) + 24px);
+}
+.nt-h:first-child {
+  margin-top: 0;
+}
+.nt-body .nt-list {
+  margin-top: 0.8em;
+  gap: 0.35em;
+}
+.nt-body .nt-list li {
+  font-size: inherit;
+}
+.nt-code {
+  font-family: var(--font-mono);
+  font-size: 0.84em;
+  padding: 0.08em 0.38em;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-1);
+  background: var(--panel);
+  color: var(--fg);
+  overflow-wrap: anywhere;
+}
+
+/* ── A note: related reading ─────────────────────────────────────── */
+
+.nt-foot-grid {
+  display: grid;
+  gap: var(--s-6);
+}
+@media (min-width: 760px) {
+  .nt-foot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.nt-foot .linkrow {
+  flex-direction: column;
+  margin-top: var(--s-2);
+}
+
+/* ── /notes/: the index ──────────────────────────────────────────── */
+
+.nt-hub-grid {
+  display: grid;
+  gap: var(--s-7);
+}
+@media (min-width: 1100px) {
+  .nt-hub-grid {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--col-gap);
+    align-items: start;
+  }
+  .nt-hub-head {
+    position: sticky;
+    top: calc(var(--nav-h) + 24px);
+  }
+}
+.nt-hub-body {
+  margin-top: var(--s-5);
+}
+
+.nt-cards {
+  list-style: none;
+  border-top: 1px solid var(--rule-2);
+}
+.nt-card {
+  position: relative;
+  display: grid;
+  gap: var(--s-3);
+  padding: var(--s-6) 0;
+  border-bottom: 1px solid var(--rule-2);
+}
+.nt-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--s-1);
+}
+.nt-card-title {
+  max-width: 28ch;
+}
+.nt-card-link {
+  color: var(--fg);
+  transition: color var(--d-2) var(--ease-out);
+}
+/* The whole card is the title link's target. Screen only, so a printout
+   still shows where each card leads. */
+@media screen {
+  .nt-card-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+}
+.nt-card:hover .nt-card-link {
+  color: var(--signal-hi);
+}
+.nt-card-blurb {
+  max-width: 58ch;
+  color: var(--fg-2);
+}
+.nt-card-more {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  color: var(--signal-hi);
+}
+.nt-card-more .arw {
+  transition: transform var(--d-2) var(--ease-out);
+}
+.nt-card:hover .nt-card-more .arw {
+  transform: translateX(4px);
+}
+
+/* ── /changelog/: days on a timeline ─────────────────────────────── */
+
+.cl-head {
+  max-width: 62ch;
+}
+.cl-intro {
+  margin-top: var(--s-5);
+}
+.cl-days {
+  list-style: none;
+  margin-top: var(--s-8);
+  border-bottom: 1px solid var(--rule);
+}
+.cl-day {
+  display: grid;
+  gap: var(--s-4);
+  padding-block: var(--s-6);
+  border-top: 1px solid var(--rule);
+}
+@media (min-width: 900px) {
+  .cl-day {
+    grid-template-columns: 20ch minmax(0, 1fr);
+    gap: var(--col-gap);
+  }
+  .cl-date {
+    position: sticky;
+    top: calc(var(--nav-h) + 24px);
+    align-self: start;
+    padding-top: 0.3em;
+  }
+}
+.cl-date {
+  color: var(--fg-2);
+}
+/* On a phone the date is a bar that stays under the nav while you read
+   that day's entries. */
+@media (max-width: 899px) {
+  .cl-date {
+    position: sticky;
+    top: var(--nav-h);
+    z-index: 1;
+    margin-block: calc(-1 * var(--s-2));
+    padding-block: var(--s-2);
+    background: var(--ground);
+  }
+  .cl-entry {
+    scroll-margin-top: calc(var(--nav-h) + 64px);
+  }
+}
+
+/* The rail: one hairline per day, a node per entry. The newest entry's
+   node is copper, the one warm mark on the page's longest list. */
+.cl-entries {
+  display: grid;
+  gap: var(--s-6);
+  padding-left: var(--s-5);
+  border-left: 1px solid var(--rule-2);
+}
+.cl-entry {
+  position: relative;
+  max-width: 64ch;
+  scroll-margin-top: calc(var(--nav-h) + 24px);
+}
+.cl-entry::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--s-5) - 4px);
+  top: 0.62em;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--fg-3);
+  border-radius: 50%;
+  background: var(--ground);
+}
+.cl-day:first-child .cl-entry:first-child::before {
+  border-color: var(--signal);
+  background: var(--signal);
+}
+.cl-title {
+  font-size: clamp(1.125rem, 1rem + 0.45vw, 1.35rem);
+}
+.cl-body {
+  margin-top: var(--s-2);
+  color: var(--fg-2);
+}
+/* The hashes, then where to see the change: one row on a desktop, two
+   on a phone. */
+.cl-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--s-6);
+  margin-top: var(--s-1);
+}
+.cl-see {
+  flex: none;
+}
+.cl-commits {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--s-3);
+}
+/* A hash is small text with a finger-sized target. */
+.cl-hash {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: var(--t-readout);
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--signal-hi);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--signal-hi) 45%, transparent);
+  transition: text-decoration-color var(--d-2) var(--ease-out);
+}
+.cl-hash:hover {
+  text-decoration-color: var(--signal-hi);
+}

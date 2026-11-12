@@ -6,6 +6,10 @@
  * thresholds, no parameter values, no live positions, and in the research
  * section no tickers, returns or counts.
  *
+ * And one carried from the research's fact check: the rules-based equities
+ * work is tracked on paper. Nothing here may say it trades, executes or
+ * runs real money, and the data line says only what's refreshed daily.
+ *
  * Same conventions as src/content.ts: headlines are arrays of lines,
  * {em}…{/em} marks one emphasized phrase per headline, and {k}…{/k} marks a
  * technical term in body copy. Edit words here, never in a renderer.
@@ -73,7 +77,7 @@ export const content: CaseContent = {
         /* Drawn hatched: the one card on the page about what's deliberately
            not shown. */
         title: "What doesn’t get written down",
-        body: "We describe what a system is for and how it behaves, never how to rebuild it. No thresholds, no parameter values, no live positions. Not on this site, and not in a conversation before there’s a contract. That restraint is carried over from ADJL Capital, where the property scanner and the rules-based equities work run on the firm’s own capital. It points the same way for client work. Your rules set doesn’t get written up anywhere, for any audience. This is deliberate, and it’s why this page argues from method instead of from names.",
+        body: "We describe what a system is for and how it behaves, never how to rebuild it. No thresholds, no parameter values, no live positions. Not on this site, and not in a conversation before there’s a contract. That restraint is carried over from ADJL Capital, where the property scanner runs on the firm’s own capital and the rules-based equities work is tracked on paper every trading day. It points the same way for client work. Your rules set doesn’t get written up anywhere, for any audience. This is deliberate, and it’s why this page argues from method instead of from names.",
         hatch: "Withheld from this page"
       }
     ]
@@ -158,7 +162,7 @@ export const content: CaseContent = {
         items: [
           {
             title: "Daily jobs",
-            body: "Quotes, fundamentals and options chains are fetched every trading day, and coverage is checked before anything downstream reads them."
+            body: "Prices are refreshed every trading day. Larger data sets are pulled as studies need them, and coverage is checked before anything reads them."
           },
           {
             title: "Point-in-time membership",
@@ -173,7 +177,12 @@ export const content: CaseContent = {
             body: "The pricing model is validated against real option-chain quotes, not only against itself."
           }
         ],
-        instrument: "leaders-pit"
+        instrument: "leaders-pit",
+        /* The research this pipeline feeds, and the paper programs that
+           follow it, have their own page. */
+        links: [
+          { label: "How the research runs with AI agents", href: "/work/agentic-research/" }
+        ]
       }
     ]
   },

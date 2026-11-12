@@ -55,6 +55,11 @@ type Wire =
   | { t: 'error'; code: string };
 
 const API = '/api/assistant';
+/** How much of each reply goes back to the function with the next turn.
+ *  Replies aim for about 120 words; one cut off at max_tokens can run to
+ *  thousands of characters, and the function shortens anything past this
+ *  too (LIMITS.replyChars). What's shown on screen stays whole. */
+const KEEP = 2000;
 const LABEL: Record<string, string> = Object.fromEntries(SITE_PAGES.map((p) => [p.route, p.label]));
 const sub = (t: string, v: Record<string, string | number>) => t.replace(/\{(\w+)\}/g, (_, k) => String(v[k] ?? ''));
 const still = () => document.documentElement.dataset.motion === 'reduced';
@@ -205,7 +210,12 @@ function wireForm(root: HTMLElement, copy: AssistantCopy): FormApi | null {
       for (const f of [topic, message]) show(f, '');
       if (hint) hint.textContent = c.drafted || hintText;
 
-      root.scrollIntoView({ behavior: still() ? 'auto' : 'smooth', block: 'start' });
+      /* The panel, not the section: on a phone the section opens with its
+         heading and a screen of copy, and the draft would be out of sight. */
+      (root.querySelector<HTMLElement>('[data-intake]') ?? root).scrollIntoView({
+        behavior: still() ? 'auto' : 'smooth',
+        block: 'start',
+      });
       message.focus({ preventScroll: true });
       message.setSelectionRange(0, 0);
       message.scrollTop = 0;
@@ -315,8 +325,12 @@ function wireChat(root: HTMLElement, copy: AssistantCopy, form: FormApi | null):
     .catch(() => setState('unreachable'));
 
   input.addEventListener('input', counter);
+  /* Enter sends and Shift+Enter starts a new line, with a keyboard. On a
+     touch screen, Enter is the only way to a new line, and Send is right
+     there, so Enter is left alone. */
+  const touch = matchMedia('(pointer: coarse)');
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && !touch.matches) {
       e.preventDefault();
       void ask();
     }
@@ -437,7 +451,7 @@ function wireChat(root: HTMLElement, copy: AssistantCopy, form: FormApi | null):
     }
 
     paint(body, reply);
-    history.push({ role: 'assistant', text: reply.trim() });
+    history.push({ role: 'assistant', text: reply.trim().slice(0, KEEP) });
     if (pages.length) {
       const from = el('p', { 'data-from': '' }, `${ui.from} `);
       pages.forEach((p, i) => {
@@ -447,7 +461,8 @@ function wireChat(root: HTMLElement, copy: AssistantCopy, form: FormApi | null):
       });
       a.append(from);
     }
-    if (stop === 'max_tokens') a.append(el('p', { 'data-flag': '' }, ui.cut));
+    /* Out of words (max_tokens) or out of time: what arrived stays, marked. */
+    if (stop === 'max_tokens' || stop === 'timeout') a.append(el('p', { 'data-flag': '' }, ui.cut));
     if (backup || (model && primary && model !== primary)) {
       a.append(el('p', { 'data-flag': '' }, sub(ui.backup, { model: modelName(backup || model) })));
     }

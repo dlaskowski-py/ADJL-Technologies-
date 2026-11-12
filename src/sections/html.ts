@@ -7,6 +7,7 @@
  */
 
 import { prov as PROV } from '../content';
+import { glossary } from '../content-glossary';
 
 /** Escape interpolated text (attributes and anything that isn't copy). */
 export function esc(s: string): string {
@@ -17,16 +18,46 @@ export function esc(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
+const unesc = (s: string) =>
+  s.replace(/&quot;/g, '"').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
+
+/** A {k} term's glossary key: case, curly apostrophes and spacing don't
+ *  count, so "Evaluation sets" at the start of a sentence finds the same
+ *  entry as "evaluation sets" in the middle of one. */
+export function termKey(term: string): string {
+  return term.toLowerCase().replace(/[‘’]/g, "'").replace(/\s+/g, ' ').trim();
+}
+
+/** The plain definition of a {k} term, from src/content-glossary.ts.
+ *  Undefined when there's none, which check-markers fails the build on. */
+export function definitionOf(term: string): string | undefined {
+  const k = termKey(term);
+  return Object.prototype.hasOwnProperty.call(glossary, k) ? glossary[k] : undefined;
+}
+
 /**
  * Escape, then render BOTH authoring markers: {em}…{/em} to the copper
  * emphasis, {k}…{/k} to the keyword span. ONE function for all human-
  * readable text; esc() is for attributes. scripts/check-markers.mjs fails
  * the build if a marker ever reaches dist/ as literal braces.
+ *
+ * The reading switch: a {k} term is followed by its plain definition,
+ * marked data-for="plain", so Plain (the default, and the only reading
+ * without JavaScript) shows "term (plain words)" and Technical shows the
+ * term alone. The definition is data-chrome too: the shared exclusion set
+ * (src/lib/exclude.ts) keeps it out of the markdown twins, Ask's index,
+ * check-voice and Machine View's word counts, so a machine reads each
+ * sentence once, the technical way.
  */
 export function rich(s: string): string {
   return esc(s)
     .replace(/\{em\}(.+?)\{\/em\}/g, '<em>$1</em>')
-    .replace(/\{k\}(.+?)\{\/k\}/g, '<span class="kwd">$1</span>');
+    .replace(/\{k\}(.+?)\{\/k\}/g, (_, term: string) => {
+      const def = definitionOf(unesc(term));
+      return `<span class="kwd">${term}</span>${
+        def ? `<span class="kwd-def" data-for="plain" data-chrome> (${esc(def)})</span>` : ''
+      }`;
+    });
 }
 
 /** Strip the markers for plain-text uses (aria-labels, meta). */

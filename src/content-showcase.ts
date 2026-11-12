@@ -85,6 +85,31 @@ export const showcase = {
     stream: 'one stream',
   },
 
+  '/work/agentic-research/': {
+    /* Short on purpose: beside the chip on a 320px phone, the bar has room
+       for about a dozen characters before it clips. */
+    bar: 'research/log',
+    /* In the bar, before the mask: the question nobody outside sees.
+       8 characters at most. */
+    question: 'question',
+    /* Beside it, after a tick, once the owner has approved the plan:
+       8 characters at most. */
+    approved: 'approved',
+    /* Column heads, left to right: 4, 10 and 7 characters at most. The
+       ideas are masked; the middle one is the blind control every idea
+       is measured against, on the same days. */
+    cols: ['idea', 'vs control', 'verdict'],
+    /* A row's verdict: 4 characters at most. Most rows fail, and the log
+       says so; which ones and by how much is the drawing's, not the
+       research's. */
+    fail: 'fail',
+    pass: 'pass',
+    /* The paper ledger under the log, left and right: 8 and 10 characters
+       at most. */
+    paper: 'on paper',
+    close: 'each close',
+  },
+
   '/work/mobile-app/': {
     bar: 'iPhone · Android',
     /* On the phone's screen: 10 characters at most. */

@@ -442,8 +442,8 @@ export const systems: {
       title: 'The records behind a price, on one sheet.',
       status: 'Private preview',
       tags: ['software', 'ai'],
-      body: 'A property scanner, company reports read from SEC filings and an analyst for a business for sale. The engines are pure modules that run in the browser. A language model writes one optional note, and no figure comes from it.',
-      plain: 'A research tool for people who aren’t professionals. Give it an address, a stock ticker or a business for sale. It shows the records behind the price and where each figure came from.',
+      body: 'A property scanner, company reports read from SEC filings, a business analyst and an indicator our research tested. The engines are pure modules that run in the browser. AI writes one optional note from figures the code computed.',
+      plain: 'A research tool for people who aren’t professionals. Give it an address, a stock ticker or a business for sale. It shows the records behind the price, and AI can add a note that explains the figures.',
       link: { label: 'How Loep works', href: '/work/loep/' },
     },
     {
@@ -451,9 +451,23 @@ export const systems: {
       title: 'From the feed to the evening brief.',
       status: 'Running · ADJL Capital',
       tags: ['software', 'systems'],
-      body: 'Market-data ingestion, execution pipelines and backtests that share the production code path. Plus a daily research pipeline built on {k}point-in-time{/k} index membership.',
-      plain: 'It takes in market data and sends orders out. Tests replay recorded data through the same code that trades live, and each evening it writes a research brief.',
+      body: 'Market-data ingestion, order logic and backtests that share the production code path. Plus a daily research pipeline built on {k}point-in-time{/k} index membership.',
+      /* The equities work is tracked on paper (see content-case-research.ts),
+         so the plain words say the code works orders out, not that it trades. */
+      plain: 'It takes in market data and works out orders. Tests replay recorded data through the same code that runs every day, and each evening it writes a research brief.',
       link: { label: 'How the pipeline works', href: '/work/trading-infrastructure/' },
+    },
+    {
+      /* Method only, like its page: no result, no count, no strategy name.
+         The paper programs are rules-based and no AI model runs in them. */
+      kicker: 'Agentic research',
+      title: 'AI agents run the studies. A person decides.',
+      status: 'Running · on paper',
+      tags: ['ai', 'systems'],
+      body: 'Agents write the spec, the plan, the code and the reviews. A person approves each gate. Ideas face a blind control on the same days, and rules-based programs follow the chosen ones on paper after every close.',
+      plainTitle: 'Research done with AI, decided by a person.',
+      plain: 'AI agents write the code and run the studies. A person approves the plan and decides what goes forward. The most promising results are followed on paper after every market close.',
+      link: { label: 'How the research runs', href: '/work/agentic-research/' },
     },
     {
       kicker: 'Native app',

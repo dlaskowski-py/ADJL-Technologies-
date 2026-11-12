@@ -8,17 +8,29 @@
  *     sign-in gate, so a visitor following a link would meet a login wall.
  *     The status is "private preview". When the gate comes down: add the
  *     link (and the host to check-links' allowlist) and change the status.
- *   - Who operates Loep, or which firm its engines were first built for.
- *     Loep's own pages name neither, so this page says only that we built it.
+ *   - Who operates Loep. Loep's own pages withhold its operator's name by
+ *     the operator's decision, so this page says only that we built it. The
+ *     founder approved naming one link: Loep's indicator is a system our
+ *     research replicated, tested and revised (/work/agentic-research/),
+ *     and the section saying so links there. Nothing here says the research's results appear on Loep;
+ *     they don't.
  *   - The names of its data providers, its prices and plan limits, and the
  *     settings behind any signal or verdict. Loep keeps all of those off
- *     its own marketing pages.
+ *     its own marketing pages. Nor any result of the research behind the
+ *     indicator, or the indicator's name: the research page's rules apply.
  *   - A figure, as if a sheet had returned it. The numbers on Loep's own
  *     pages are samples and are stamped as samples.
  *   - Anything still planned. The phone app isn't built; the page says so.
  *
  * The role of the language model is stated exactly: it writes one optional
  * note from figures code has already computed. No number comes from it.
+ * Loep's own tagline claims more than that; don't echo it.
+ *
+ * The indicator is worded as the fact check allows: the research
+ * replicated, tested and revised it. It didn't invent it, and which
+ * revision Loep grants isn't known, so no copy calls it the latest. The
+ * market sheet's signal is a conventional rule and says so, so the
+ * research claim can't attach to it.
  *
  * Same conventions as src/content.ts: headlines are arrays of lines,
  * {em}…{/em} marks one emphasized phrase per headline, and {k}…{/k} marks a
@@ -31,7 +43,7 @@ export const content: SectionPage = {
   meta: {
     title: 'Loep, a Research Tool for Property and Stocks | ADJL Technology',
     description:
-      'How we built Loep: a property scanner, company reports read from SEC filings and a business analyst, with every figure labeled by how it was obtained.',
+      'How we built Loep: a property scanner, company reports from SEC filings, a business analyst and an indicator our research tested, every figure sourced.',
     ogTitle: 'The records behind a price, on one sheet.',
     ogDescription:
       'Loep is a research tool we built for people who aren’t professionals. Give it one US address, one stock ticker or one business for sale.',
@@ -63,7 +75,7 @@ export const content: SectionPage = {
         },
         {
           title: 'Market Research',
-          body: 'Enter one ticker. The report reads the company’s annual and quarterly filings from the SEC, builds its statements, and prints a mechanical signal beside the rule that produced it.',
+          body: 'Enter one ticker. The report reads the company’s annual and quarterly filings from the SEC, builds its statements, and prints a conventional, textbook signal beside the rule that produced it.',
         },
         {
           title: 'Business Analyst',
@@ -71,9 +83,29 @@ export const content: SectionPage = {
         },
         {
           title: 'Indicators',
-          body: 'Chart scripts a person adds to their own charts. One is available today, with its method and its weaknesses written out. The rest are marked as in testing.',
+          body: 'Chart scripts a person adds to their own charts. The one available today was replicated, tested and revised in our research, and its method and its weaknesses are written out. The rest are marked as in testing.',
         },
       ],
+    },
+    {
+      /* The approved link to the research, and Loep's use of AI, said as
+         narrowly as the code allows. */
+      id: 'research',
+      eyebrow: 'Research and AI',
+      headline: ['An indicator our research tested,', 'and {em}one optional note.{/em}'],
+      /* Two items, not two paragraphs: the stacked layout gives the
+         headline a full row. */
+      items: [
+        {
+          title: 'The indicator',
+          body: 'The indicator Loep offers today is a system our research replicated, tested and revised, working with AI agents. The ones still in testing go through the same process. Its sheet describes the method and leaves the settings out.',
+        },
+        {
+          title: 'The optional note',
+          body: 'Loep uses AI to write an optional note that explains figures its own code has computed. No figure, signal or verdict comes from a model, and every sheet is complete without the note.',
+        },
+      ],
+      links: [{ label: 'How the research runs', href: '/work/agentic-research/' }],
     },
     {
       id: 'scan',
@@ -98,7 +130,7 @@ export const content: SectionPage = {
         },
         {
           title: 'The price is confirmed first',
-          body: 'The server returns facts and no verdict. The model won’t run until the person checks a box that says this is the price they would pay.',
+          body: 'The server returns facts and no verdict. The underwriting won’t run until the person checks a box that says this is the price they would pay.',
         },
         {
           title: 'Underwritten in the browser',
@@ -150,7 +182,7 @@ export const content: SectionPage = {
       headline: ['Built, and', '{em}not open yet.{/em}'],
       body: [
         'Loep is deployed behind a sign-in gate today, so this page doesn’t link to it. Card checkout isn’t connected, and an iPhone app is planned and not built. When the gate comes down, the link goes here.',
-        'This page leaves out Loep’s data providers, its prices and plan limits, and the settings behind any signal or verdict. Loep keeps those off its own marketing pages too.',
+        'This page leaves out Loep’s data providers, its prices and plan limits, and the settings behind any signal or verdict. Loep keeps those off its own marketing pages too. This page also leaves out every result of the research behind Loep’s indicator.',
       ],
       hatch: 'Withheld from this page',
     },

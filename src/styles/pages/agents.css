@@ -1,7 +1,230 @@
 /**
- * Page-only styles for /agents/, linked from those shells and nowhere
- * else, so no other page pays for them (check-budget: page-only CSS
- * ≤ 10 kB gz per page). Use the tokens; prefix classes for the page.
+ * Page-only styles for /agents/, linked from that shell and nowhere else,
+ * so no other page pays for them (check-budget: page-only CSS ≤ 10 kB gz
+ * per page).
  *
- * OWNER: WS-M (agents). Empty until that workstream fills it.
+ * Two pieces: #connect (the endpoint's facts beside three code panes) and
+ * #tools (one card per MCP tool). The rest of the page is the generic
+ * section kit. Nothing here moves: the panes and cards are static, and
+ * the only motion is the site's shared reveal.
+ *
+ * Colour keeps its meaning: a tool's name is machine-readable structure
+ * (violet), "Read-only" is data (teal), and the one tool that sends
+ * something on a person's behalf is copper, the colour of our action.
+ *
+ * OWNER: WS-M (agents).
  */
+
+/* ── #connect ─────────────────────────────────────────────────────── */
+
+.ag-connect {
+  display: grid;
+  gap: var(--s-7);
+}
+@media (min-width: 1100px) {
+  .ag-connect {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+    gap: var(--s-8);
+    align-items: start;
+  }
+}
+.ag-facts dd {
+  overflow-wrap: anywhere;
+}
+/* A protocol version is one token: never "2026-07-" on one line and
+   "28" on the next. */
+.ag-date {
+  white-space: nowrap;
+}
+
+.ag-snips {
+  display: grid;
+  gap: var(--col-gap);
+  min-width: 0;
+}
+.ag-snip {
+  min-width: 0;
+  overflow: hidden;
+}
+.ag-lang {
+  color: var(--fg-3);
+}
+.ag-cap {
+  padding: var(--s-4) var(--s-5) 0;
+  font-size: var(--t-small);
+  color: var(--fg-2);
+}
+/* A long line scrolls inside its pane, never the page. The pane takes
+   focus so the scroll works from a keyboard too. */
+.ag-pre {
+  margin: 0;
+  padding: var(--s-3) var(--s-5) var(--s-5);
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: var(--t-code);
+  line-height: 1.7;
+  color: var(--fg);
+  tab-size: 2;
+}
+.ag-pre code {
+  font-family: inherit;
+}
+/* On a phone, wrap instead: a command cut off at the edge reads as the
+   whole command. Copying soft-wrapped text still gives the original. */
+@media (max-width: 759px) {
+  .ag-cap {
+    padding: var(--s-4) var(--s-3) 0;
+  }
+  /* 12px mono fits the config block's longest line on a 360px phone. */
+  .ag-pre {
+    padding: var(--s-3) var(--s-3) var(--s-4);
+    font-size: var(--t-label);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* ── #tools ───────────────────────────────────────────────────────── */
+
+.ag-tools {
+  display: grid;
+  gap: var(--col-gap);
+  margin-top: var(--s-7);
+}
+@media (min-width: 760px) {
+  .ag-tools {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  /* The one tool that acts takes the full row. */
+  .ag-tool[data-kind='send'] {
+    grid-column: 1 / -1;
+  }
+  .ag-tool[data-kind='send'] .ag-io {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-6);
+  }
+}
+
+.ag-tool {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  min-width: 0;
+  padding: var(--s-5);
+}
+.ag-tool[data-kind='send'] {
+  border-color: color-mix(in srgb, var(--signal) 45%, var(--rule-2));
+}
+/* Wide enough for two columns: what it does on the left, what it takes
+   and returns on the right. */
+@media (min-width: 1100px) {
+  .ag-tool[data-kind='send'] {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    grid-template-rows: auto auto 1fr;
+    column-gap: var(--s-7);
+    row-gap: var(--s-4);
+  }
+  .ag-tool[data-kind='send'] > * {
+    grid-column: 1;
+  }
+  .ag-tool[data-kind='send'] > .ag-io {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    grid-template-columns: none;
+    gap: var(--s-4);
+    margin-top: 0;
+    padding-top: 0;
+    padding-left: var(--s-6);
+    border-top: 0;
+    border-left: 1px solid var(--rule);
+  }
+}
+
+.ag-tool-h {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ag-tool-name {
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  font-weight: 500;
+  color: var(--model);
+  overflow-wrap: anywhere;
+}
+.ag-tool-title {
+  font-family: var(--font-sans);
+  font-size: var(--t-h3);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+
+.ag-tag {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  justify-self: start;
+  gap: 6px;
+  padding: 2px 6px;
+  border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+  border-radius: var(--r-1);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--data);
+}
+.ag-tool[data-kind='send'] .ag-tag {
+  color: var(--signal-hi);
+}
+.ag-glyph {
+  font-family: var(--font-mono);
+}
+
+.ag-desc {
+  max-width: var(--measure);
+  font-size: var(--t-small);
+  color: var(--fg-2);
+}
+
+/* Takes and Returns sit at the foot of the card, so a row of cards lines
+   up there whatever the length of each description. */
+.ag-io {
+  display: grid;
+  gap: var(--s-4);
+  margin-top: auto;
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--rule);
+}
+.ag-io dt {
+  margin-bottom: var(--s-2);
+}
+.ag-io dd,
+.ag-io p {
+  font-size: var(--t-small);
+  color: var(--fg-2);
+}
+.ag-args {
+  list-style: none;
+  display: grid;
+  gap: var(--s-3);
+}
+.ag-arg {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  color: var(--fg);
+}
+.ag-opt {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+.ag-argtext {
+  display: block;
+  margin-top: 2px;
+}

@@ -1,9 +1,7 @@
 /* One page: its renderer and its meta. Imported by the prerender entry in
-   scripts/ and, in the dev shell only, lazily by src/main.ts.
-
-   STUB from the foundation; WS-N owns the body. */
+   scripts/ and, in the dev shell only, lazily by src/main.ts. */
 import { content } from '../content-changelog';
-import { renderSectionPage } from '../sections/sectionpage';
+import { renderChangelog } from '../sections/changelog';
 
 export const meta = content.meta;
-export const render = () => renderSectionPage(content, { route: '/changelog/', file: 'content-changelog.ts' });
+export const render = () => renderChangelog();

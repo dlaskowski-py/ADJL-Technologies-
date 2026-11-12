@@ -1,7 +1,873 @@
 /**
- * Page-only styles for /scan/ and /services/seo/audit/, linked from those shells and nowhere
- * else, so no other page pays for them (check-budget: page-only CSS
- * ≤ 10 kB gz per page). Use the tokens; prefix classes for the page.
+ * Page-only styles for /scan/ and /services/seo/audit/, linked from those
+ * shells and nowhere else, so no other page pays for them (check-budget:
+ * page-only CSS ≤ 10 kB gz per page). /services/seo/audit/ is built from
+ * the shared section renderers and needs nothing here; it links this file
+ * so a later addition has a home.
  *
- * OWNER: WS-S (scanner + audit). Empty until that workstream fills it.
+ * Two kinds of selector, on purpose:
+ *   .scan-*            prerendered markup from src/sections/scan.ts (the
+ *                      form, its steps, the section around the report).
+ *                      check-css holds every one to a rule.
+ *   [data-scan] [data-part=…]
+ *                      the report, drawn by src/sections/scan-kit.ts both at
+ *                      build (the recorded example) and in the browser (a
+ *                      visitor's scan). The browser builds it at runtime,
+ *                      where check-css can't see classes, so it carries none.
+ *
+ * Colour keeps its fixed meaning: copper for what people read, teal for
+ * what crawlers follow (and for measurements), violet for what machines
+ * parse; states always come with a glyph and a word.
+ *
+ * Motion: the default state is the finished, still report. The only
+ * movement is a fresh report snapping in and the running step's tick, and
+ * both hang off html:not([data-motion='reduced']):not([data-paused]).
+ *
+ * OWNER: WS-S (scanner + audit).
  */
+
+/* ── The form, under the hero's lead ─────────────────────────────────── */
+
+.scan-entry {
+  margin-top: var(--s-6);
+  max-width: 640px;
+}
+.scan-form {
+  display: grid;
+  gap: var(--s-2);
+}
+.scan-label {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.scan-field {
+  position: relative;
+  display: flex;
+  gap: var(--s-2);
+}
+.scan-prompt {
+  position: absolute;
+  left: 16px;
+  /* Half the field's height, not 50%: on a phone the button wraps under
+     the field and the row grows. */
+  top: 28px;
+  transform: translateY(-52%);
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--signal-hi);
+  pointer-events: none;
+}
+.scan-input {
+  /* No intrinsic width, so a phone never overflows. */
+  flex: 1 1 0;
+  width: 0;
+  min-width: 0;
+  height: 56px;
+  padding: 0 14px 0 40px;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--fg);
+  background: var(--panel-2);
+  border: 1px solid var(--fg-3);
+  border-radius: var(--r-2);
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color var(--d-1) var(--ease-out);
+}
+.scan-input::placeholder {
+  color: var(--fg-3);
+  opacity: 1;
+}
+.scan-input:hover {
+  border-color: var(--fg-2);
+}
+.scan-input:focus-visible {
+  outline-offset: 2px;
+  border-color: var(--signal-hi);
+}
+.scan-input[aria-invalid='true'] {
+  border-color: var(--fail);
+}
+.scan-go {
+  flex: none;
+  height: 56px;
+  /* Wide enough for either label, so "Scanning…" doesn't move the field. */
+  min-width: 156px;
+}
+.scan-go[aria-disabled='true'] {
+  cursor: progress;
+}
+.scan-note {
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--fg-3);
+}
+/* With JavaScript off the form is hidden ([data-js-only]) and this says
+   why, pointing at the recorded scan. */
+.scan-nojs {
+  font-size: var(--t-small);
+  line-height: 1.6;
+  color: var(--fg-2);
+  padding: var(--s-4) var(--s-5);
+  border: 1px solid var(--rule-2);
+  border-left: 2px solid var(--signal);
+  border-radius: var(--r-2);
+  background: var(--panel);
+}
+html.js .scan-nojs {
+  display: none;
+}
+@media (max-width: 479px) {
+  .scan-field {
+    flex-wrap: wrap;
+  }
+  .scan-input {
+    flex-basis: 100%;
+  }
+  .scan-go {
+    width: 100%;
+  }
+}
+
+/* The steps, as they happen. */
+.scan-steps {
+  list-style: none;
+  margin: var(--s-3) 0 0;
+  padding: var(--s-3) var(--s-4);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: var(--s-2) var(--s-5);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-2);
+  background: var(--panel);
+}
+.scan-steps[hidden] {
+  display: none;
+}
+.scan-steps li {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 28px;
+  color: var(--fg-3);
+}
+.scan-steps [data-part='name'] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.scan-steps [data-part='t'] {
+  flex: none;
+  color: var(--fg-3);
+}
+.scan-steps [data-part='dot'] {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid var(--fg-3);
+}
+.scan-steps [data-state='run'] {
+  color: var(--fg);
+}
+.scan-steps [data-state='run'] [data-part='dot'] {
+  border-color: var(--data);
+  background: var(--data);
+}
+.scan-steps [data-state='run'] [data-part='t'] {
+  color: var(--data);
+}
+.scan-steps [data-state='done'] {
+  color: var(--fg-2);
+}
+.scan-steps [data-state='done'] [data-part='dot'] {
+  border-color: var(--ok);
+  background: var(--ok);
+}
+.scan-steps [data-state='failed'] {
+  color: var(--fg-2);
+}
+.scan-steps [data-state='failed'] [data-part='dot'] {
+  border-color: var(--fail);
+  border-radius: 1px;
+  transform: rotate(45deg);
+}
+.scan-steps [data-state='failed'] [data-part='t'] {
+  color: var(--fail);
+}
+.scan-steps [data-state='skip'] [data-part='dot'] {
+  border-style: dashed;
+}
+html:not([data-motion='reduced']):not([data-paused]) .scan-steps [data-state='run'] [data-part='dot'] {
+  animation: scan-tick 0.9s steps(2, jump-none) infinite;
+}
+@keyframes scan-tick {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* A scan that couldn't run, in plain words. */
+.scan-error {
+  margin-top: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border: 1px solid var(--rule-2);
+  border-left: 2px solid var(--fail);
+  border-radius: var(--r-2);
+  background: var(--panel);
+  font-size: var(--t-small);
+  line-height: 1.55;
+  color: var(--fg-2);
+}
+.scan-error[hidden] {
+  display: none;
+}
+[data-scan] [data-part='etitle'] {
+  margin-bottom: 4px;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+/* ── The report section ──────────────────────────────────────────────── */
+
+.scan-sec .sec-copy {
+  margin-bottom: var(--s-7);
+}
+.scan-out {
+  container: scan / inline-size;
+  min-width: 0;
+}
+.scan-cta {
+  margin-top: var(--s-5);
+}
+
+/* ── The report (scan-kit.ts) ────────────────────────────────────────── */
+
+[data-scan] [data-part='report'] {
+  position: relative;
+  background-color: var(--panel);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-2);
+  box-shadow: var(--e1-shadow);
+  /* The registration ticks every instrument panel carries. */
+  --tick: var(--rule-3);
+  background-image: linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick));
+  background-size: 6px 1px, 1px 6px, 6px 1px, 1px 6px, 6px 1px, 1px 6px, 6px 1px, 1px 6px;
+  background-position: 6px 6px, 6px 6px, calc(100% - 6px) 6px, calc(100% - 6px) 6px, 6px calc(100% - 6px),
+    6px calc(100% - 6px), calc(100% - 6px) calc(100% - 6px), calc(100% - 6px) calc(100% - 6px);
+  background-repeat: no-repeat;
+  color: var(--fg-2);
+}
+[data-scan] code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+}
+[data-scan] q {
+  color: var(--fg);
+  quotes: '“' '”';
+  overflow-wrap: anywhere;
+}
+[data-scan] [data-part='none'] {
+  color: var(--fg-3);
+  font-style: italic;
+}
+[data-scan] [data-part='aside'] {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+  white-space: nowrap;
+}
+
+/* Head: what this is, which page, and where it came from. */
+[data-scan] [data-part='head'] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-4);
+  padding: 14px var(--s-5);
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.06em;
+  /* Clear of the sticky nav when the report scrolls into view. */
+  scroll-margin-top: 96px;
+}
+[data-scan] [data-part='head']:focus {
+  outline: none;
+}
+[data-scan] [data-part='head']:focus-visible {
+  outline: 2px solid var(--signal-hi);
+  outline-offset: -2px;
+}
+[data-scan] [data-part='title'] {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--fg-3);
+}
+[data-scan] [data-part='target'] {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--t-readout);
+  letter-spacing: 0.02em;
+  color: var(--fg);
+  overflow-wrap: anywhere;
+}
+
+/* The request line: what was fetched and how it answered. Measurements,
+   so teal. */
+[data-scan] [data-part='request'] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-6);
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  color: var(--fg-2);
+}
+[data-scan] [data-part='request'] > span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  min-width: 0;
+}
+[data-scan] [data-part='request'] small {
+  font-size: var(--t-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+[data-scan] [data-part='request'] b {
+  font-weight: 500;
+  color: var(--data);
+}
+[data-scan] [data-part='get'] {
+  flex: 1 1 100%;
+}
+[data-scan] [data-part='get'] b {
+  color: var(--fg-3);
+}
+[data-scan] [data-part='get'] code {
+  color: var(--fg);
+}
+[data-scan] [data-code='bad'] {
+  color: var(--fail);
+}
+
+/* Summary: the tally, then the first things to do. */
+[data-scan] [data-part='summary'] {
+  padding: var(--s-5);
+  border-bottom: 1px solid var(--rule);
+}
+[data-scan] [data-part='tally'] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-5);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  color: var(--fg-2);
+}
+[data-scan] [data-part='tally'] b {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-right: 4px;
+}
+[data-scan] [data-part='first-label'] {
+  margin-top: var(--s-4);
+  font-weight: 600;
+  color: var(--fg);
+}
+[data-scan] [data-part='first'] {
+  list-style: none;
+  margin: var(--s-2) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+[data-scan] [data-part='first'] a {
+  display: flex;
+  gap: var(--s-3);
+  align-items: baseline;
+  min-height: 44px;
+  padding: 10px 0;
+  color: var(--fg);
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-sans);
+  font-size: var(--t-small);
+  text-decoration: underline;
+  text-decoration-color: var(--rule-3);
+  text-underline-offset: 3px;
+}
+[data-scan] [data-part='first'] a:hover {
+  text-decoration-color: var(--signal-hi);
+}
+
+/* Levels: a glyph, a word and a colour, never the colour alone. */
+[data-scan] [data-level='fix'] [data-part='mark'],
+[data-scan] [data-part='tally'] [data-level='fix'] b {
+  color: var(--fail);
+}
+[data-scan] [data-level='improve'] [data-part='mark'],
+[data-scan] [data-part='tally'] [data-level='improve'] b {
+  color: var(--warn);
+}
+[data-scan] [data-level='note'] [data-part='mark'],
+[data-scan] [data-part='tally'] [data-level='note'] b {
+  color: var(--fg-2);
+}
+[data-scan] [data-level='ok'] [data-part='mark'],
+[data-scan] [data-part='tally'] [data-level='ok'] b {
+  color: var(--ok);
+}
+
+/* ── The three layers ────────────────────────────────────────────────── */
+
+[data-scan] [data-layer] {
+  --layer: var(--signal);
+  --layer-hi: var(--signal-hi);
+  position: relative;
+  padding: var(--s-6) var(--s-5) var(--s-5);
+  border-bottom: 1px solid var(--rule);
+}
+[data-scan] [data-layer='crawlers'] {
+  --layer: var(--data-dim);
+  --layer-hi: var(--data);
+}
+[data-scan] [data-layer='machines'] {
+  --layer: var(--model-dim);
+  --layer-hi: var(--model);
+}
+/* The layer's edge, in its colour, like the plane it stands for. */
+[data-scan] [data-layer]::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: var(--s-6);
+  bottom: var(--s-5);
+  width: 2px;
+  background: var(--layer);
+  transform-origin: top;
+}
+[data-scan] [data-part='layer-head'] {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: var(--s-4);
+  align-items: start;
+  margin-bottom: var(--s-5);
+}
+[data-scan] [data-part='layer-head'] h3 {
+  font-size: var(--t-h3);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--fg);
+}
+[data-scan] [data-part='layer-head'] p {
+  margin-top: 4px;
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--fg-3);
+}
+[data-scan] [data-part='n'] {
+  padding-top: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  color: var(--layer-hi);
+}
+
+/* The hero figure's three planes, the one this layer reads lit. */
+[data-scan] [data-part='planes'] {
+  width: 40px;
+  height: 34px;
+  overflow: visible;
+}
+[data-scan] [data-plane] {
+  fill: none;
+  stroke: var(--rule-3);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+[data-scan] [data-on='people'] [data-plane='people'],
+[data-scan] [data-on='crawlers'] [data-plane='crawlers'],
+[data-scan] [data-on='machines'] [data-plane='machines'] {
+  stroke: var(--layer-hi);
+  fill: color-mix(in srgb, var(--layer) 35%, transparent);
+}
+
+[data-scan] [data-part='layer-body'] {
+  display: grid;
+  gap: var(--s-5) var(--s-7);
+}
+@container scan (min-width: 860px) {
+  [data-scan] [data-part='layer-body'] {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: start;
+  }
+}
+
+/* Readouts: label and value rows, the Machine View's grammar. */
+[data-scan] [data-part='readout'] {
+  display: grid;
+  margin: 0;
+}
+[data-scan] [data-part='row'] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px var(--s-4);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule);
+}
+[data-scan] [data-part='row']:first-child {
+  padding-top: 0;
+}
+[data-scan] [data-part='row'] > dt {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.04em;
+  color: var(--fg-3);
+}
+[data-scan] [data-part='row'] > dd {
+  min-width: 0;
+  margin: 0;
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--fg-2);
+}
+[data-scan] [data-part='row'] b {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--layer-hi);
+}
+@container scan (min-width: 520px) {
+  [data-scan] [data-part='row'] {
+    grid-template-columns: 17ch minmax(0, 1fr);
+    align-items: baseline;
+  }
+}
+[data-scan] [data-ok] {
+  color: var(--fg-2);
+}
+[data-scan] [data-ok]::before {
+  content: '✓ ';
+  color: var(--ok);
+}
+[data-scan] [data-miss] {
+  color: var(--fg-2);
+}
+[data-scan] [data-miss]::before {
+  content: '✕ ';
+  color: var(--fail);
+}
+[data-scan] [data-part='outline'],
+[data-scan] [data-part='hops'] {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 3px;
+}
+[data-scan] [data-part='outline'] li {
+  color: var(--fg-2);
+  overflow-wrap: anywhere;
+}
+[data-scan] [data-h='2'] {
+  padding-left: 2ch;
+}
+[data-scan] [data-h='3'] {
+  padding-left: 4ch;
+  color: var(--fg-3);
+}
+[data-scan] [data-h='more'] {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+[data-scan] [data-part='hl'] {
+  display: inline-block;
+  min-width: 3ch;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--layer-hi);
+}
+[data-scan] [data-part='types'] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+[data-scan] [data-part='types'] code {
+  padding: 1px 6px;
+  border: 1px solid color-mix(in srgb, var(--layer-hi) 45%, transparent);
+  border-radius: var(--r-1);
+  color: var(--layer-hi);
+}
+[data-scan] [data-part='types'] code[data-off] {
+  border-style: dashed;
+  border-color: var(--rule-3);
+  color: var(--fg-3);
+  text-decoration: line-through;
+}
+
+/* Findings: prose, so the page's own type. */
+[data-scan] [data-part='findings'] {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-3);
+}
+[data-scan] [data-part='findings'] li {
+  display: grid;
+  grid-template-columns: 2.2ch minmax(0, 1fr);
+  column-gap: var(--s-2);
+  font-size: var(--t-small);
+  line-height: 1.55;
+  scroll-margin-top: 96px;
+}
+[data-scan] [data-part='findings'] li > * {
+  grid-column: 2;
+}
+[data-scan] [data-part='findings'] [data-part='mark'] {
+  grid-column: 1;
+  grid-row: 1;
+  font-family: var(--font-mono);
+}
+[data-scan] [data-part='findings'] [data-part='level'] {
+  grid-row: 1;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+[data-scan] [data-part='findings'] li:not([data-level='ok']) {
+  padding: var(--s-4);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-2);
+  background: var(--ground-2);
+}
+[data-scan] [data-part='findings'] li:not([data-level='ok']) p + p {
+  margin-top: 6px;
+}
+[data-scan] [data-part='ftitle'] {
+  color: var(--fg);
+}
+[data-scan] [data-part='ftitle'] strong {
+  font-weight: 600;
+}
+[data-scan] [data-level='ok'] [data-part='ftitle'] {
+  color: var(--fg-2);
+}
+/* A fine finding is one line: the glyph and the sentence. Its level word
+   stays for screen readers. */
+[data-scan] [data-level='ok'] [data-part='level'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+[data-scan] [data-level='ok'] [data-part='ftitle'] {
+  grid-row: 1;
+}
+[data-scan] [data-part='todo'] {
+  color: var(--fg);
+}
+[data-scan] [data-part='todo-label'] {
+  font-weight: 600;
+  color: var(--layer-hi);
+}
+
+/* ── The AI crawler table ────────────────────────────────────────────── */
+
+[data-scan] [data-part='agents'] {
+  padding: var(--s-6) var(--s-5) var(--s-5);
+}
+[data-scan] [data-part='agents-head'] h3 {
+  font-size: var(--t-h3);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--fg);
+}
+[data-scan] [data-part='agents-head'] p {
+  margin-top: 4px;
+  max-width: 70ch;
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--fg-3);
+}
+[data-scan] [data-part='agents-wrap'] {
+  margin-top: var(--s-5);
+}
+[data-scan] table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-small);
+  line-height: 1.5;
+}
+[data-scan] thead th {
+  padding: 0 var(--s-4) var(--s-2) 0;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  border-bottom: 1px solid var(--rule-2);
+}
+[data-scan] [data-part='group'] th {
+  padding: var(--s-5) 0 var(--s-2);
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--data);
+  border-bottom: 1px solid var(--rule);
+}
+[data-scan] tbody tr:not([data-part='group']) > * {
+  padding: 10px var(--s-4) 10px 0;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+[data-scan] tbody th code {
+  font-weight: 500;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+[data-scan] [data-part='by'] {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  color: var(--fg-3);
+  white-space: nowrap;
+}
+[data-scan] [data-part='what'] {
+  color: var(--fg-2);
+}
+[data-scan] [data-part='verdict'] {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  color: var(--fg);
+  white-space: nowrap;
+}
+[data-scan] [data-part='verdict'] [data-part='mark'] {
+  color: var(--fg-3);
+}
+[data-scan] [data-verdict='allowed'] [data-part='verdict'] [data-part='mark'] {
+  color: var(--ok);
+}
+[data-scan] [data-verdict='blocked'] [data-part='verdict'] [data-part='mark'],
+[data-scan] [data-verdict='blocked'] [data-part='verdict'] {
+  color: var(--fail);
+}
+[data-scan] [data-part='rule'] {
+  display: block;
+  font-size: var(--t-label);
+  color: var(--fg-3);
+  white-space: normal;
+}
+/* Narrow: each crawler becomes a short card, name and verdict on top. */
+@container scan (max-width: 699px) {
+  [data-scan] table,
+  [data-scan] tbody {
+    display: block;
+  }
+  [data-scan] thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  [data-scan] [data-part='group'],
+  [data-scan] [data-part='group'] th {
+    display: block;
+  }
+  [data-scan] tbody tr:not([data-part='group']) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px var(--s-4);
+    padding: var(--s-3) 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  [data-scan] tbody tr:not([data-part='group']) > * {
+    padding: 0;
+    border: 0;
+  }
+  [data-scan] [data-part='by'] {
+    grid-row: 2;
+  }
+  [data-scan] [data-part='what'] {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+  [data-scan] [data-part='verdict'] {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    text-align: right;
+  }
+}
+
+/* ── A fresh report snaps in ─────────────────────────────────────────── */
+
+html:not([data-motion='reduced']):not([data-paused]) [data-scan][data-fresh] [data-part='report'] > * {
+  animation: scan-in var(--d-2) var(--ease-out) both;
+}
+html:not([data-motion='reduced']):not([data-paused]) [data-scan][data-fresh] [data-part='report'] > :nth-child(2) {
+  animation-delay: 60ms;
+}
+html:not([data-motion='reduced']):not([data-paused]) [data-scan][data-fresh] [data-part='report'] > :nth-child(3) {
+  animation-delay: 120ms;
+}
+html:not([data-motion='reduced']):not([data-paused]) [data-scan][data-fresh] [data-layer] {
+  animation-delay: 180ms;
+}
+html:not([data-motion='reduced']):not([data-paused]) [data-scan][data-fresh] [data-layer='crawlers'] {
+  animation-delay: 240ms;
+}
+html:not([data-motion='reduced']):not([data-paused]) [data-scan][data-fresh] [data-layer='machines'] {
+  animation-delay: 300ms;
+}
+html:not([data-motion='reduced']):not([data-paused]) [data-scan][data-fresh] [data-part='agents'] {
+  animation-delay: 360ms;
+}
+html:not([data-motion='reduced']):not([data-paused]) [data-scan][data-fresh] [data-layer]::before {
+  animation: scan-edge var(--d-3) var(--ease-out) both;
+  animation-delay: inherit;
+}
+@keyframes scan-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes scan-edge {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@media print {
+  .scan-entry {
+    display: none;
+  }
+  [data-scan] [data-part='report'] {
+    background: none;
+    box-shadow: none;
+  }
+}

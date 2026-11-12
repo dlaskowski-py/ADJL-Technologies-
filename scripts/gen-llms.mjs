@@ -13,6 +13,12 @@
  * header pointing back at the HTML page, so the twin never competes with
  * the page it copies. llms-full.txt is every twin, in one file.
  *
+ * llms.txt also has a short "For agents" section: the MCP endpoint at /mcp
+ * (netlify/functions/mcp.mjs) and /agents/, the page that says how to
+ * connect. Its words and the tool names come from src/content-agents.ts,
+ * the same module the endpoint reads, so the index can't advertise a tool
+ * the endpoint doesn't have.
+ *
  * All of it is generated from dist/ after prerender, never written by hand,
  * for the same reason the <title> slots are filled from content modules: a
  * hand-kept summary is the copy nobody edits, and it would start describing
@@ -31,6 +37,7 @@ import { INDEXED, ORIGIN } from './pages.mjs';
 import { dateModifiedOf, llmsLine, ORG_DESCRIPTION, shortTitle, twinOf } from './seo.mjs';
 import { walk, isExcluded, classes, INLINE } from './lib-text.mjs';
 import { addHeaders } from './lib/headers.mjs';
+import { loadTs } from './lib/ts.mjs';
 
 const CONTACT = 'daniel@adjlcapital.com';
 
@@ -44,7 +51,15 @@ const skipForTwin = (el) =>
 
 const LEAVES = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'dt', 'dd', 'summary', 'figcaption', 'caption', 'p', 'blockquote', 'pre', 'td', 'th']);
 
-const squash = (s) => s.replace(/[\s ]+/g, ' ').trim();
+/* Every element boundary that isn't inline phrasing reads as a space
+   (src/lib/exclude.ts INLINE: a span can be display:block, like a
+   headline's lines). Next to punctuation that space is never real, so a
+   marked term isn't followed by " ," in the twin: "MCP," not "MCP ,". */
+const squash = (s) =>
+  s
+    .replace(/[\s ]+/g, ' ')
+    .replace(/ (?=[,.;:!?’”)\]])/g, '')
+    .trim();
 /** Keep a paragraph from being read as markdown syntax it doesn't mean. */
 const guard = (s) => s.replace(/^([#>+*-]|\d+\.)(\s)/, '\\$1$2');
 
@@ -356,6 +371,18 @@ for (const [name, test] of groups) {
   if (name === 'Firm') index.push(`- [Contact](${ORIGIN}/#contact): Email ${CONTACT}.`);
 }
 const unlisted = pages.filter((p) => !listed.has(p.route));
+
+/* For agents: where the MCP endpoint is and what it offers. The endpoint
+   isn't a page (it answers POST), so it's described here, not grouped. */
+const { mcp } = await loadTs('src/content-agents.ts');
+const sends = mcp.tools.filter((t) => t.kind === 'send').map((t) => t.name);
+index.push(
+  '',
+  '## For agents',
+  '',
+  `- [MCP endpoint](${ORIGIN}/mcp): ${mcp.description} Model Context Protocol over Streamable HTTP: POST, JSON replies, no sign-in. Tools: ${mcp.tools.map((t) => t.name).join(', ')}. Every tool only reads except ${sends.join(' and ')}, which sends Daniel a message.`,
+  `- [How to connect](${ORIGIN}/agents/): The endpoint, a client config, each tool and what it returns, and the rules.`,
+);
 index.push(
   '',
   '## Machine-readable',

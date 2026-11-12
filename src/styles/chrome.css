@@ -394,6 +394,74 @@ html:not(.js) .nav-burger {
   padding: 0 14px;
 }
 
+/* ── Reading switch (nav bar and mobile menu, motion/read.ts) ────── */
+
+/* The chosen reading is drawn from html[data-read], so a stored choice
+   shows on the first frame; aria-pressed follows it once read.ts runs. */
+.read-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.nav-end .read-switch {
+  display: none;
+}
+.read-label {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+}
+.read-track {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-pill);
+}
+.read-opt {
+  position: relative;
+  min-height: 30px;
+  padding: 0 8px;
+  border-radius: var(--r-pill);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--fg-3);
+  transition: background-color var(--d-2) var(--ease-out), color var(--d-2) var(--ease-out);
+}
+/* 30px to the eye, 44px to a finger. */
+.read-opt::after {
+  content: '';
+  position: absolute;
+  inset: -7px 0;
+}
+.read-opt:hover,
+html:not([data-read='technical']) .read-opt[data-read-set='plain'],
+html[data-read='technical'] .read-opt[data-read-set='technical'] {
+  color: var(--fg);
+}
+html:not([data-read='technical']) .read-opt[data-read-set='plain'],
+html[data-read='technical'] .read-opt[data-read-set='technical'] {
+  background: var(--panel-2);
+}
+.mobile-tools .read-switch {
+  flex-basis: 100%;
+}
+.mobile-tools .read-opt {
+  min-height: 44px;
+  padding: 0 16px;
+}
+@media (min-width: 1160px) {
+  .nav-end .read-switch {
+    display: inline-flex;
+  }
+}
+/* Below 1320px the bar can't hold both: the switch keeps its place, and
+   ⌘K still opens the palette the Jump button would. */
+@media (min-width: 1160px) and (max-width: 1319px) {
+  .nav-jump {
+    display: none;
+  }
+}
+
 /* ── Breadcrumbs ─────────────────────────────────────────────────── */
 
 .crumbs {

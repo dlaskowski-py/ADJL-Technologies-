@@ -186,7 +186,7 @@ export const content: SectionPage = {
       eyebrow: 'Left out',
       headline: ['What it', '{em}doesn’t do.{/em}'],
       body: [
-        'No cookies. No trackers. No third-party scripts. A form can post only back to this site. Ask This Site is retrieval only, and no language model writes its answers. The one model here is the scoping assistant on the start page, called from a server function, so no key ever reaches your browser.',
+        'No cookies. No trackers. No third-party scripts. A form can post only back to this site. Ask This Site is retrieval only, and no language model writes its answers. The one place a model runs is the scoping assistant on the start page. It’s called from a server function, so no key ever reaches your browser.',
       ],
     },
   ],

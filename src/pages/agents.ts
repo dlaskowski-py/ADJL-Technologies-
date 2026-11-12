@@ -1,9 +1,11 @@
 /* One page: its renderer and its meta. Imported by the prerender entry in
    scripts/ and, in the dev shell only, lazily by src/main.ts.
 
-   STUB from the foundation; WS-M owns the body. */
-import { content } from '../content-agents';
-import { renderSectionPage } from '../sections/sectionpage';
+   /agents/ has its own renderer (src/sections/agents.ts): the endpoint,
+   its code panes and one card per tool. The tools come from the same list
+   the MCP endpoint (netlify/functions/mcp.mjs) sends to agents. */
+import { content, mcp } from '../content-agents';
+import { renderAgents } from '../sections/agents';
 
 export const meta = content.meta;
-export const render = () => renderSectionPage(content, { route: '/agents/', file: 'content-agents.ts' });
+export const render = () => renderAgents(content, mcp.tools);

@@ -46,7 +46,10 @@ export type ScanResult = {
     titles: number;
     description: string;
     lang: string;
-    h1: string[];
+    /** The text of the first 50 h1s, in order. */
+    h1s: string[];
+    /** How many h1s the page has. */
+    h1Count: number;
     headings: { level: number; text: string }[];
     headingCount: number;
     words: number;
@@ -114,9 +117,12 @@ export const x = (s: string | number): string =>
 export const fmtKB = (bytes: number): string => `${(bytes / 1024).toFixed(1)} kB`;
 export const fmtMs = (ms: number): string => (ms >= 1000 ? `${(ms / 1000).toFixed(1)} s` : `${Math.round(ms)} ms`);
 
+/** A value for a sentence: whole numbers get thousands separators. */
+const val = (v: string | number): string => (typeof v === 'number' ? v.toLocaleString('en-US') : v);
+
 /** Fill {name} slots. Values are escaped; the copy around them is ours. */
 export function fill(s: string, vars: Record<string, string | number> = {}): string {
-  return x(s).replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? x(vars[k]) : m));
+  return x(s).replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? x(val(vars[k])) : m));
 }
 
 /** An address without its scheme, for headings and labels. */
@@ -142,14 +148,16 @@ const rowsHtml = (rows: Row[]): string =>
 
 const q = (s: string, none: string): string => (s ? `<q>${x(s)}</q>` : `<span data-part="none">${x(none)}</span>`);
 
-function findingHtml(f: Finding, c: ScanCopy, i: number): string {
+function findingHtml(f: Finding, c: ScanCopy): string {
   const fc = c.findings[f.id];
   if (!fc) return '';
   const head = `<span data-part="mark" aria-hidden="true">${GLYPH[f.level]}</span><span data-part="level">${x(c.levels[f.level])}</span>`;
   if (f.level === 'ok') {
-    return `<li data-level="ok" style="--i:${i}">${head}<p data-part="ftitle">${fill(fc.title, f.vars)}</p></li>`;
+    /* A fine line is a readout ("Title set, 57 characters."), not a
+       sentence to quote: data-chrome keeps it out of Ask and the twins. */
+    return `<li data-level="ok" data-chrome>${head}<p data-part="ftitle">${fill(fc.title, f.vars)}</p></li>`;
   }
-  return `<li data-level="${f.level}" id="scan-${x(f.id)}" style="--i:${i}">${head}<p data-part="ftitle"><strong>${fill(
+  return `<li data-level="${f.level}" id="scan-${x(f.id)}">${head}<p data-part="ftitle"><strong>${fill(
     fc.title,
     f.vars,
   )}</strong></p>${fc.why ? `<p>${fill(fc.why, f.vars)}</p>` : ''}${
@@ -189,6 +197,16 @@ function fileState(
 
 /* ── The layers ─────────────────────────────────────────────────────── */
 
+/** The first few h1s, quoted, and how many more there are. */
+function h1s(p: ScanResult['page'], v: ScanCopy['values']): string {
+  if (!p.h1s.length) return `<span data-part="none">${x(v.none)}</span>`;
+  const shown = p.h1s.slice(0, 5);
+  const more = Math.max(p.h1Count || 0, p.h1s.length) - shown.length;
+  return `${shown.map((h) => `<q>${x(h)}</q>`).join(' ')}${
+    more > 0 ? ` <span data-part="aside">${fill(v.more, { n: more })}</span>` : ''
+  }`;
+}
+
 function peopleRows(r: ScanResult, c: ScanCopy): Row[] {
   const p = r.page;
   const L = c.rows;
@@ -202,7 +220,7 @@ function peopleRows(r: ScanResult, c: ScanCopy): Row[] {
       L.description,
       `${q(p.description, v.none)}${p.description ? ` <span data-part="aside">${fill(v.chars, { n: p.description.length })}</span>` : ''}`,
     ],
-    [L.h1, p.h1.length ? p.h1.map((h) => `<q>${x(h)}</q>`).join(' ') : `<span data-part="none">${x(v.none)}</span>`],
+    [L.h1, h1s(p, v)],
     [L.words, words, 'data-wide'],
     [L.outline, outline(p.headings, p.headingCount, c), 'data-wide'],
     [L.lang, p.lang ? `<code>${x(p.lang)}</code>` : `<span data-part="none">${x(v.none)}</span>`],
@@ -282,7 +300,7 @@ function layerHtml(layer: Layer, r: ScanResult, c: ScanCopy): string {
     </div></header>
     <div data-part="layer-body">
       ${rowsHtml(rows)}
-      <ul data-part="findings">${fs.map((f, i) => findingHtml(f, c, i)).join('')}</ul>
+      <ul data-part="findings">${fs.map((f) => findingHtml(f, c)).join('')}</ul>
     </div>
   </section>`;
 }

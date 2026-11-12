@@ -16,11 +16,16 @@
    row grow to fill it. So the count per row follows the width the grid
    actually has (one on a phone, two from about 700px, three from about
    1070px, and Source view's narrow column gets what fits there, not what
-   the window would),
-   five cards after the feature make three and two with no hole (home),
-   six make three and three (/work/), and whatever the /work/ filter
-   leaves re-flows the same way. Cards in a row
-   are as tall as the tallest. */
+   the window would). Six cards after the feature make three and three,
+   or two, two and two (home); on /work/ a seventh, the practice card,
+   is alone in its row, grows to the row's width and turns on its side
+   like the feature. Whatever the /work/ filter leaves re-flows the same
+   way, so no row has a hole. Cards in a row are as tall as the tallest.
+
+   The plain and technical readings of a card's title and sentence are
+   both in the markup (data-for), and base CSS shows the chosen one, so
+   a card's height can change with the reading. Nothing here depends on
+   which: the rows stay even either way. */
 .sys-grid.sc-grid {
   display: flex;
   flex-wrap: wrap;

@@ -12,6 +12,16 @@
  * engines may read and train on this site is Daniel's call, and when he
  * makes it, it's one line in this file. Daniel confirms this group before
  * launch.
+ *
+ * It also says, in a comment, where an agent should go instead of
+ * crawling: /llms.txt for the text, and the MCP endpoint at /mcp, with
+ * /agents/ on how to connect. A comment, because robots.txt has no field
+ * for either and this file shouldn't invent one. No Disallow for /mcp
+ * either: it answers POST, a crawler's GET gets a 405 marked noindex, and
+ * a Disallow could read to an agent as "don't use this", which isn't
+ * meant. (MCP Server Cards, an experimental MCP extension, would add a
+ * discovery document under .well-known; it isn't published here while
+ * its own repository calls it pre-release.)
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { ORIGIN } from './pages.mjs';
@@ -28,6 +38,10 @@ Allow: /
 # inherited. Default: allow. Daniel confirms this group before launch.
 ${AI_CRAWLERS.map((ua) => `User-agent: ${ua}`).join('\n')}
 Allow: /
+
+# For AI agents: this site's text is at ${ORIGIN}/llms.txt, and its MCP
+# endpoint (Model Context Protocol, POST only) is ${ORIGIN}/mcp.
+# How to connect: ${ORIGIN}/agents/
 
 Sitemap: ${ORIGIN}/sitemap.xml
 `,
@@ -47,4 +61,6 @@ Canonical: ${ORIGIN}/.well-known/security.txt
 `,
 );
 
-console.log(`gen-wellknown: robots.txt (default group + ${AI_CRAWLERS.length} named AI crawlers) + security.txt on ${ORIGIN}`);
+console.log(
+  `gen-wellknown: robots.txt (default group + ${AI_CRAWLERS.length} named AI crawlers, a pointer to llms.txt and /mcp) + security.txt on ${ORIGIN}`,
+);

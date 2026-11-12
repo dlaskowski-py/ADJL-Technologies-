@@ -14,6 +14,21 @@
  *                       script. A demo that types "8.4% yield" into a
  *                       console makes that claim even though the words live
  *                       in a <script>.
+ *
+ * The reading switch (BUILD2): a page may carry the same words twice, side
+ * by side, marked data-for="plain" and data-for="technical", and base CSS
+ * shows the one the reader chose. A machine reads ONE version, the
+ * technical one, so nothing is said twice. Every reading here except
+ * readableText drops [data-for="plain"] subtrees: isExcluded() (the
+ * markdown twins, and any reader that takes its predicate from here) and
+ * splitText / textOf / wordsOf (check-voice). The
+ * dropped words aren't counted as excluded either: they're a second copy
+ * of words the technical version already counts, not chrome. check-claims
+ * and check-usage still read both versions, every word.
+ *
+ * A {k} term's inline definition (src/sections/html.ts rich()) is both
+ * data-for="plain" and data-chrome, so the shared exclusion set already
+ * drops it everywhere, the browser's readers included.
  */
 import { loadTs } from './lib/ts.mjs';
 
@@ -22,11 +37,6 @@ const exclude = await loadTs('src/lib/exclude.ts');
 
 export const { walk, tokens, elements, decodeEntities, classes, within, VOID } = tokenize;
 export const {
-  isExcluded,
-  exclusionReason,
-  splitText,
-  textOf,
-  wordsOf,
   countWords,
   jsonScripts,
   jsonStrings,
@@ -37,6 +47,42 @@ export const {
   VOICE_SKIP_TAGS,
   INLINE,
 } = exclude;
+
+/** The plain alternative of a pair: its words are read in the technical one. */
+export const isPlainAlternative = (attrs) =>
+  (typeof attrs?.getAttribute === 'function' ? attrs.getAttribute('data-for') : attrs?.['data-for']) === 'plain';
+
+/** THE predicate (src/lib/exclude.ts), plus the plain alternatives. */
+export const isExcluded = (tag, attrs, opts) => isPlainAlternative(attrs) || exclude.isExcluded(tag, attrs, opts);
+export const exclusionReason = (tag, attrs, opts) =>
+  isPlainAlternative(attrs) ? 'data-for="plain"' : exclude.exclusionReason(tag, attrs, opts);
+
+/** The page with every [data-for="plain"] subtree cut out: what a machine
+ *  reads. Pages without the switch's markup come back untouched. */
+export function technicalOnly(html) {
+  if (!/\sdata-for=["']?plain/.test(html)) return html;
+  const cuts = [];
+  walk(
+    html,
+    {
+      close(el) {
+        if (el.excluded && !el.parent?.excluded) cuts.push([el.start, el.end]);
+      },
+    },
+    { skip: (el) => isPlainAlternative(el.attrs) },
+  );
+  let out = '';
+  let at = 0;
+  for (const [a, b] of cuts) {
+    out += html.slice(at, a);
+    at = b;
+  }
+  return out + html.slice(at);
+}
+
+export const splitText = (html, opts) => exclude.splitText(technicalOnly(html), opts);
+export const textOf = (html, opts) => exclude.textOf(technicalOnly(html), opts);
+export const wordsOf = (html, opts) => exclude.wordsOf(technicalOnly(html), opts);
 
 /** check-voice's reading of a whole page. */
 export const proseText = (html) => textOf(html, { voice: true });

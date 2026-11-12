@@ -295,6 +295,88 @@ function sceneFeed(): string {
   ].join('');
 }
 
+/* ── Agentic research: a question, ideas declared, a control, a log ──── */
+
+function sceneResearch(): string {
+  const A = S['/work/agentic-research/'];
+  const [idea, vs, verdict] = A.cols;
+  /* The log's rows sit where the engine's file rows do: the first row's
+     middle and the distance between rows, in shares of the frame's height. */
+  const TOP = 38.5;
+  const PITCH = 10.2;
+  const BAR = '13%';
+  const HEAD = '28%';
+  const PAPER = '87%';
+  /* The comparison column, in shares of the frame's width, and the blind
+     control at its middle: one line down the whole log, because every idea
+     is measured against it on the same days. Its head is centered on it,
+     and at 240px it still clears the verdict's head by two characters. */
+  const X0 = 30;
+  const SPAN = 40;
+  const CONTROL = pct(X0 + SPAN / 2);
+  /* Each declared idea: how far its bar reaches, as a share of the column,
+     and whether it cleared the control. Most don't. A drawing, not a
+     result: the row that passes is placed, not measured. */
+  const ROWS = [
+    { reach: 0.3, pass: false },
+    { reach: 0.44, pass: false },
+    { reach: 0.9, pass: true },
+    { reach: 0.2, pass: false },
+  ];
+  const y = (i: number) => pct(TOP + i * PITCH);
+  const rules = ROWS.map((_, i) => {
+    const ry = pct(TOP + (i - 0.5) * PITCH);
+    return line('sc-ln', '5%', ry, '95%', ry);
+  });
+  const chosen = ROWS.findIndex((r) => r.pass);
+
+  return [
+    /* The bar the question goes in, with its prompt. */
+    at(0, BAR, rect('sc-f', '5%', -13, '90%', 26, 4)),
+    at('8%', BAR, text('sc-c', 0, 0, '>')),
+    cap('8%', idea, '', HEAD),
+    cap(CONTROL, vs, 'middle', HEAD),
+    cap('92%', verdict, 'end', HEAD),
+    ...rules,
+    line('sc-ln', CONTROL, pct(TOP - 0.5 * PITCH), CONTROL, pct(TOP + (ROWS.length - 0.5) * PITCH), DOTTED),
+    /* The paper ledger: ruled off under the log, its track empty until
+       something is chosen for it. */
+    line('sc-ln', '5%', '79%', '95%', '79%'),
+    at(0, PAPER, text('sc-hi', '8%', 0, A.paper), line('sc-ln', '33%', 0, '60%', 0)),
+    g(
+      'sc-act',
+      /* The owner's question, then the plan's ideas, declared before any
+         test runs (violet: the agents wrote them), then his approval. */
+      at('8%', BAR, text('sc-hi sc-k1', '1.2em', 0, `${A.question} ${S.mask}`)),
+      ...ROWS.map((_, i) => g('sc-m sc-k2 sc-sl', at(0, y(i), text('', '8%', 0, S.mask)))),
+      g('sc-c sc-k3', at('92%', BAR, text('', -15, 0, A.approved, 'end'), tick('sc-o', -9, 0))),
+      /* The one the owner chooses for paper: copper, a band and an edge,
+         under its row. */
+      g(
+        'sc-c sc-k6',
+        at(0, y(chosen), rect('', '5%', -10, '90%', 20, 0, ' fill-opacity=".1"'), rect('', '5%', -10, 2, 20, 0)),
+      ),
+      /* The tests run: each idea's bar grows against the control. */
+      ...ROWS.map((r, i) => at(0, y(i), rect('sc-d sc-gx sc-k4', pct(X0), -3, pct(SPAN * r.reach), 6, 1))),
+      /* The verdicts, written down. A state color never stands alone: each
+         says its word. */
+      ...ROWS.map((r, i) =>
+        g('sc-k5', at(0, y(i), text(r.pass ? 'sc-d' : 'sc-x', '92%', 0, r.pass ? A.pass : A.fail, 'end'))),
+      ),
+      /* On paper, after every close: the track starts to flow. */
+      g(
+        'sc-d sc-k6',
+        at(
+          0,
+          PAPER,
+          line('sc-fw', '33%', 0, '60%', 0, ' stroke-width="2" stroke-dasharray="6 4"'),
+          text('', '92%', 0, A.close, 'end'),
+        ),
+      ),
+    ),
+  ].join('');
+}
+
 /* ── The native app: move an assumption, the answer recomputes, offline ── */
 
 function sceneApp(): string {
@@ -523,6 +605,7 @@ const SCENES: Record<string, { bar: string; draw: () => string; phone?: boolean 
   '/work/real-estate-intelligence/': { bar: S['/work/real-estate-intelligence/'].bar, draw: sceneEngine },
   '/work/loep/': { bar: S['/work/loep/'].bar, draw: sceneLoep },
   '/work/trading-infrastructure/': { bar: S['/work/trading-infrastructure/'].bar, draw: sceneFeed },
+  '/work/agentic-research/': { bar: S['/work/agentic-research/'].bar, draw: sceneResearch },
   '/work/mobile-app/': { bar: S['/work/mobile-app/'].bar, draw: sceneApp, phone: true },
   '/work/private-site/': { bar: S['/work/private-site/'].bar, draw: sceneEdge },
   '/work/this-site/': { bar: S['/work/this-site/'].bar, draw: sceneSite },
@@ -542,12 +625,31 @@ function shot(href: string): string {
 const stagger = (i: number) => (i ? (i - 1) % 3 : 0);
 
 /**
+ * A card's title or its sentence, in both readings. The reading switch
+ * (<html data-read="plain|technical">, set before first paint) shows one
+ * and hides the other in base CSS, so both are prerendered side by side
+ * and each is marked for it. Text twins, the Ask index and check-voice
+ * read the technical one only. A card with no plain version prints its
+ * one version, unmarked, in either reading.
+ *
+ * The plain one also carries data-chrome, as the {k} definitions do
+ * (html.ts rich()): every reader that takes the shared exclusion set
+ * (src/lib/exclude.ts) then skips it too, so Machine View's outline and
+ * word count, the Ask index and the browser's own readers see each card
+ * once. data-chrome changes nothing on screen.
+ */
+function readings(tag: 'span' | 'p', plain: string | undefined, technical: string): string {
+  if (!plain || plain === technical) return tag === 'p' ? `<p>${rich(technical)}</p>` : rich(technical);
+  return `<${tag} data-for="plain" data-chrome>${rich(plain)}</${tag}><${tag} data-for="technical">${rich(technical)}</${tag}>`;
+}
+
+/**
  * One card. sc-lay is what lays it out: the preview over the copy, or
  * beside it once the card itself is wide enough (a container query on the
  * card, so the feature, and any card the /work/ filter leaves alone in a
  * row, turns without a rule of its own).
  */
-function card(it: SystemCard, i: number, home: boolean): string {
+function card(it: SystemCard, i: number): string {
   return `<article class="sys panel bracket sc-card${i ? '' : ' sc-feature'}" data-reveal style="--i:${stagger(
     i,
   )}" data-tags="${esc(it.tags.join(' '))}">
@@ -558,8 +660,8 @@ function card(it: SystemCard, i: number, home: boolean): string {
           <span class="label">${esc(it.kicker)}</span>
           <span class="sys-status mono"><i aria-hidden="true">●</i> ${esc(it.status)}</span>
         </div>
-        <h3 class="h3">${rich((home && it.plainTitle) || it.title)}</h3>
-        <p>${rich((home && it.plain) || it.body)}</p>
+        <h3 class="h3">${readings('span', it.plainTitle, it.title)}</h3>
+        ${readings('p', it.plain, it.body)}
         <a class="alink sys-link" href="${esc(it.link.href)}"><span>${esc(it.link.label)}</span><span class="arw" aria-hidden="true">→</span></a>
       </div>
       </div>
@@ -569,15 +671,16 @@ function card(it: SystemCard, i: number, home: boolean): string {
 /**
  * The cards alone (each page wraps them in its own section).
  *
- * /work/ lists every item in the engineer's words. The home page
- * (`home: true`) is read by a business owner under the heading "things
- * we built", so it prints each card's plain title and sentence and leaves
- * out the practice card, which is a service and not a system. After the
- * feature that's five cards on the home page (three, then two) and six on
- * /work/ (three and three).
+ * Both pages print both readings of every card (plain and technical, see
+ * readings()), and the reading switch picks one, so the home page and
+ * /work/ read the same way. The home page (`home: true`) sits under the
+ * heading "things we built", so it leaves out the practice card, which is
+ * a service and not a system. After the feature that's six cards on the
+ * home page (three and three, or two, two and two) and seven on /work/,
+ * where the practice card closes the list: alone in its row, it grows to
+ * the row's width and turns on its side like the feature.
  */
 export function showcaseCards(opts: { home?: boolean } = {}): string {
-  const home = !!opts.home;
-  const items = home ? systems.items.filter((it) => it.kind !== 'practice') : systems.items;
-  return `<div class="sys-grid sc-grid">${items.map((it, i) => card(it, i, home)).join('')}</div>`;
+  const items = opts.home ? systems.items.filter((it) => it.kind !== 'practice') : systems.items;
+  return `<div class="sys-grid sc-grid">${items.map((it, i) => card(it, i)).join('')}</div>`;
 }

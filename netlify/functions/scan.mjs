@@ -38,7 +38,8 @@
  *     IP. Logs carry an error code, never the URL.
  *   - Rate limits: Netlify's own limiter per IP (config below) answers 429
  *     before this runs; behind it, a per-instance limiter in memory, keyed
- *     by a salted hash of the IP that never leaves this process.
+ *     by a salted hash of the IP that never leaves this process and is
+ *     dropped after a minute.
  *
  * Netlify Functions v2: a default export taking a Request and a Context.
  * `config.path` routes it, so it isn't served at /.netlify/functions/scan.
@@ -266,10 +267,17 @@ function getOnce(u, target, { deadline, maxBytes, overflow, accept }) {
     const mod = u.protocol === 'https:' ? https : http;
     const started = Date.now();
     let settled = false;
+    /* What we read the body from: the response, or the decompressor it's
+       piped into. Destroyed the moment we settle, whichever way: a
+       decompressor left alive keeps inflating what it already holds (a
+       1.6 kB brotli body can be gigabytes of zeros) long after the visitor
+       has been told the page is too large. */
+    let body = null;
     const done = (fn, v) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      if (body) body.destroy();
       fn(v);
     };
 
@@ -307,7 +315,7 @@ function getOnce(u, target, { deadline, maxBytes, overflow, accept }) {
           return done(resolve, { status, headers, body: Buffer.alloc(0), bytes: 0, transfer: 0, firstByte, ms: Date.now() - started, truncated: false });
         }
         const enc = String(headers['content-encoding'] ?? '').trim().toLowerCase();
-        let body = res;
+        body = res;
         if (enc === 'gzip' || enc === 'x-gzip') body = res.pipe(zlib.createGunzip());
         else if (enc === 'deflate') body = res.pipe(zlib.createInflate());
         else if (enc === 'br') body = res.pipe(zlib.createBrotliDecompress());
@@ -420,7 +428,9 @@ export function readPage(html, pageUrl) {
     titles: 0,
     description: '',
     lang: '',
-    h1: [],
+    /** The first 50 h1s' text; h1Count has them all. */
+    h1s: [],
+    h1Count: 0,
     headings: [],
     headingCount: 0,
     words: 0,
@@ -458,7 +468,10 @@ export function readPage(html, pageUrl) {
     if (!heading) return;
     const t = clip(squash(heading.parts.join('')), 140);
     out.headingCount++;
-    if (heading.level === 1) out.h1.push(t);
+    if (heading.level === 1) {
+      out.h1Count++;
+      if (out.h1s.length < 50) out.h1s.push(t);
+    }
     if (heading.level <= 3 && out.headings.length < 40) out.headings.push({ level: heading.level, text: t });
     heading = null;
   };
@@ -653,27 +666,44 @@ export function parseRobots(text) {
   return { groups, sitemaps };
 }
 
-const patternRe = new Map();
+/**
+ * Does a robots.txt path pattern match this path? `*` is any run of
+ * characters and a final `$` anchors the end (RFC 9309, section 2.2.3).
+ *
+ * No RegExp on purpose: the pattern is written by the site being scanned,
+ * and `*` turned into `.*` backtracks. "/*a*a*a*a*a*a*a*a*a*b" against a
+ * long path of a's would hold the event loop for minutes, past every
+ * timer we set. This walks the path once instead: each piece between the
+ * stars is found at its earliest place after the one before (taking the
+ * earliest never loses a match), and the last piece has to sit at the end
+ * when the pattern is anchored.
+ */
 function ruleMatches(pattern, path) {
-  let re = patternRe.get(pattern);
-  if (!re) {
-    const anchored = pattern.endsWith('$');
-    const body = (anchored ? pattern.slice(0, -1) : pattern)
-      .split('*')
-      .map((p) => p.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))
-      .join('.*');
-    re = new RegExp('^' + body + (anchored ? '$' : ''));
-    if (patternRe.size < 500) patternRe.set(pattern, re);
+  const anchored = pattern.endsWith('$');
+  const parts = (anchored ? pattern.slice(0, -1) : pattern).split('*');
+  const first = parts[0];
+  const last = parts[parts.length - 1];
+  if (!path.startsWith(first)) return false;
+  if (parts.length === 1) return !anchored || path.length === first.length;
+  let pos = first.length;
+  for (let i = 1; i < parts.length - 1; i++) {
+    const at = path.indexOf(parts[i], pos);
+    if (at < 0) return false;
+    pos = at + parts[i].length;
   }
-  return re.test(path);
+  return anchored ? path.length - last.length >= pos && path.endsWith(last) : path.indexOf(last, pos) >= 0;
 }
 
 /**
  * What robots.txt says to one crawler about one path: the group naming the
  * crawler if there is one, else the group for every crawler (*), else
  * nothing applies. Longest matching rule wins; Allow wins a tie.
+ *
+ * `seen` (optional) remembers each pattern's answer for this path, so a
+ * robots.txt that repeats one long list for every crawler is matched once,
+ * not once per crawler. Pass the same Map only with the same path.
  */
-export function robotsVerdict(parsed, token, path) {
+export function robotsVerdict(parsed, token, path, seen = null) {
   const t = token.toLowerCase();
   const own = parsed.groups.filter((g) => g.agents.some((a) => a === t || a.split('/')[0].trim() === t));
   const star = parsed.groups.filter((g) => g.agents.includes('*'));
@@ -683,7 +713,12 @@ export function robotsVerdict(parsed, token, path) {
   for (const g of groups) {
     for (const r of g.rules) {
       if (!r.path) continue;
-      if (!ruleMatches(r.path, path)) continue;
+      let hit = seen?.get(r.path);
+      if (hit === undefined) {
+        hit = ruleMatches(r.path, path);
+        seen?.set(r.path, hit);
+      }
+      if (!hit) continue;
       if (!best || r.path.length > best.path.length || (r.path.length === best.path.length && r.allow && !best.allow)) best = r;
     }
   }
@@ -827,8 +862,9 @@ export async function scan(input, opts = {}, onStep = () => {}) {
 
   /* AI crawlers (and the two big search crawlers) against this page. */
   const path = (finalUrl.pathname || '/') + finalUrl.search;
+  const seen = new Map();
   const agents = crawlers.items.map((c) => {
-    if (robots.state === 'found') return { token: c.token, ...robotsVerdict(robots.parsed, c.token, path) };
+    if (robots.state === 'found') return { token: c.token, ...robotsVerdict(robots.parsed, c.token, path, seen) };
     if (robots.state === 'missing' || robots.state === 'unreadable') return { token: c.token, verdict: 'allowed', rule: 'none', line: '' };
     return { token: c.token, verdict: 'unknown', rule: 'error', line: '' };
   });
@@ -876,7 +912,7 @@ export const ORDER = [
   // fix
   'status', 'noindex', 'search-blocked', 'no-text', 'title-missing', 'jsonld-broken',
   // improve
-  'answers-blocked', 'robots-error', 'canonical-missing', 'desc-missing', 'h1-missing', 'jsonld-missing',
+  'thin', 'answers-blocked', 'robots-error', 'canonical-missing', 'desc-missing', 'h1-missing', 'jsonld-missing',
   'og-missing', 'nofollow', 'sitemap-missing', 'slow',
   // note
   'canonical-other', 'redirects', 'refresh', 'title-long', 'desc-long', 'h1-many', 'lang-missing', 'img-alt',
@@ -911,7 +947,9 @@ export function findingsFor(r) {
   if (answers.length) add('answers-blocked', 'crawlers', 'improve', { names: answers.join(', ') });
   if (r.robots.state === 'error' || r.robots.state === 'timeout') add('robots-error', 'crawlers', 'improve', { status: r.robots.status || '' });
   else if (r.robots.state === 'missing' || r.robots.state === 'unreadable') add('robots-missing', 'crawlers', 'note');
-  if (!search.length && !answers.length && r.robots.state !== 'error' && r.robots.state !== 'timeout') {
+  /* Only a robots.txt we actually read can be said to let crawlers in.
+     Without one, robots-missing above already says everything is open. */
+  if (r.robots.state === 'found' && !search.length && !answers.length) {
     if (training.length) add('training-blocked', 'crawlers', 'ok', { names: training.join(', ') });
     else add('robots-ok', 'crawlers', 'ok');
   }
@@ -937,7 +975,11 @@ export function findingsFor(r) {
 
   /* What people read. */
   if (status < 400) {
-    if (p.words < 50) add('no-text', 'people', 'fix', { n: p.words });
+    /* Few words is a fix when the page looks drawn by script (a known app
+       mount point, or a noscript note asking for JavaScript). Otherwise we
+       can't tell a script-drawn page from a short one, and say so. */
+    const drawn = Boolean(p.shell.root) || p.shell.noscriptJs;
+    if (p.words < 50) add(drawn ? 'no-text' : 'thin', 'people', drawn ? 'fix' : 'improve', { n: p.words });
     else add('text-ok', 'people', 'ok', { n: p.words });
   }
   if (!p.title) add('title-missing', 'people', 'fix');
@@ -946,8 +988,8 @@ export function findingsFor(r) {
   if (!p.description) add('desc-missing', 'people', 'improve');
   else if (p.description.length > 160) add('desc-long', 'people', 'note', { len: p.description.length });
   else add('desc-ok', 'people', 'ok', { len: p.description.length });
-  if (!p.h1.length) add('h1-missing', 'people', 'improve');
-  else if (p.h1.length > 1) add('h1-many', 'people', 'note', { n: p.h1.length });
+  if (!p.h1Count) add('h1-missing', 'people', 'improve');
+  else if (p.h1Count > 1) add('h1-many', 'people', 'note', { n: p.h1Count });
   else add('h1-ok', 'people', 'ok');
   if (!p.lang) add('lang-missing', 'people', 'note');
   if (p.images.missingAlt > 0) add('img-alt', 'people', 'note', { n: p.images.missingAlt, total: p.images.total });
@@ -972,29 +1014,28 @@ export function findingsFor(r) {
 
 /* ── Rate limit (behind Netlify's own) ──────────────────────────────── */
 
-/* A salt made fresh for each instance, so the keys mean nothing outside
-   this process, and nothing is written anywhere. */
+/* Netlify's limiter (config.rateLimit, below) is the real one: it counts
+   per IP across every instance and answers 429 before this code runs.
+   This is a backstop inside one instance, for a burst that lands before
+   Netlify's count catches up. The key is a SHA-256 of the IP with a salt
+   made fresh for each instance, so it means nothing outside this process,
+   and a key is dropped once its last minute has passed: nothing about a
+   visitor is kept longer than that, and nothing is written anywhere. */
 const SALT = randomBytes(16);
 const hits = new Map();
 const PER_MINUTE = 10;
-const PER_DAY = 100;
 
 function limited(ip) {
   const key = createHash('sha256').update(SALT).update(String(ip)).digest('base64url').slice(0, 22);
   const now = Date.now();
-  let h = hits.get(key);
-  if (!h || now > h.dayEnds) h = { minute: [], day: 0, dayEnds: now + 86_400_000 };
-  h.minute = h.minute.filter((t) => now - t < 60_000);
-  if (h.minute.length >= PER_MINUTE || h.day >= PER_DAY) {
-    hits.set(key, h);
+  for (const [k, times] of hits) if (now - times[times.length - 1] >= 60_000) hits.delete(k);
+  const recent = (hits.get(key) ?? []).filter((t) => now - t < 60_000);
+  if (recent.length >= PER_MINUTE) {
+    hits.set(key, recent);
     return true;
   }
-  h.minute.push(now);
-  h.day++;
-  hits.set(key, h);
-  if (hits.size > 5000) {
-    for (const [k, v] of hits) if (now > v.dayEnds || !v.minute.some((t) => now - t < 60_000)) hits.delete(k);
-  }
+  recent.push(now);
+  hits.set(key, recent);
   return false;
 }
 

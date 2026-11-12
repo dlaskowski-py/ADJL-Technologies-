@@ -297,6 +297,16 @@ html[data-motion='reduced'] .rail-line {
   color: var(--fg);
   font-weight: 600;
 }
+/* Its plain definition, after it in Plain (motion/read.ts). */
+.kwd-def {
+  color: var(--fg-3);
+}
+/* The reading switch: html[data-read] is set before first paint by
+   js-on.js. With no script it's absent, and the page reads plain. */
+html[data-read='technical'] [data-for='plain'],
+html:not([data-read='technical']) [data-for='technical'] {
+  display: none !important;
+}
 
 .label {
   font-family: var(--font-mono);
@@ -611,7 +621,8 @@ html[data-motion='reduced'] [data-reveal] {
   .h2,
   .h3,
   .lead,
-  .prose p {
+  .prose p,
+  .kwd-def {
     color: var(--ink) !important;
   }
   .display em,
