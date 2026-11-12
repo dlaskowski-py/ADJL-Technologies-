@@ -81,7 +81,7 @@ export const content: Changelog = {
         date: '2026-11-12',
         title: 'A site scan, a start page and a page for AI agents.',
         body: 'You can now scan a public web page and see what search crawlers and AI answer engines get from it, with plain fixes for what’s missing. For a deeper look, there’s a website audit, priced by quote. The new start page has a form that goes straight to Daniel and works with JavaScript off. It also has a scoping assistant that runs on Anthropic’s Claude, so what you type goes to Anthropic. The assistant drafts your message into the form and never sends anything itself. It stays off until it’s switched on. AI agents get their own {k}endpoint{/k} at /mcp, with a page that explains how to connect. Pages with technical terms have a new Plain/Technical switch. Plain, the default, explains each term where it first appears. There’s also a case study on how we research with AI agents, updated copy on Loep, field notes, and this changelog.',
-        commits: ['4423f1c', '1d61b16', '242b89e'],
+        commits: ['7172cfb', '4423f1c', '1d61b16', '242b89e'],
         link: { label: 'See what the new parts collect', href: '/legal/privacy/' },
       },
       {
