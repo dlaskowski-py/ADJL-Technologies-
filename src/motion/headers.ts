@@ -81,8 +81,23 @@ export async function initHeaders(): Promise<void> {
     kept.dataset.missing = '';
     frag.append('\n', kept, '\n  ', span({ 'data-note': '' }, `▲ ${copy.missing}`));
   }
+  /* The live answer is longer than the configured policy (the host adds
+     its own headers), so the printout grows. A quick scroll can carry the
+     visitor past it before the answer lands, and the browser's own scroll
+     anchoring doesn't always catch that, so everything on screen would
+     jump down. When the printout is already above the screen, scroll by
+     whatever the content below it actually moved, after the browser has
+     done its own adjusting. */
+  const pre = out.closest('pre');
+  const below = pre?.nextElementSibling;
+  const passed = !!pre && pre.getBoundingClientRect().bottom <= 0;
+  const y0 = below?.getBoundingClientRect().top ?? 0;
   build.hidden = true;
   out.replaceChildren(frag);
+  if (passed && below) {
+    const moved = below.getBoundingClientRect().top - y0;
+    if (Math.abs(moved) >= 1) window.scrollBy({ top: moved, behavior: 'instant' });
+  }
 
   /* The annotations: a directive the live policy doesn't carry is marked. */
   const live = (got.get('content-security-policy') ?? '')
