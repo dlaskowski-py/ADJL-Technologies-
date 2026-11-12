@@ -52,10 +52,10 @@ export type Note = {
 const FIRST_THREE = '2026-11-12';
 
 export const labels = {
-  /* AI agents drafted these notes, and the byline says so. The
-     structured data still names Daniel (#daniel in scripts/seo.mjs) as the
-     author: he's the person responsible for what they say. */
-  author: 'Daniel Laskowski, with AI agents',
+  /* AI agents helped draft these notes. Daniel chose to sign them with his
+     own name, having read them and taking responsibility for every line,
+     and the structured data names him too (#daniel in scripts/seo.mjs). */
+  author: 'Daniel Laskowski',
   by: 'Written by',
   published: 'Published',
   reading: 'Reading time',
