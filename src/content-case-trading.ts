@@ -174,7 +174,7 @@ export const content: CaseContent = {
           },
           {
             title: "An options model checked against real quotes",
-            body: "The pricing model is validated against real option-chain quotes, not only against itself."
+            body: "The pricing model is checked against real option-chain quotes, not only against itself."
           }
         ],
         instrument: "leaders-pit",

@@ -40,7 +40,6 @@ export const glossary: Record<string, string> = {
   'canonical address': 'the one address a page names as its main copy',
   'canonical tags': 'tags naming which address is a page’s main copy',
   'canonical url': 'the one address a page names as its main copy',
-  cdn: 'a network of servers that hands out a site’s files',
   commit: 'a saved, dated change in the code’s history',
   'confidence floor': 'the lowest match score an answer needs before it’s shown',
   'content policy': 'a list of rules for what a page may load and run',

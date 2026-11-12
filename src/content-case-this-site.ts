@@ -126,7 +126,7 @@ export const content: SectionPage = {
       eyebrow: 'Response headers',
       headline: ['Nothing loads from', '{em}anywhere else.{/em}'],
       body: [
-        'No font host, no {k}CDN{/k}, no analytics and no embeds. The {k}content security policy{/k} says so, and your browser enforces it. When scripts run, the panel fetches this page’s real response headers as it comes into view. Without them, it shows the policy this site ships.',
+        'No font host, no outside script host, no analytics and no embeds. The {k}content security policy{/k} says so, and your browser enforces it. When scripts run, the panel fetches this page’s real response headers as it comes into view. Without them, it shows the policy this site ships.',
       ],
       instrument: 'headers',
     },

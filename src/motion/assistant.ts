@@ -268,7 +268,11 @@ function wireChat(root: HTMLElement, copy: AssistantCopy, form: FormApi | null):
    *  measured right, since every change there is a 0.01ms transition. */
   const shut = (s: string) => s === 'off' || s === 'unreachable';
   const folds = root.querySelector<HTMLElement>('.start-body, .asst-grid');
-  const unseen = () => !!folds && folds.getBoundingClientRect().top >= window.innerHeight;
+  /* A visitor who followed an in-page link (the hero's "Go to the form")
+     is mid-scroll toward a target worked out before any fold: folding
+     then would carry them about a screen and a half past the form. The
+     anchor sets location.hash before the scroll starts. */
+  const unseen = () => !location.hash && !!folds && folds.getBoundingClientRect().top >= window.innerHeight;
   const setState = (s: string) => {
     if (!shut(s) || unseen()) root.dataset.asstState = s;
     state = s;

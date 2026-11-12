@@ -58,6 +58,10 @@ const BANNED = [
   /* The rebuild's thesis is that the site never says "future": it shows the
      habits instead. And "AI-powered" describes nothing a buyer can check. */
   'the future of', 'ai-powered', 'ai powered',
+  /* Research and trading copy describes a method, never a verdict on it
+     (the founder's rules for that copy). Say "checked" or "tested". */
+  'validated', 'is proven', 'are proven', 'proven to', 'beats the market', 'beat the market',
+  'out of sample', 'out-of-sample',
 ];
 
 /** A number attached to a performance claim, or a count of things sold. */
