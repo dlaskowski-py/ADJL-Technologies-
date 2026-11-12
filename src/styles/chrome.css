@@ -91,8 +91,13 @@
 .nav.is-stuck {
   border-bottom-color: var(--rule-2);
 }
+/* The bar's breakpoints are in em, so they follow the browser's text size:
+   at the default 16px the bar shows from 1160px and Jump from 1320px; with
+   larger text the burger holds out longer and nothing in the bar wraps.
+   The bar may also grow past --max then, or larger text would push it
+   off the side. */
 .nav-inner {
-  max-width: var(--max);
+  max-width: max(var(--max), 82.5rem);
   margin-inline: auto;
   padding-inline: var(--gut);
   height: var(--nav-h);
@@ -116,6 +121,10 @@
   font-weight: 500;
   color: var(--fg-2);
   transition: color var(--d-2) var(--ease-out);
+}
+.nav-links .nav-link,
+.nav-jump {
+  white-space: nowrap;
 }
 .nav-link:hover,
 .nav-link[aria-current='page'] {
@@ -204,7 +213,7 @@
   transform-origin: left;
 }
 
-@media (min-width: 1160px) {
+@media (min-width: 72.5em) {
   .nav-links,
   .nav-cta {
     display: inline-flex;
@@ -218,11 +227,18 @@
   .nav-burger {
     display: none;
   }
+  /* A menu still open when the window widens past the breakpoint keeps
+     the one control that closes it. */
+  .nav-burger[aria-expanded='true'] {
+    display: inline-flex;
+  }
 }
 html:not(.js) .nav-burger {
   display: none;
 }
-@media (max-width: 1159px) {
+/* Written as the exact opposite of the bar's query, so no width (at any
+   text size) falls between the two and leaves a page without links. */
+@media not all and (min-width: 72.5em) {
   html:not(.js) .nav-links {
     display: flex;
     flex-wrap: wrap;
@@ -449,17 +465,39 @@ html[data-read='technical'] .read-opt[data-read-set='technical'] {
   min-height: 44px;
   padding: 0 16px;
 }
-@media (min-width: 1160px) {
+@media (min-width: 72.5em) {
+  /* In the bar the label sits above the track, so it costs no width. */
   .nav-end .read-switch {
     display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    white-space: nowrap;
+  }
+  .nav-end .read-label {
+    line-height: 1;
+    padding-left: 9px;
   }
 }
-/* Below 1320px the bar can't hold both: the switch keeps its place, and
-   ⌘K still opens the palette the Jump button would. */
-@media (min-width: 1160px) and (max-width: 1319px) {
+/* Below 1320px (at 16px text) the bar can't hold both: the switch keeps
+   its place, and ⌘K still opens the palette the Jump button would. Under
+   72.5em Jump is hidden anyway, so this needs no lower bound, and it ends
+   exactly where the 82.5em width begins. */
+@media not all and (min-width: 82.5em) {
   .nav-jump {
     display: none;
   }
+}
+/* A page with no Plain and Technical alternatives in it reads the same
+   either way, so it shows no switch: a control that changes nothing
+   would only look broken. The reading is still remembered for the next
+   page. Where :has() isn't supported, motion/read.ts sets [hidden]; the
+   two rules stay apart, as a browser drops a whole list it can't parse. */
+html:not(:has(main [data-for])) [data-read-toggle] {
+  display: none;
+}
+[data-read-toggle][hidden] {
+  display: none;
 }
 
 /* ── Breadcrumbs ─────────────────────────────────────────────────── */

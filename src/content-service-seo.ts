@@ -42,7 +42,7 @@ export const content: SectionPage = {
       eyebrow: 'Two readers',
       headline: ['One ranks.', 'One {em}quotes.{/em}'],
       body: [
-        'A search engine crawls your pages, ranks them and shows a link. An answer engine reads them, lifts out claims and may or may not credit you. Many AI crawlers never run your JavaScript, and the ones that do run it later. Both trust pages that say the same thing in the markup and in the copy.',
+        'A search engine crawls your pages, ranks them and shows a link. An answer engine reads them, lifts out claims and may or may not credit you. Many {k}AI crawlers{/k} never run your JavaScript, and the ones that do run it later. Both trust pages that say the same thing in the markup and in the copy.',
       ],
       instrument: 'readers',
     },
@@ -57,7 +57,7 @@ export const content: SectionPage = {
         },
         {
           title: 'Structured data',
-          body: 'JSON-LD that describes real entities and matches the visible copy. Your company, its people, its services and the pages about them, joined by stable IDs.',
+          body: '{k}JSON-LD{/k} that describes real entities and matches the visible copy. Your company, its people, its services and the pages about them, joined by stable IDs.',
         },
         {
           title: 'Entity clarity',
@@ -65,15 +65,15 @@ export const content: SectionPage = {
         },
         {
           title: 'Crawl paths',
-          body: 'Every page reachable in a few clicks from the home page, with link text that says where it goes. No orphan pages, no redirect chains and one canonical URL per page.',
+          body: 'Every page reachable in a few clicks from the home page, with link text that says where it goes. No {k}orphan pages{/k}, no redirect chains and one {k}canonical URL{/k} per page.',
         },
         {
           title: 'Core Web Vitals',
-          body: 'Fast first paint, no layout shift and quick response to input. We set a budget, and the build fails when a page goes over it.',
+          body: 'Fast {k}first paint{/k}, no {k}layout shift{/k} and quick response to input. We set a budget, and the build fails when a page goes over it.',
         },
         {
           title: 'Machine-readable surfaces',
-          body: 'A sitemap with real dates, a robots file that says what you mean, and llms.txt, a proposed plain-text summary some AI tools read. We’re clear that it’s a proposal and not a standard.',
+          body: 'A {k}sitemap{/k} with real dates, a {k}robots file{/k} that says what you mean, and llms.txt, a proposed plain-text summary some AI tools read. We’re clear that it’s a proposal and not a standard.',
         },
       ],
     },

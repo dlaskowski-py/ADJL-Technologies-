@@ -12,7 +12,10 @@
  *   - Work-in-progress commits and internal-only ones (tooling, scratch
  *     files) get no entry. One exception, on purpose: the redesign
  *     (8a4c923) landed in a work-in-progress checkpoint, and without it
- *     the log would skip the biggest change a visitor saw.
+ *     the log would skip the biggest change a visitor saw. The second
+ *     build is the other: much of it landed in checkpoints, so its entry
+ *     links two of them (1d61b16, 242b89e) beside the commit that
+ *     finished it (4423f1c).
  *   - An entry says no more than its commits did. Check the commit message
  *     and the diff before writing one.
  *
@@ -73,11 +76,14 @@ export const content: Changelog = {
     body: 'Small fixes are grouped, and work in progress isn’t listed. Each hash opens its commit on GitHub.',
     commit: { one: 'Commit', many: 'Commits' },
     entries: [
-      /* ── NEW ENTRIES GO HERE, at the top, once their commits exist. ──
-         The next one is this round's work: the site scan, the start page
-         and its assistant, the page for AI agents, the website audit, the
-         agentic research case study, the reading switch, field notes and
-         this changelog. Write it from the integration commit(s). */
+      /* ── NEW ENTRIES GO HERE, at the top, once their commits exist. ── */
+      {
+        date: '2026-11-12',
+        title: 'A site scan, a start page and a page for AI agents.',
+        body: 'You can now scan a public web page and see what search crawlers and AI answer engines get from it, with plain fixes for what’s missing. For a deeper look, there’s a website audit, priced by quote. The new start page has a form that goes straight to Daniel and works with JavaScript off. It also has a scoping assistant that runs on Anthropic’s Claude, so what you type goes to Anthropic. The assistant drafts your message into the form and never sends anything itself. It stays off until it’s switched on. AI agents get their own {k}endpoint{/k} at /mcp, with a page that explains how to connect. Pages with technical terms have a new Plain/Technical switch. Plain, the default, explains each term where it first appears. There’s also a case study on how we research with AI agents, updated copy on Loep, field notes, and this changelog.',
+        commits: ['4423f1c', '1d61b16', '242b89e'],
+        link: { label: 'See what the new parts collect', href: '/legal/privacy/' },
+      },
       {
         date: '2026-11-11',
         title: 'The scrolling banner is gone.',
@@ -107,7 +113,7 @@ export const content: Changelog = {
       {
         date: '2026-11-10',
         title: 'A tagline shared with ADJL Capital.',
-        body: 'Every page’s footer now carries ADJL Capital’s tagline, “Today’s investment, tomorrow’s legacy.” The opening animation ends on it, and the company’s structured data uses it as its slogan.',
+        body: 'Every page’s footer now carries ADJL Capital’s tagline, “Today’s investment, tomorrow’s legacy.” The opening animation ends on it, and the company’s {k}structured data{/k} uses it as its slogan.',
         commits: ['0f32cbb'],
       },
       {
@@ -170,7 +176,7 @@ export const content: Changelog = {
       {
         date: '2026-11-09',
         title: 'An llms.txt for AI tools.',
-        body: 'The site now writes llms.txt, a plain summary of every page for AI tools, and llms-full.txt, the full text of each. They’re made from the built pages on every deploy, so they can’t drift from what a browser gets.',
+        body: 'The site now writes llms.txt, a plain summary of every page for AI tools, and llms-full.txt, the full text of each. They’re made from the built pages on every {k}deploy{/k}, so they can’t drift from what a browser gets.',
         commits: ['3868548'],
         link: { label: 'Read the note on what crawlers read', href: '/notes/what-ai-crawlers-read/' },
       },

@@ -6,15 +6,17 @@
  *   [data-assistant="chat"]  The panel arrives at rest, its composer
  *       disabled. This asks GET /api/assistant whether it's switched on
  *       and sets data-state on [data-asst]: loading → on, off (no key yet)
- *       or unreachable. CSS shows the matching status line and nothing
- *       moves: the stage and the composer keep their size in every state,
- *       so the page below never shifts. When it's on, a visitor's message
- *       goes to POST /api/assistant and the reply streams back as NDJSON
- *       (the wire format is documented in netlify/functions/assistant.mjs):
- *       text, the pages it cites, which model answered, how it ended. The
- *       conversation lives in this tab's memory only. "Draft my brief"
- *       asks for a brief and puts it in the form. Nothing here ever sends
- *       the form: the visitor does.
+ *       or unreachable. CSS shows the matching status line. Loading and
+ *       on share one size, so turning on moves nothing. Off and
+ *       unreachable fold the section down to one line that points to the
+ *       form, but only while the part that folds is still below the
+ *       screen (see setState()), so nothing a visitor can see moves. When
+ *       it's on, a visitor's message goes to POST /api/assistant and the
+ *       reply streams back as NDJSON (the wire format is documented in
+ *       netlify/functions/assistant.mjs): text, the pages it cites, which
+ *       model answered, how it ended. The conversation lives in this
+ *       tab's memory only. "Draft my brief" asks for a brief and puts it
+ *       in the form. Nothing here ever sends the form: the visitor does.
  *
  *   [data-assistant="form"]  The Netlify form. It posts to /start/sent/
  *       with no script. With one: ?topic= preselects the topic, fields are
@@ -253,7 +255,22 @@ function wireChat(root: HTMLElement, copy: AssistantCopy, form: FormApi | null):
   let state = '';
 
   const controls = [input, send, draftBtn, ...starters];
+  /** Off or unreachable, the section folds to its heading and one line
+   *  pointing to the form (src/styles/pages/start.css, keyed on the
+   *  section's data-asst-state). Everything from the intro paragraph down
+   *  moves when it folds, so it folds only while that part is still below
+   *  the screen. That's where it sits for a visitor who arrives at the
+   *  top. Anyone already looking at the section, or scrolled past it to
+   *  the form (say on /start/?topic=audit#form), keeps the full section
+   *  with its status line, the way it was, and nothing they can see moves.
+   *  Folding under them would count as layout shift, even with a scroll to
+   *  make up for it, and under reduced motion that scroll can't be
+   *  measured right, since every change there is a 0.01ms transition. */
+  const shut = (s: string) => s === 'off' || s === 'unreachable';
+  const folds = root.querySelector<HTMLElement>('.start-body, .asst-grid');
+  const unseen = () => !!folds && folds.getBoundingClientRect().top >= window.innerHeight;
   const setState = (s: string) => {
+    if (!shut(s) || unseen()) root.dataset.asstState = s;
     state = s;
     panel.dataset.state = s;
     const on = s === 'on';

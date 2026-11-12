@@ -63,7 +63,7 @@ export const content: ApproachContent = {
       {
         tag: "Build",
         title: "Built, and put into production",
-        body: "A defined system scoped, written and deployed into your environment. The kinds of thing this covers: {k}document extraction{/k}, an internal tool, a data pipeline, a scoring or underwriting model, operational plumbing behind a desk. Scope is fixed in writing before anything is built, and changes are quoted. Open-ended builds are how a consulting engagement quietly becomes permanent staff. Handover includes the code, the {k}evaluation set{/k} and the runbook for what to do when it breaks.",
+        body: "A defined system scoped, written and deployed into your environment. The kinds of thing this covers: {k}document extraction{/k}, an internal tool, a data pipeline, a scoring or underwriting model, operational plumbing behind a desk. Scope is fixed in writing before anything is built, and changes are quoted. Open-ended builds are how a consulting engagement quietly becomes permanent staff. Handover includes the code, the evaluation set and the runbook for what to do when it breaks.",
         points: [
           "Fixed scope, written down before the first line is committed",
           "Deployed into your infrastructure and your accounts. Nothing is hosted here",
@@ -110,7 +110,7 @@ export const content: ApproachContent = {
       "You own the code,",
       "the data, and the {em}right to leave.{/em}"
     ],
-    body: "Everything built for a client belongs to that client: source, prompts, {k}evaluation sets{/k}, fine-tuned weights, infrastructure definitions, documentation. It’s delivered into repositories you control and it runs on your accounts under your keys. There’s no hosted layer here you have to keep paying to keep the thing alive. Your data is used to build your system and nothing else. It isn’t retained here, it isn’t reused for anyone else, and it never goes into a shared model. If you decide next quarter to hand the whole thing to another firm, everything they need is already in your hands.",
+    body: "Everything built for a client belongs to that client: source, prompts, evaluation sets, fine-tuned weights, infrastructure definitions, documentation. It’s delivered into repositories you control and it runs on your accounts under your keys. There’s no hosted layer here you have to keep paying to keep the thing alive. Your data is used to build your system and nothing else. It isn’t retained here, it isn’t reused for anyone else, and it never goes into a shared model. If you decide next quarter to hand the whole thing to another firm, everything they need is already in your hands.",
     points: [
       "Source, prompts, evaluation sets and infrastructure code assigned to you in full",
       "Your data stays in your accounts. It isn’t retained here and it’s never reused for another client",

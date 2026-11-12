@@ -169,7 +169,7 @@ export const content: AgentsPage = {
   hero: {
     eyebrow: 'For AI agents',
     headline: ['A front door', 'for {em}AI agents.{/em}'],
-    lead: 'If an AI assistant is doing your research, it can ask this site directly. Our MCP server answers from these pages, links each answer to its source, and can pass Daniel a message when you ask it to.',
+    lead: 'If an AI assistant is doing your research, it can ask this site directly. Our {k}MCP server{/k} answers from these pages, links each answer to its source, and can pass Daniel a message when you ask it to.',
     primary: { label: 'Connect an agent', href: '#connect' },
     secondary: { label: 'Talk to Daniel', href: '#contact' },
     specs: [
@@ -185,7 +185,7 @@ export const content: AgentsPage = {
     headline: ['For the assistant', 'doing the {em}legwork.{/em}'],
     body: [
       'Some people hand the first round of research to an AI assistant. Find a studio, check what it does, draft the first message. This page is for that assistant, and for whoever sets it up.',
-      'The endpoint speaks MCP, the Model Context Protocol. It’s an open standard for connecting AI assistants to outside tools. Through it, an assistant can search this site, read any page as plain text, and list what we offer and what we’ve built.',
+      'The {k}endpoint{/k} speaks MCP, the Model Context Protocol. It’s an open standard for connecting AI assistants to outside tools. Through it, an assistant can search this site, read any page as plain text, and list what we offer and what we’ve built.',
       'Every answer comes from this site’s own words, with a link to the page and section it came from. If the site doesn’t cover something, the search says so. It doesn’t guess.',
     ],
   },
@@ -195,7 +195,7 @@ export const content: AgentsPage = {
     eyebrow: 'Connect',
     headline: ['One address,', '{em}no sign-in.{/em}'],
     body: [
-      'Point an MCP client at the address below. There’s no key and no account. Each request is a single POST, and each answer is a single JSON reply.',
+      'Point an {k}MCP client{/k} at the address below. There’s no key and no account. Each request is a single POST, and each answer is a single JSON reply.',
     ],
     factsLabel: 'The endpoint',
     facts: [
@@ -228,7 +228,7 @@ export const content: AgentsPage = {
       {
         label: 'By hand',
         lang: 'shell',
-        caption: 'Or ask for the tool list with curl, no client at all.',
+        caption: 'Or ask for the tool list with {k}curl{/k}, no client at all.',
         code: `curl -s ${ENDPOINT} \\
   -H 'Content-Type: application/json' \\
   -H 'Accept: application/json, text/event-stream' \\
@@ -265,9 +265,9 @@ export const content: AgentsPage = {
     list: [
       'start_conversation is the only tool that sends anything. It passes Daniel a message through the same form as the start page, marked as sent by an agent.',
       'An agent should send one only when the person it works for asks to get in touch and has read the exact message. The tool’s own description tells the agent so.',
-      'Each IP address gets 60 requests a minute. Past that, the endpoint answers 429 until the minute is up.',
+      'Each {k}IP address{/k} gets 60 requests a minute. Past that, the endpoint answers {k}429{/k} until the minute is up.',
       'Three messages a day can come from one IP address, and there’s a daily cap for the whole site. Past either, the tool says so and points to email.',
-      'No tracking. No cookies, no accounts, and no record of what an agent searches for or reads. When a message is sent, the endpoint keeps two one-way hashes for that day: one of the IP address it came from, to count messages, and one of the message, so a repeat isn’t sent twice. Both are deleted after that day, the next time an agent uses one of the tools.',
+      'No tracking. No cookies, no accounts, and no record of what an agent searches for or reads. When a message is sent, the endpoint keeps two {k}one-way hashes{/k} for that day: one of the IP address it came from, to count messages, and one of the name, email address and message together, so a repeat isn’t sent twice. Both are deleted after that day, the next time an agent uses one of the tools.',
       'Answers come only from this site’s published text, through the same index and confidence floor as Ask This Site.',
     ],
     links: [
@@ -285,7 +285,7 @@ export const content: AgentsPage = {
     ],
     dl: [
       { label: '/llms.txt', value: 'An index of every page, one line each, with what the page covers.' },
-      { label: '/llms-full.txt', value: 'Every page’s text as markdown, in one file.' },
+      { label: '/llms-full.txt', value: 'Every page’s text as {k}markdown{/k}, in one file.' },
       { label: 'index.md', value: 'Any page on its own: add index.md to its address, like /agents/index.md.' },
       { label: '/sitemap.xml', value: 'Every page, with the date its content last changed.' },
     ],

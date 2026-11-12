@@ -73,7 +73,7 @@ export function initMenu(): void {
   /* Widening past the breakpoint removes the burger, and with it the only
      control that could close the menu, while body overflow stays locked.
      Closing on the media query restores everything together. */
-  const wide = window.matchMedia('(min-width: 1160px)');
+  const wide = window.matchMedia('(min-width: 72.5em)');
   wide.addEventListener('change', (e) => {
     if (e.matches && burger.getAttribute('aria-expanded') === 'true') setOpen(false);
   });

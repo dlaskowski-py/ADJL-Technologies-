@@ -12,6 +12,8 @@
  *                                ([data-scan-status], role=status)
  *   [data-scan="report"]         the report: a recorded scan of this site
  *                                until the visitor runs one
+ *   [data-scan="example-note"]   the sentence above it saying so, hidden
+ *                                once a live scan replaces the example
  *   script[data-scan-copy]       every word this module says, as JSON, so
  *                                no copy ships in this chunk
  *
@@ -154,6 +156,10 @@ export function initScan(): void {
       if (li.dataset.state === 'run') setStep(li.dataset.step as Step, 'failed');
       else if (li.dataset.state === 'wait') setStep(li.dataset.step as Step, 'skip');
     }
+    /* The reason sits under the steps, often below the fold: bring it into
+       view (no further than needed, after the steps have settled above it).
+       Focus stays on the button; role=alert reads the reason out. */
+    errBox.scrollIntoView({ block: 'nearest', behavior: tier === 'reduced' ? 'auto' : 'smooth' });
   };
 
   const setBusy = (on: boolean) => {
@@ -171,6 +177,9 @@ export function initScan(): void {
     out.innerHTML = renderReport(r, copy.report, chip);
     out.removeAttribute('data-example');
     out.dataset.fresh = 'true';
+    /* "Until you scan a page, it shows a scan of this site…" is no longer
+       true of the report under it. */
+    document.querySelector<HTMLElement>('[data-scan="example-note"]')?.setAttribute('hidden', '');
 
     const count = (l: Level) => r.findings.filter((f) => f.level === l).length;
     const first = r.findings.find((f) => f.level !== 'ok');
@@ -192,6 +201,8 @@ export function initScan(): void {
     const raw = input!.value.trim();
     clearError();
     if (!raw) {
+      /* An empty field has nothing to do with the last scan's steps. */
+      resetSteps();
       showError('empty');
       input!.focus();
       return;

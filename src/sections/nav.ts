@@ -4,9 +4,11 @@
  * where the wordmark points.
  *
  * Desktop: wordmark · the three practices, Work, Approach · the reading
- * switch and Jump to ⌘K (both script-only) · the CTA. Under 1160px: a
- * burger and a menu holding the same links plus the reading switch, the
- * view switch and Pause motion.
+ * switch and Jump to ⌘K (both script-only) · the CTA. Under 72.5em (1160px
+ * at the default 16px text size, wider when a visitor has set larger text
+ * in the browser): a burger and a menu holding the same links plus the
+ * reading switch, the view switch and Pause motion. The breakpoints are in
+ * em in src/styles/chrome.css so the bar never has to wrap its links.
  */
 
 import { nav as siteNav, status } from '../content';
@@ -31,20 +33,23 @@ function current(href: string, here: string): boolean {
  * aria-pressed, so a stored Technical shows on the first frame, before
  * any module has loaded. Script-only: without JavaScript the site reads
  * plain and there's nothing to switch. Rendered twice, in the bar (wide
- * screens) and in the phone menu, where it carries a visible label.
+ * screens) and in the phone menu, each with a visible label that names
+ * the group ("Wording"), so nobody reads Plain as a theme. In the bar the
+ * label sits above the track (chrome.css), which costs the full bar no
+ * width; the bar keeps the longer hint as a tooltip besides. A page with
+ * no Plain and Technical alternatives in its main shows neither (CSS
+ * :has() in chrome.css, motion/read.ts where that's unsupported).
  */
 function readSwitch(where: 'bar' | 'menu'): string {
   const opt = (mode: 'plain' | 'technical') =>
     `<button class="read-opt" type="button" data-read-set="${mode}" aria-pressed="${mode === 'plain'}">${esc(
       R[mode],
     )}</button>`;
-  const name =
-    where === 'menu'
-      ? `aria-labelledby="read-label-menu"><span class="read-label" id="read-label-menu">${esc(R.label)}</span>`
-      : `aria-label="${esc(R.label)}" title="${esc(R.hint)}">`;
-  return `<div class="read-switch" role="group" data-read-toggle="${where}" data-js-only data-chrome ${name}<span class="read-track">${opt(
-    'plain',
-  )}${opt('technical')}</span></div>`;
+  const id = `read-label-${where}`;
+  const hint = where === 'bar' ? ` title="${esc(R.hint)}"` : '';
+  return `<div class="read-switch" role="group" data-read-toggle="${where}" data-js-only data-chrome aria-labelledby="${id}"${hint}><span class="read-label" id="${id}">${esc(
+    R.label,
+  )}</span><span class="read-track">${opt('plain')}${opt('technical')}</span></div>`;
 }
 
 export function renderNav(here: string): string {
@@ -85,7 +90,7 @@ export function renderNav(here: string): string {
     <div class="nav-progress" aria-hidden="true"><i></i></div>
     <span class="sr-only" data-read-say aria-live="polite" data-say-plain="${esc(R.say.plain)}" data-say-technical="${esc(
       R.say.technical,
-    )}"></span>
+    )}" data-say-same="${esc(R.say.same)}"></span>
     <div class="mobile-menu" id="mobile-menu" hidden>
       <nav class="mobile-links" aria-label="Primary, mobile">${items}</nav>
       <div class="mobile-tools" data-js-only>

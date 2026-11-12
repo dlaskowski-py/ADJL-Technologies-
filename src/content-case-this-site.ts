@@ -71,15 +71,15 @@ const telemetry: Section = {
   eyebrow: 'Telemetry',
   headline: ['Measured on', '{em}your visit.{/em}'],
   body: [
-    'The sizes below were measured when this page was built. The timings come from your browser’s performance APIs, measured now, on your device. If a browser doesn’t report a metric, the field says so instead of guessing.',
+    'The sizes below were measured when this page was built. The timings come from your browser’s {k}performance APIs{/k}, measured now, on your device. If a browser doesn’t report a metric, the field says so instead of guessing.',
   ],
   dlLabel: 'How each one is measured',
   dl: [
     { label: 'html, css, js', value: 'gzip sizes of this page’s own files, measured at build' },
-    { label: 'LCP', value: 'the largest-contentful-paint entry' },
+    { label: 'LCP', value: 'the {k}largest-contentful-paint entry{/k}' },
     {
       label: 'CLS',
-      value: 'layout-shift entries in session windows, ignoring shifts right after input',
+      value: '{k}layout-shift entries{/k} in session windows, ignoring shifts right after input',
     },
     { label: 'slowest input', value: 'the longest event duration per interaction' },
     { label: '3rd-party', value: 'resources from any origin that isn’t this one' },
@@ -100,7 +100,7 @@ export const content: SectionPage = {
   hero: {
     eyebrow: 'Case study · This website',
     headline: ['The site you’re on', 'is the {em}SEO case study.{/em}'],
-    lead: 'We can’t name clients yet, so here’s a build we can open all the way. Every page is HTML before any script runs. Nothing loads from another origin. Each page describes itself in structured data, and the build fails if the copy uses a hype word or an unmeasured number. The numbers on this page are measured in your browser.',
+    lead: 'We can’t name clients yet, so here’s a build we can open all the way. Every page is HTML before any script runs. Nothing loads from another origin. Each page describes itself in {k}structured data{/k}, and the build fails if the copy uses a hype word or an unmeasured number. The numbers on this page are measured in your browser.',
     secondary: { label: 'Talk to Daniel', href: '#contact' },
     specs: [
       { label: 'Rendering', value: 'Static HTML, prerendered at build' },
@@ -126,7 +126,7 @@ export const content: SectionPage = {
       eyebrow: 'Response headers',
       headline: ['Nothing loads from', '{em}anywhere else.{/em}'],
       body: [
-        'No font host, no CDN, no analytics and no embeds. The content security policy says so, and your browser enforces it. When scripts run, the panel fetches this page’s real response headers as it comes into view. Without them, it shows the policy this site ships.',
+        'No font host, no {k}CDN{/k}, no analytics and no embeds. The {k}content security policy{/k} says so, and your browser enforces it. When scripts run, the panel fetches this page’s real response headers as it comes into view. Without them, it shows the policy this site ships.',
       ],
       instrument: 'headers',
     },
@@ -135,7 +135,7 @@ export const content: SectionPage = {
       eyebrow: 'Structured data',
       headline: ['Every page', '{em}describes itself.{/em}'],
       body: [
-        'Each page carries one JSON-LD graph. The company, its founder, the site, the page and what the page is about, joined by stable IDs. The same IDs appear on every page, so a machine reading two pages knows they describe one company.',
+        'Each page carries one {k}JSON-LD graph{/k}. The company, its founder, the site, the page and what the page is about, joined by stable IDs. The same IDs appear on every page, so a machine reading two pages knows they describe one company.',
       ],
       instrument: 'machine-schema',
     },
@@ -148,8 +148,8 @@ export const content: SectionPage = {
       ],
       list: [
         'sitemap.xml (dates from git history)',
-        'robots.txt',
-        'llms.txt',
+        '{k}robots.txt{/k}',
+        '{k}llms.txt{/k}',
         'llms-full.txt',
         'A markdown copy of every page',
         'build-report.json',

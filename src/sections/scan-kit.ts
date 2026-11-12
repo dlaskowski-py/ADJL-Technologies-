@@ -318,11 +318,14 @@ function agentsHtml(r: ScanResult, c: ScanCopy): string {
           const a = by.get(cr.token);
           const verdict = a?.verdict ?? 'unknown';
           const rule = a?.rule ?? 'error';
+          /* No data-chrome on the cells: the markdown copy, llms-full.txt
+             and Ask's index have to keep which crawler this is, who runs it
+             and what robots.txt tells it. Only the glyph is decoration. */
           return `<tr data-verdict="${verdict}">
-          <th scope="row" data-chrome><code>${x(cr.token)}</code></th>
-          <td data-part="by" data-chrome>${x(cr.by)}</td>
+          <th scope="row"><code>${x(cr.token)}</code></th>
+          <td data-part="by">${x(cr.by)}</td>
           <td data-part="what">${x(cr.what)}</td>
-          <td data-part="verdict" data-chrome><span data-part="mark" aria-hidden="true">${
+          <td data-part="verdict"><span data-part="mark" aria-hidden="true" data-chrome>${
             verdict === 'allowed' ? '✓' : verdict === 'blocked' ? '✕' : '?'
           }</span> ${x(A.verdicts[verdict])}<span data-part="rule">${x(A.rules[rule])}${
             a?.line ? ` <code>${x(a.line)}</code>` : ''

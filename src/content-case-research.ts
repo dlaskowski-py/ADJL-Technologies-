@@ -100,7 +100,7 @@ export const content: SectionPage = {
         {
           /* The last two stages share an item: eight make even rows. */
           title: 'On paper, then Loep',
-          body: 'After every close, a scheduled job checks the published code against the research, rebuilds the paper accounts and works out the orders for the next open. The results are emailed. A result that holds up can also reach Loep as an indicator. So far, one has.',
+          body: 'After every close, a scheduled job checks its code against the research, rebuilds the paper accounts and works out the orders for the next open. The results are emailed. A result that holds up can also reach Loep as an indicator. So far, one has.',
         },
       ],
     },
@@ -157,7 +157,7 @@ export const content: SectionPage = {
       items: [
         {
           title: 'Checked before it publishes',
-          body: 'Each run first checks that the published code still matches the research. It refuses to publish when too little of the market has that day’s prices.',
+          body: 'The programs run the research’s own code. Where a program uses its own version of a strategy, each run first checks that version against the research. A run also refuses to publish when too little of the market has that day’s prices.',
         },
         {
           title: 'Rebuilt from the start',

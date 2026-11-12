@@ -44,13 +44,13 @@ export const content: StartPage = {
   meta: {
     title: 'Start a Project | ADJL Technology',
     description:
-      'Tell ADJL Technology what you want built. An assistant can help you put it into words, and the form goes straight to Daniel.',
+      'Tell ADJL Technology what you want built. A few lines in the form go straight to Daniel, and he answers by email.',
     ogTitle: 'Tell us what you want built.',
   },
   hero: {
     eyebrow: 'Start a project',
     headline: ['Tell us what', 'you {em}want built.{/em}'],
-    lead: 'A few lines is plenty. If you’re not sure how to put it, the assistant below asks a few short questions and drafts the message for you. Either way, Daniel reads it himself.',
+    lead: 'A few lines in the form below is plenty. Daniel reads every message himself and answers by email.',
     primary: { label: 'Go to the form', href: '#form' },
     secondary: { label: 'Email Daniel', href: `mailto:${CONTACT}` },
   },
@@ -114,7 +114,7 @@ export const content: StartPage = {
     eyebrow: 'The form',
     headline: ['Send it', 'to {em}Daniel.{/em}'],
     body: [
-      'Your name, your email and a few lines about the project. Write it yourself, or let the assistant draft it first. It goes to Daniel, and he answers by email, usually within a day or two.',
+      'Your name, your email and a few lines about the project. It goes to Daniel, and he answers by email, usually within a day or two.',
     ],
     list: [
       'Netlify, the site’s host, stores what you send, checks it for spam and emails it to Daniel.',

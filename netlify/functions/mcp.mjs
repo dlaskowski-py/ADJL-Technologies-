@@ -83,7 +83,9 @@
  *     hand the form to Netlify
  *
  * PRIVACY. Nothing an agent searches for or reads is stored or logged.
- * The log line for a tool call is its name, its outcome and its time.
+ * The log line for a tool call is its name, its outcome and its time:
+ * one of the tools' own names and outcome codes, never text from the
+ * request, so a caller can't write into the log.
  *
  * Netlify Functions v2: a default export taking (Request, Context) and
  * returning a Response, routed by config.path. Headers are set here; the
@@ -829,6 +831,8 @@ async function startConversation(args, ctx) {
   return { result: done(fill(R.sent, { email: f.email, contact }), structured('sent')), outcome: 'sent' };
 }
 
+/* Looked up with Object.hasOwn, never RUN[name] alone: a name such as
+   "constructor" or "toString" is on every object's prototype. */
 const RUN = {
   search_site: (args, ctx) => ctx.site().then((s) => searchSite(s, args)),
   get_page: (args, ctx) => ctx.site().then((s) => getPage(s, args)),
@@ -1092,7 +1096,7 @@ export function createHandler(deps = {}) {
       case 'tools/call': {
         const name = params.name;
         if (typeof name !== 'string') return fail(200, id, CODES.params, 'Invalid params: tools/call needs params.name.');
-        if (!RUN[name]) return fail(200, id, CODES.params, `Unknown tool: ${name}`);
+        if (!Object.hasOwn(RUN, name)) return fail(200, id, CODES.params, `Unknown tool: ${name}`);
         if (params.arguments !== undefined && !isObject(params.arguments)) {
           return fail(200, id, CODES.params, 'Invalid params: params.arguments must be an object.');
         }
@@ -1128,7 +1132,10 @@ export function createHandler(deps = {}) {
           logError(name, err);
           out = { result: failed(R.unavailable), outcome: 'unavailable' };
         }
-        log(`mcp: ${name} ${out.outcome} ${Math.round(performance.now() - started)}ms (${era.version})`);
+        /* `name` is a tool's own name by now; the outcome is checked
+           against the codes the tools return (sent, read, answered:3). */
+        const outcome = /^[a-z_]+(?::\d+)?$/.test(String(out.outcome)) ? out.outcome : 'other';
+        log(`mcp: ${name} ${outcome} ${Math.round(performance.now() - started)}ms (${era.version})`);
         return reply(out.result);
       }
       default:

@@ -7,8 +7,10 @@
  *   #report  the report ([data-scan="report"]): until a visitor scans a
  *            page, a RECORDED scan of this site (content-scan.ts
  *            `example`), drawn by the same function the browser uses for a
- *            live one (scan-kit.ts renderReport). The copy the browser
- *            needs rides along as a JSON block.
+ *            live one (scan-kit.ts renderReport). The sentence saying so
+ *            ([data-scan="example-note"]) is hidden by the browser once a
+ *            live scan replaces it. The copy the browser needs rides along
+ *            as a JSON block.
  *   #how     what the scanner does and doesn't do.
  *   #audit   the way on: the website audit, and a quote for one.
  *
@@ -88,7 +90,9 @@ function report(n: number): string {
       <div class="sec-copy">
         ${eyebrow(r.eyebrow)}
         ${headline(r.headline)}
-        ${prose(r.body?.map(dated), 'prose sec-body')}
+        <div class="prose sec-body" data-reveal>${(r.body ?? []).map((p) => `<p>${rich(dated(p))}</p>`).join('')}<p data-scan="example-note">${rich(
+          dated(r.exampleNote),
+        )}</p></div>
       </div>
       <div class="scan-out" data-scan="report" data-example>${renderReport(
         example,

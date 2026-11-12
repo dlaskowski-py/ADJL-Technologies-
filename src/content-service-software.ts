@@ -25,7 +25,7 @@ export const content: SectionPage = {
   hero: {
     eyebrow: 'Websites & Apps',
     headline: ['Websites, apps', 'and the {em}systems behind them.{/em}'],
-    lead: 'Marketing sites, web apps, native iOS and Android apps, APIs and data pipelines. We build them fast to load, strict about security and easy for the next developer to read. Then we hand over the repository.',
+    lead: 'Marketing sites, web apps, native iOS and Android apps, {k}APIs{/k} and data pipelines. We build them fast to load, strict about security and easy for the next developer to read. Then we hand over the {k}repository{/k}.',
     primary: { label: 'See this page measured', href: '#telemetry' },
     secondary: { label: 'Talk to Daniel', href: '#contact' },
     specs: [
@@ -43,7 +43,7 @@ export const content: SectionPage = {
       items: [
         {
           title: 'Marketing sites',
-          body: 'Static HTML that renders before any script runs, a strict content policy and structured data on every page. This site is one.',
+          body: 'Static HTML that renders before any script runs, a strict {k}content policy{/k} and {k}structured data{/k} on every page. This site is one.',
         },
         {
           title: 'Web apps',
@@ -55,7 +55,7 @@ export const content: SectionPage = {
         },
         {
           title: 'Backends and APIs',
-          body: 'Serverless and edge functions, scheduled jobs and the APIs your front ends call. Every function checks who’s asking before it spends anything.',
+          body: '{k}Serverless and edge functions{/k}, scheduled jobs and the APIs your front ends call. Every function checks who’s asking before it spends anything.',
         },
         {
           title: 'Data pipelines',
@@ -69,7 +69,7 @@ export const content: SectionPage = {
       eyebrow: 'Live readout',
       headline: ['This page,', '{em}measured.{/em}'],
       body: [
-        'The readout below comes from your browser’s own performance APIs. We didn’t type any of the numbers. If your browser doesn’t report a metric, the field says so instead of guessing.',
+        'The readout below comes from your browser’s own {k}performance APIs{/k}. We didn’t type any of the numbers. If your browser doesn’t report a metric, the field says so instead of guessing.',
       ],
       instrument: 'telemetry',
     },
@@ -105,8 +105,8 @@ export const content: SectionPage = {
         'Tests that pin the outputs that matter',
         'The build guards, already wired in',
         'Deployment config and security headers',
-        'A runbook for when something breaks',
-        'Design tokens, so the next page matches',
+        'A {k}runbook{/k} for when something breaks',
+        '{k}Design tokens{/k}, so the next page matches',
       ],
     },
     {

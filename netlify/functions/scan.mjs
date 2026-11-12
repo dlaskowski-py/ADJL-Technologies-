@@ -30,6 +30,11 @@
  *   - Redirects are followed by hand, at most 3, and every hop goes through
  *     the same checks. So does robots.txt, a sitemap it names on another
  *     host, and /llms.txt.
+ *   - Only this site's page may start a scan from a browser: a cross-site
+ *     Sec-Fetch-Site is refused (403) and the body must be sent as
+ *     application/json (415 otherwise), which no other site can do without
+ *     a CORS preflight this never answers. So no other page can make its
+ *     visitors' browsers scan someone through us.
  *   - One time budget for the whole scan (8 s), a 2 MB cap on the page
  *     (decompressed: a small gzip can't inflate past it) and smaller caps
  *     on the other files. Reading stops at the cap.
@@ -166,6 +171,7 @@ const STATUS_FOR = {
   redirects: 422,
   rate_limited: 429,
   method: 405,
+  forbidden: 403,
   bad_request: 400,
   failed: 500,
 };
@@ -408,7 +414,7 @@ const MORE_ENT = {
   oacute: 'ó', iacute: 'í', uacute: 'ú', ntilde: 'ñ', ccedil: 'ç', szlig: 'ß', Eacute: 'É', reg: '®', trade: '™',
   laquo: '«', raquo: '»', euro: '€', pound: '£',
 };
-const decode = (s) => decodeEntities(s).replace(/&([a-zA-Z]+);/g, (m, n) => MORE_ENT[n] ?? m);
+const decode = (s) => decodeEntities(s).replace(/&([a-zA-Z]+);/g, (m, n) => (Object.hasOwn(MORE_ENT, n) ? MORE_ENT[n] : m));
 const squash = (s) => s.replace(/\s+/g, ' ').trim();
 const clip = (s, n) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
 const wordsIn = (s) => s.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
@@ -814,8 +820,13 @@ export async function scan(input, opts = {}, onStep = () => {}) {
     const r0 = Date.now();
     const f = await fetchFile(new URL('/robots.txt', origin), o, deadline, LIMITS.robotsBytes, 'text/plain,*/*;q=0.5');
     let robots;
+    /* A server error and 429 (too many requests) are both "error", not
+       "missing": Google's robots.txt documentation treats every 4xx except
+       429 as no robots.txt, and 429 like a 5xx, which pauses crawling of
+       the whole site. (RFC 9309 doesn't single 429 out; this follows
+       Google.) A rate-limited robots.txt is the opposite of an open one. */
     if (f.state !== 'ok') robots = { state: f.state === 'timeout' || f.state === 'skipped' ? 'timeout' : 'error', status: 0, sitemaps: [] };
-    else if (f.status >= 500) robots = { state: 'error', status: f.status, sitemaps: [] };
+    else if (f.status >= 500 || f.status === 429) robots = { state: 'error', status: f.status, sitemaps: [] };
     else if (f.status >= 400) robots = { state: 'missing', status: f.status, sitemaps: [] };
     else if (f.status !== 200 || f.html) robots = { state: 'unreadable', status: f.status, sitemaps: [] };
     else {
@@ -915,8 +926,8 @@ export const ORDER = [
   'thin', 'answers-blocked', 'robots-error', 'canonical-missing', 'desc-missing', 'h1-missing', 'jsonld-missing',
   'og-missing', 'nofollow', 'sitemap-missing', 'slow',
   // note
-  'canonical-other', 'redirects', 'refresh', 'title-long', 'desc-long', 'h1-many', 'lang-missing', 'img-alt',
-  'og-partial', 'robots-missing', 'llms-missing',
+  'gemini-blocked', 'robots-slow', 'canonical-other', 'redirects', 'refresh', 'title-long', 'desc-long', 'h1-many',
+  'lang-missing', 'img-alt', 'og-partial', 'robots-missing', 'llms-missing',
   // ok
   'status-ok', 'indexable', 'text-ok', 'title-ok', 'desc-ok', 'h1-ok', 'canonical-ok', 'robots-ok', 'training-blocked',
   'sitemap-ok', 'jsonld-ok', 'og-ok', 'llms-ok',
@@ -945,13 +956,24 @@ export function findingsFor(r) {
   const training = blocked('training');
   if (search.length) add('search-blocked', 'crawlers', 'fix', { names: search.join(', ') });
   if (answers.length) add('answers-blocked', 'crawlers', 'improve', { names: answers.join(', ') });
-  if (r.robots.state === 'error' || r.robots.state === 'timeout') add('robots-error', 'crawlers', 'improve', { status: r.robots.status || '' });
+  /* Google-Extended sits with the training opt-outs, but Google documents
+     that it also decides whether Gemini may use the site's pages for
+     grounding. Blocking it isn't free like the others, so it gets its own
+     line and stays out of the "fine" one below. */
+  const gemini = training.includes('Google-Extended');
+  if (gemini) add('gemini-blocked', 'crawlers', 'note');
+  /* A robots.txt that answered with an error is the site's; one that
+     didn't answer within our own 3 s may only be our limit, so it's worded
+     as that and kept to a note. */
+  if (r.robots.state === 'error') add('robots-error', 'crawlers', 'improve', { status: r.robots.status || '' });
+  else if (r.robots.state === 'timeout') add('robots-slow', 'crawlers', 'note');
   else if (r.robots.state === 'missing' || r.robots.state === 'unreadable') add('robots-missing', 'crawlers', 'note');
   /* Only a robots.txt we actually read can be said to let crawlers in.
      Without one, robots-missing above already says everything is open. */
   if (r.robots.state === 'found' && !search.length && !answers.length) {
-    if (training.length) add('training-blocked', 'crawlers', 'ok', { names: training.join(', ') });
-    else add('robots-ok', 'crawlers', 'ok');
+    const rest = training.filter((t) => t !== 'Google-Extended');
+    if (rest.length) add('training-blocked', 'crawlers', 'ok', { names: rest.join(', ') });
+    else if (!gemini) add('robots-ok', 'crawlers', 'ok');
   }
 
   if (!p.canonical) add('canonical-missing', 'crawlers', 'improve');
@@ -1058,6 +1080,21 @@ export function createHandler(opts = {}) {
         status: 405,
         headers: { ...HEADERS, Allow: 'POST', 'Content-Type': 'application/json; charset=utf-8' },
       });
+    }
+    /* Only this site's own page may start a scan from a browser. Without
+       these two lines any other site could POST text/plain here (a "simple"
+       request, sent with no preflight) and have each of its visitors'
+       browsers start a scan of a third party, every one from its own IP,
+       past the per-IP limits. Asking for JSON makes a browser send a CORS
+       preflight first; that OPTIONS gets the 405 above with no
+       Access-Control-Allow-Origin, so the POST never leaves the browser.
+       Sec-Fetch-Site, where the browser sends it, refuses the rest outright.
+       Both come before the limiter, so a refused request costs nothing.
+       curl and other tools send neither header and set the type. */
+    const site = req.headers.get('sec-fetch-site');
+    if (site && site !== 'same-origin' && site !== 'none') return json(errorBody(new ScanError('forbidden')), 403);
+    if (!/^application\/json\s*(;|$)/i.test(req.headers.get('content-type') ?? '')) {
+      return json(errorBody(new ScanError('bad_request')), 415);
     }
     const ip = context?.ip ?? req.headers.get('x-nf-client-connection-ip') ?? 'unknown';
     if (!opts.noLimit && limited(ip)) return json(errorBody(new ScanError('rate_limited')), 429);

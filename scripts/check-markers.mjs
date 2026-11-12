@@ -36,6 +36,15 @@ let bad = 0;
 
 for (const page of PAGES) {
   const html = readFileSync(page.out, 'utf8');
+  // Structured data is read by machines as written: a marker there is a
+  // bug, whatever the page shows (an FAQ answer copied raw, say).
+  for (const ld of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
+    const m = ld[1].match(MARKERS);
+    if (m) {
+      console.error(`check-markers: ${page.route} ships "${m[0]}" inside its JSON-LD. Strip the markers from that field.`);
+      bad += m.length;
+    }
+  }
   // Strip script contents: JSON data blocks (the replay data, Source view's
   // content objects) legitimately carry the raw markers.
   const visible = html.replace(/<script[\s\S]*?<\/script>/g, '');

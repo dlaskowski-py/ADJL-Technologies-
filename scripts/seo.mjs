@@ -327,7 +327,7 @@ export function buildHead({ origin, page, pages, meta, faq, h1 }) {
     webpage.mainEntity = faq.items.map((it) => ({
       '@type': 'Question',
       name: it.q,
-      acceptedAnswer: { '@type': 'Answer', text: it.a },
+      acceptedAnswer: { '@type': 'Answer', text: it.a.replace(/\{\/?(em|k)\}/g, '') },
     }));
   } else if (page.collection) webpage.mainEntity = { '@id': listId };
   else if (page.article || page.note) webpage.mainEntity = { '@id': articleId };

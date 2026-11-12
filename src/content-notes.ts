@@ -52,7 +52,10 @@ export type Note = {
 const FIRST_THREE = '2026-11-12';
 
 export const labels = {
-  author: 'Daniel Laskowski',
+  /* AI agents drafted these notes, and the byline says so. The
+     structured data still names Daniel (#daniel in scripts/seo.mjs) as the
+     author: he's the person responsible for what they say. */
+  author: 'Daniel Laskowski, with AI agents',
   by: 'Written by',
   published: 'Published',
   reading: 'Reading time',
@@ -87,7 +90,7 @@ export const hub: NotesHub = {
     id: 'notes',
     eyebrow: 'The notes',
     headline: ['What we’ve', '{em}written so far.{/em}'],
-    body: 'Each one takes a few minutes. The notes about this site describe code anyone can read in its public repository.',
+    body: 'Each one takes a few minutes. The notes about this site describe code anyone can read in its public {k}repository{/k}.',
   },
 };
 
@@ -103,7 +106,7 @@ const crawlers: Note = {
   hero: {
     eyebrow: 'Field note',
     headline: ['What AI', '{em}crawlers read.{/em}'],
-    lead: 'Many AI crawlers read your page the way your server sends it, before any script runs. Here’s what that copy holds, what each part is for, and how this site makes sure it’s the whole page.',
+    lead: 'Many {k}AI crawlers{/k} read your page the way your server sends it, before any script runs. Here’s what that copy holds, what each part is for, and how this site makes sure it’s the whole page.',
   },
   blurb:
     'What a search crawler or an AI answer engine is handed when it fetches a page, and how this site makes sure that’s the whole page.',
@@ -113,7 +116,7 @@ const crawlers: Note = {
       heading: 'The page before any script runs.',
       body: [
         'A browser downloads a page, then runs its scripts, and the scripts often fill in the words. A crawler starts the same way. Many AI crawlers stop there. They read the HTML your server sent and never run the scripts. The ones that do run them often get to it later.',
-        'So the first question about any site is a plain one. What’s in the HTML before JavaScript runs? On a site built as a single-page app, the answer can be an empty shell and a script tag. A person sees a full page. A crawler that doesn’t run scripts sees almost nothing.',
+        'So the first question about any site is a plain one. What’s in the HTML before JavaScript runs? On a site built as a {k}single-page app{/k}, the answer can be an empty shell and a script tag. A person sees a full page. A crawler that doesn’t run scripts sees almost nothing.',
         'Every page on this site is rendered to complete HTML when the site is built. Small functions turn the copy into markup, and the result is saved as a plain file. Scripts add motion, measurement and the tools you use, like the site scan. Turn JavaScript off and every word of the page is still there. Our browser tests check exactly that on every page, with scripts on and off.',
       ],
     },
@@ -122,7 +125,7 @@ const crawlers: Note = {
       heading: 'The parts a machine reads first.',
       body: [
         'Some parts of a page do more work than their size suggests. The title and the description are often what a search result or an AI answer shows. The headings are the outline a machine uses to tell what each part of the page covers. Links tell a crawler where else to go.',
-        'Every page here has one main heading, a canonical address and a description of its own. The build fails if any of them goes missing, or if two pages share a description.',
+        'Every page here has one main heading, a {k}canonical address{/k} and a description of its own. The build fails if any of them goes missing, or if two pages share a description.',
         'You can see this reading on any page here. Switch the view to Machine, in the status bar or in the menu on a phone. The page labels itself the way a crawler takes it in, with its headings numbered as an outline and its links and structured data marked.',
       ],
     },
@@ -130,7 +133,7 @@ const crawlers: Note = {
       id: 'structured-data',
       heading: 'Structured data says who you are.',
       body: [
-        'Structured data is a block of JSON-LD in the page’s HTML that names things outright. This page is an article. Daniel Laskowski wrote it. ADJL Technology published it on this date. A person works all that out from the layout. A machine can read it from the data and doesn’t have to guess.',
+        'Structured data is a block of JSON-LD in the page’s HTML that names things outright. Here, it says the page is an article. It names Daniel Laskowski as the author. ADJL Technology published it on this date. A person works all that out from the layout. A machine can read it from the data and doesn’t have to guess.',
         'Every page here carries one graph of it, with the company, its founder, the site, the page and what the page is about. The company, its founder and the site each have an ID that stays the same on every page, so a machine reading two pages knows they describe one company. The build checks that every reference in the graph points at something that exists.',
       ],
     },
@@ -155,8 +158,8 @@ const crawlers: Note = {
       id: 'check-yours',
       heading: 'Check your own site.',
       body: [
-        'You can take the same reading of your own pages. The [site scan](/scan/) fetches a page from our server with no scripts run, the way many AI crawlers do. It reads your `robots.txt` and looks for a sitemap and an `llms.txt`. Then it lists what to fix first.',
-        'Nobody can promise you a place in an AI answer. What you can control is what a machine is handed when it asks for your page. On this site, the markdown copy is made from the built page, so the two can’t disagree. The title and description are written in the same file as the words on the page.',
+        'You can take the same reading of your own pages. The [site scan](/scan/) fetches a page from our server with no scripts run, the way many AI crawlers do. It reads your `robots.txt` and looks for a {k}sitemap{/k} and an `llms.txt`. Then it lists what to fix first.',
+        'Nobody can promise you a place in an AI answer. What you can control is what a machine is handed when it asks for your page. On this site, the markdown copy is made from the built page (in its Technical wording), so it can’t drift from what the page says. The title and description are written in the same file as the words on the page.',
       ],
     },
   ],
@@ -189,7 +192,7 @@ const overclaim: Note = {
       heading: 'Why the build checks the words.',
       body: [
         'ADJL Technology is new. We don’t have published clients, metrics or awards to point to yet. A site that hints otherwise gets found out in the first conversation, and after that nobody believes the rest of it.',
-        'Good intentions don’t survive every small edit. Someone adds a line to a page that felt thin. A number from a draft makes it into the final copy. So the rules are written as code, and the code runs on every deploy. If a check fails, the new version doesn’t ship, and the last good one stays live.',
+        'Good intentions don’t survive every small edit. Someone adds a line to a page that felt thin. A number from a draft makes it into the final copy. So the rules are written as code, and the code runs on every {k}deploy{/k}. If a check fails, the new version doesn’t ship, and the last good one stays live.',
       ],
     },
     {
@@ -199,7 +202,7 @@ const overclaim: Note = {
         'The first check, `check-claims`, holds a list of phrases that sell without saying anything. Claims to be the best or the newest. Stock lines about experience. Trust borrowed from people we can’t name. If one turns up anywhere on the site, the build stops and prints the words around it.',
         'It also looks for numbers doing a job they haven’t earned. A percentage next to a word like faster or cheaper. A sum next to saved. A count of clients, customers or projects, in digits or spelled out in words. We have no measured results to report yet, so any sentence like that would be invented.',
         'It reads more than the visible page. It reads the labels a screen reader speaks, image descriptions, the structured data search engines quote, and the files written for AI tools. A claim isn’t acceptable because it sits where a person rarely looks.',
-        'And it fails if the site ever loads an analytics script. The privacy page says there are none, so the policy has to change first.',
+        'And it fails if the site ever loads an {k}analytics script{/k}. The privacy page says there are none, so the policy has to change first.',
       ],
     },
     {
@@ -233,7 +236,7 @@ const overclaim: Note = {
       id: 'cost',
       heading: 'What it costs.',
       body: [
-        'Writing under these checks is slower. A true sentence sometimes has to be rewritten because it looks like a false one. A count of something we really did would still fail. When something becomes true, the fix is to change the check on purpose and write down why in the commit.',
+        'Writing under these checks is slower. A true sentence sometimes has to be rewritten because it looks like a false one. A count of something we really did would still fail. When something becomes true, the fix is to change the check on purpose and write down why in the {k}commit{/k}.',
         'The checks read their own descriptions too. This note can’t quote the phrases it describes, because the build would stop on them. The page about [how this site is built](/work/this-site/) paraphrases each check for the same reason.',
         'And the checks miss things. A list of phrases can’t tell a careful claim from a careless one, and a limit on dashes can’t make dull writing good. A person reviews anything that’s expensive to get wrong. The checks catch what a machine can, on every deploy.',
       ],
@@ -274,7 +277,7 @@ const research: Note = {
       id: 'who-decides',
       heading: 'A person decides at every gate.',
       body: [
-        'The agents write the code, run the studies and review each other’s work. A person sets each question. An agent asks focused questions and writes a design spec, and the workflow requires a person to approve the spec and the plan before any code is written. A person can also choose to shorten that path.',
+        'The agents write the code, run the studies and review each other’s work. A person sets each question. An agent asks focused questions and writes a {k}design spec{/k}, and the workflow requires a person to approve the spec and the plan before any code is written. A person can also choose to shorten that path.',
         'A reviewer agent checks the finished work, and a person chooses which of its findings to act on. Nothing an agent finds is adopted on its own say-so. Whether a change goes forward is a person’s call, made after the results are in.',
       ],
     },
@@ -316,7 +319,7 @@ const research: Note = {
       id: 'both-halves',
       heading: 'A result has to hold in both halves.',
       body: [
-        'Some ideas work in one stretch of history and nowhere else. To catch that, the history is split in two, and a result has to hold in both halves. Where a test uses random draws, it has to hold for every random seed too.',
+        'Some ideas work in one stretch of history and nowhere else. To catch that, the history is split in two, and a result has to hold in both halves. Where a test uses random draws, it has to hold for every {k}random seed{/k} too.',
         'When settings are tuned, each year of the test runs on settings chosen only from the years before it. The test never borrows from its own future.',
       ],
     },

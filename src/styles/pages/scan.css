@@ -816,10 +816,15 @@ html:not([data-motion='reduced']):not([data-paused]) .scan-steps [data-state='ru
     grid-column: 1 / -1;
     grid-row: 3;
   }
+  /* The rule under the verdict is long. Left at max-content it would
+     widen this column until the crawler's name had no room, so the
+     column is capped and the rule wraps inside it. */
   [data-scan] [data-part='verdict'] {
     grid-column: 2;
     grid-row: 1 / span 2;
+    max-width: 11rem;
     text-align: right;
+    white-space: normal;
   }
 }
 

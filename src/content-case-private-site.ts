@@ -26,7 +26,7 @@ export const content: SectionPage = {
   hero: {
     eyebrow: 'Case study · Private site',
     headline: ['A private site', 'that {em}says no by default.{/em}'],
-    lead: 'Most of ADJL Capital’s site is for its investors. The build seals members’ pages out of the public output. An edge function checks for a signed session before it serves any of them, and when it can’t tell, it refuses. Serverless functions handle property lookups, market data and scheduled email briefs.',
+    lead: 'Most of ADJL Capital’s site is for its investors. The build seals members’ pages out of the public output. An edge function checks for a signed session before it serves any of them, and when it can’t tell, it refuses. Serverless functions handle property lookups, {k}market data{/k} and scheduled email briefs.',
     secondary: { label: 'Talk to Daniel', href: '#contact' },
     specs: [
       { label: 'Locks', value: 'Sealed at build, checked at the edge' },
@@ -41,7 +41,7 @@ export const content: SectionPage = {
       eyebrow: 'Build and edge',
       headline: ['Two locks,', '{em}one rule.{/em}'],
       body: [
-        'The first lock runs at build time. Members’ pages never reach the public files at all. The second runs at the edge on every request, before any cache. It checks a signed session and serves the page only when the check passes.',
+        'The first lock runs at build time. Members’ pages never reach the public files at all. The second runs at the edge on every request, before any {k}cache{/k}. It checks a signed session and serves the page only when the check passes.',
       ],
       instrument: 'leaders-seal',
     },
@@ -50,7 +50,7 @@ export const content: SectionPage = {
       eyebrow: 'Failure mode',
       headline: ['When unsure,', '{em}refuse.{/em}'],
       body: [
-        'If the edge function can’t decide, it serves an error and not the page. If the lock were ever missing from a deploy, the members’ pages wouldn’t exist in it. That trade is deliberate. A confusing error now and then is cheap next to a members’ page served to a stranger.',
+        'If the edge function can’t decide, it serves an error and not the page. If the lock were ever missing from a {k}deploy{/k}, the members’ pages wouldn’t exist in it. That trade is deliberate. A confusing error now and then is cheap next to a members’ page served to a stranger.',
       ],
     },
     {

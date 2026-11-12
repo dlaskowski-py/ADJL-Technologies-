@@ -60,7 +60,7 @@ export const privacy: LegalDoc = {
       heading: 'What this site collects',
       paragraphs: [
         'Nothing, just from reading. These pages are static files served from a content delivery network. No script here sets a cookie. No analytics or session-recording service is loaded, and no third-party embed appears on any page.',
-        'Your browser may keep the usual local cache of images, fonts and scripts so pages load faster on a second visit. That cache lives on your device. Your browser controls it, and we can’t read it.',
+        'Your browser may keep the usual local {k}cache{/k} of images, fonts and scripts so pages load faster on a second visit. That cache lives on your device. Your browser controls it, and we can’t read it.',
       ],
     },
     {
@@ -75,7 +75,7 @@ export const privacy: LegalDoc = {
       id: 'measure',
       heading: 'Measurements on the page',
       paragraphs: [
-        'Some sections measure the page you’re reading. They use your browser’s own performance APIs, and they fetch this site’s files again from this site and nowhere else. The results are shown to you and aren’t sent anywhere. Those fetches are ordinary requests, so they appear in the host’s standard logs like any page view. The status bar also counts any cookies your browser holds for this site. There should be none. It reads that count from document.cookie, shows it to you and sends it nowhere.',
+        'Some sections measure the page you’re reading. They use your browser’s own {k}performance APIs{/k}, and they fetch this site’s files again from this site and nowhere else. The results are shown to you and aren’t sent anywhere. Those fetches are ordinary requests, so they appear in the host’s standard logs like any page view. The status bar also counts any cookies your browser holds for this site. There should be none. It reads that count from document.cookie, shows it to you and sends it nowhere.',
       ],
     },
     {
@@ -89,10 +89,10 @@ export const privacy: LegalDoc = {
       id: 'form',
       heading: 'If you send the form',
       paragraphs: [
-        'The form on the start page asks for your name, your email, a topic and a message. It also notes how the message was written: by you, drafted with the assistant, or sent for you by an AI agent through this site’s MCP endpoint.',
-        'Netlify, which hosts this site, receives the form. It runs each submission through a spam filter (Akismet), stores it in this site’s Netlify account and emails it to Daniel. We use it to reply to you, and to do the work if we end up working together. It isn’t added to a mailing list, and it isn’t sold, rented or shared.',
-        'If an AI agent sends the form for you through this site’s MCP endpoint, the endpoint keeps two one-way hashes for that day, each mixed with a random value made that day: one of the IP address the request came from, so no single caller can send more than a few messages, and one of the message, so the same one isn’t sent twice. It also counts the day’s messages for the whole site, with nothing about who sent them. Neither hash holds the IP address or the words of the message, and all of it is deleted after that day, the next time an agent uses one of the endpoint’s tools. What an agent searches for or reads through the endpoint isn’t stored.',
-        `To have a submission deleted, write to ${CONTACT}. Daniel deletes it from Netlify and from his inbox.`,
+        'The form on the start page asks for your name, your email, a topic and a message. It also notes how the message was written: by you, drafted with the assistant, or sent for you by an AI agent through this site’s MCP {k}endpoint{/k}.',
+        'Netlify, which hosts this site, receives the form. It runs each submission through Akismet, a spam filter run by another company, Automattic. Then it stores the submission in this site’s Netlify account, together with the {k}IP address{/k} it was sent from, and emails it to Daniel. We use it to reply to you, and to do the work if we end up working together. It isn’t added to a mailing list, and it isn’t sold, rented or shared.',
+        'If an AI agent sends the form for you through this site’s MCP endpoint, the endpoint keeps two {k}one-way hashes{/k} for that day. One is of the IP address the request came from, so no single caller can send more than a few messages. The other is of the name, email address and message together, so the same one isn’t sent twice. Both are mixed with a random value made that day, which is stored with them. The endpoint also counts the day’s messages for the whole site, with nothing about who sent them. Neither hash holds the IP address, the email address or the words of the message. All of it is deleted after that day, the next time an agent uses one of the endpoint’s tools. What an agent searches for or reads through the endpoint isn’t stored.',
+        `Submissions stay in Netlify and in Daniel’s inbox until he deletes them. To have yours deleted, write to ${CONTACT}, and Daniel deletes it from both.`,
       ],
     },
     {
@@ -138,7 +138,7 @@ export const privacy: LegalDoc = {
       id: 'rights',
       heading: 'Your rights',
       paragraphs: [
-        'Depending on where you live, you may have the right to ask what personal data is held about you, to have it corrected, to have it deleted, or to object to its processing. What exists here is what you sent us, an email or a form, and, for a day, the hashed records described above if you used the assistant or an agent sent the form for you. Exercising any of those just means asking.',
+        'Depending on where you live, you may have the right to ask what personal data is held about you, to have it corrected, to have it deleted, or to object to its processing. What exists here is what you sent us, an email or a form. If you used the assistant, or an agent sent the form for you, there are also the hashed records described above, until they’re deleted after that day. Exercising any of those just means asking.',
         `Write to ${CONTACT} and Daniel Laskowski handles it directly. He’s the person responsible for this site and for the firm.`,
       ],
     },
@@ -194,7 +194,7 @@ export const terms: LegalDoc = {
       id: 'accuracy',
       heading: 'Accuracy',
       paragraphs: [
-        'The content here is written to be correct when it’s published, and it’s kept current, but it’s provided as-is and without warranty. Software, model providers and market data all change. A page written in good faith can go out of date before anyone notices.',
+        'The content here is written to be correct when it’s published, and it’s kept current, but it’s provided as-is and without warranty. Software, model providers and {k}market data{/k} all change. A page written in good faith can go out of date before anyone notices.',
         'If you find something here that’s wrong, we’d genuinely like to know.',
       ],
     },
@@ -203,7 +203,7 @@ export const terms: LegalDoc = {
       heading: 'Intellectual property',
       paragraphs: [
         'The text, design, code and diagrams on this site belong to ADJL Technology. You’re welcome to link to any page, quote it with attribution, and print it for your own use.',
-        'Work produced during a client engagement is a different question, and it’s answered the other way around. The client owns the code, the prompts, the evaluation set and the documentation. That’s set out in the engagement agreement, and the Approach page describes it in plain terms.',
+        'Work produced during a client engagement is a different question, and it’s answered the other way around. The client owns the code, the prompts, the {k}evaluation set{/k} and the documentation. That’s set out in the engagement agreement, and the Approach page describes it in plain terms.',
       ],
     },
     {

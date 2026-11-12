@@ -18,7 +18,13 @@
  * Anthropic (support.claude.com article 8896518), Perplexity
  * (docs.perplexity.ai/guides/bots), Google ("Google's common crawlers"),
  * Apple (support.apple.com/119829), Meta (developers.facebook.com, "Meta
- * Web Crawlers") and Common Crawl (commoncrawl.org/ccbot). ByteDance
+ * Web Crawlers") and Common Crawl (commoncrawl.org/ccbot). Google-Extended
+ * was rechecked on November 12, 2026 against "Google's common crawlers"
+ * (last updated October 30, 2026). It's a training opt-out AND, Google
+ * says, the switch for grounding in the Gemini apps and in Grounding with
+ * Google Search on Vertex AI; Google says it has no effect on inclusion or
+ * ranking in Google Search, and says nothing about AI Overviews, so neither
+ * does this file. ByteDance
  * publishes little about Bytespider, so its line says what's reported, not
  * what's documented. Recheck the list when adding a crawler: names and
  * purposes change.
@@ -58,9 +64,11 @@ export type ScanPage = {
   meta: Meta;
   hero: Hero;
   form: ScanForm;
-  /** The report section. {date} in `body` and `exampleChip` is the day the
-   *  example was recorded. */
-  report: Section & { exampleChip: string };
+  /** The report section. {date} in `exampleNote` and `exampleChip` is the
+   *  day the example was recorded. `exampleNote` says the report below is
+   *  that recording; the browser hides it once a visitor's own scan
+   *  replaces the example. */
+  report: Section & { exampleNote: string; exampleChip: string };
   how: Section;
   audit: Section & { primary: Link; secondary: Link };
 };
@@ -109,8 +117,8 @@ export const content: ScanPage = {
     headline: ['Every page has', '{em}three readers.{/em}'],
     body: [
       'People read the words. Crawlers follow the links and the rules. Machines parse the structured data. The report reads your page the way each one does, then lists what to fix first.',
-      'Until you scan a page, it shows a scan of this site’s home page, recorded on {date}.',
     ],
+    exampleNote: 'Until you scan a page, it shows a scan of this site’s home page, recorded on {date}.',
     exampleChip: '{date}',
   },
   how: {
@@ -118,7 +126,7 @@ export const content: ScanPage = {
     eyebrow: 'What it does',
     headline: ['A first look,', '{em}not an audit.{/em}'],
     body: [
-      'The scanner fetches one page from our server and reads the HTML it gets back, with no scripts run. Many AI crawlers read pages the same way. It also reads your {k}robots.txt{/k} and looks for a sitemap and an {k}llms.txt{/k} file.',
+      'The scanner fetches one page from our server and reads the HTML it gets back, with no scripts run. Many AI crawlers read pages the same way. It also reads your {k}robots.txt{/k} and looks for a sitemap and an {k}llms.txt{/k}.',
       'It can’t see your rankings, your traffic or what an AI answer says about you today. It doesn’t check every page or judge your writing.',
       'We don’t store the address you scan or anything we fetch. The report goes back to your browser and nowhere else.',
     ],
@@ -131,7 +139,7 @@ export const content: ScanPage = {
       'The website audit starts from these three layers and goes much deeper, across every kind of page on your site. You get a written report with the fixes in order of impact, and a call to walk through it.',
       'It’s priced by quote, after a look at the site.',
     ],
-    primary: { label: 'Ask for an audit quote', href: '/start/?topic=audit' },
+    primary: { label: 'Ask for an audit quote', href: '/start/?topic=audit#form' },
     secondary: { label: 'What the audit covers', href: '/services/seo/audit/' },
   },
 };
@@ -220,7 +228,7 @@ export const crawlers: { items: Crawler[] } = {
       token: 'Google-Extended',
       by: 'Google',
       group: 'training',
-      what: 'Not a crawler. A switch for whether Google may use your pages to train Gemini and ground its answers. It doesn’t affect Google Search.',
+      what: 'Not a crawler. A switch for whether Google may use your pages to train Gemini, and to ground Gemini’s answers in them. Google says it doesn’t affect whether your pages appear or rank in Google Search.',
     },
     {
       token: 'Applebot-Extended',
@@ -361,13 +369,13 @@ export const scanCopy: ScanCopy = {
     },
     'answers-blocked': {
       title: 'robots.txt blocks AI search crawlers: {names}.',
-      why: 'These crawlers find the pages AI answers quote and link to. Blocking them keeps you out of those answers. Blocking only the training crawlers doesn’t.',
-      fix: 'If you want to show up in AI answers, allow these. You can keep the training crawlers blocked.',
+      why: 'These crawlers find the pages AI answers quote and link to. Blocking them keeps you out of those answers. Blocking only the training crawlers doesn’t, with one exception. Google says Google-Extended also decides whether Gemini may ground its answers in your pages.',
+      fix: 'If you want to show up in AI answers, allow these. You can keep the training crawlers blocked, apart from Google-Extended if Gemini matters to you.',
     },
     'robots-error': {
       title: 'robots.txt didn’t load.',
-      why: 'When robots.txt answers with a server error, Google stops crawling the site until it loads again. Other crawlers may hold off too.',
-      fix: 'Make /robots.txt answer 200 with your rules, or 404 if you don’t want any.',
+      why: 'When robots.txt can’t be fetched, or answers with a server error or 429 (too many requests), Google stops crawling the site and keeps trying. After 12 hours it falls back to the last copy it read, if it has one. Other crawlers may hold off too.',
+      fix: 'Make /robots.txt answer 200 with your rules, or 404 if you don’t want any. If a CDN or firewall rate-limits it, exempt /robots.txt.',
     },
     'canonical-missing': {
       title: 'No canonical URL.',
@@ -410,6 +418,16 @@ export const scanCopy: ScanCopy = {
       fix: 'Find where the time goes: the server, the database or the size of the page. Fix the slowest part first.',
     },
     /* Worth a look. */
+    'gemini-blocked': {
+      title: 'robots.txt opts out of Google-Extended.',
+      why: 'Google says this switch covers more than training. It also decides whether Gemini may use your pages to ground its answers, in the Gemini apps and on Google Cloud’s Vertex AI. Google says it doesn’t affect whether your pages appear or rank in Google Search.',
+      fix: 'If you want Gemini to be able to draw on your pages when it answers, allow Google-Extended. If you’d rather keep them out of Gemini, leave it blocked.',
+    },
+    'robots-slow': {
+      title: 'robots.txt didn’t answer in time.',
+      why: 'Our scan waits up to 3 seconds for it, less when the page itself was slow, so the limit may be ours, not your site’s. If Google can’t fetch it either, it treats that like a server error and stops crawling for a while.',
+      fix: 'Check that /robots.txt answers quickly. It’s a small file and should come back in well under a second.',
+    },
     'canonical-other': {
       title: 'The canonical points to another address.',
       why: 'That’s right for a duplicate page. If this is the main page, it tells search engines to index the other address.',
@@ -417,7 +435,7 @@ export const scanCopy: ScanCopy = {
     },
     redirects: {
       title: 'The address went through {n} redirects.',
-      why: 'Each hop adds time, and crawlers give up after a few.',
+      why: 'Each hop adds a round trip. Google follows up to 10, but other crawlers and tools may stop sooner.',
       fix: 'Link straight to the final address, and point old addresses at it in one hop.',
     },
     refresh: {
@@ -427,12 +445,12 @@ export const scanCopy: ScanCopy = {
     },
     'title-long': {
       title: 'The title is {len} characters long.',
-      why: 'Search results show about the first 60 characters, so the end of yours may be cut off.',
+      why: 'Google cuts long titles in its results to fit the screen. It sets no fixed limit, but past about 60 characters the end of yours may be cut off.',
       fix: 'Put the words that matter first.',
     },
     'desc-long': {
       title: 'The description is {len} characters long.',
-      why: 'Search results usually show about 160 characters of it.',
+      why: 'Google cuts long descriptions in its results to fit the screen. It sets no fixed limit, but past about 160 characters the end may be cut off. It may also write its own summary from the page.',
       fix: 'Lead with the point and trim the rest.',
     },
     'h1-many': {
@@ -550,7 +568,14 @@ export const scanErrors: Record<string, { title: string; body: string }> = {
   },
   rate_limited: { title: 'That’s a lot of scans in a short time.', body: 'Wait a minute, then try again.' },
   method: { title: 'Scans are sent with POST.', body: 'Send a JSON body with the address in a field called url.' },
-  bad_request: { title: 'That request wasn’t understood.', body: 'Send a JSON body with the address in a field called url.' },
+  forbidden: {
+    title: 'This scanner only answers its own page.',
+    body: 'Run your scan at adjltechnology.com/scan/.',
+  },
+  bad_request: {
+    title: 'That request wasn’t understood.',
+    body: 'Send it as JSON (Content-Type: application/json), with the address in a field called url.',
+  },
   network: { title: 'We couldn’t reach the scanner.', body: 'Check your connection and try again.' },
   failed: { title: 'Something went wrong on our side.', body: 'Try again in a minute.' },
 };

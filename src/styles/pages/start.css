@@ -8,12 +8,16 @@
  * list, the confirmation) is styled by attribute selectors under
  * [data-assistant], never by classes.
  *
- * Nothing here may move the page after it paints. The assistant's stage has
- * a fixed height in every state (loading, on, off, unreachable), the
- * composer keeps its size whether it's enabled or not, and the sources list
- * scrolls inside a fixed box, so a streaming reply grows inside the panel and
- * never pushes the form down. Copper is the visitor's side, violet the
- * model's, as everywhere on the site.
+ * Nothing here may move the page after it paints, with one exception. The
+ * assistant's stage has one fixed height while it loads and while it's on,
+ * the composer keeps its size whether it's enabled or not, and the sources
+ * list scrolls inside a fixed box, so a streaming reply grows inside the
+ * panel and never pushes the form down. The exception: when the assistant
+ * turns out to be off or unreachable, its section folds down to one line
+ * (see "Off or unreachable" below). The module folds it only while the part
+ * that folds is still below the screen, so the fold never moves anything a
+ * visitor can see. Copper is the visitor's side, violet the model's, as
+ * everywhere on the site.
  *
  * OWNER: WS-A (assistant + intake).
  */
@@ -132,6 +136,32 @@ html:not(.js) .asst-to-form,
 }
 .asst-to-form:hover .arw {
   transform: translateY(3px);
+}
+
+/* Off or unreachable, the assistant can't help, so its section folds down
+   to the heading and the status line with its link to the form. The
+   intro, the composer and "How it works" describe a feature that isn't
+   there, and on a phone they'd stand a few screens between the hero and
+   the form. The module sets data-asst-state on the section, and only
+   while everything from the intro down is still below the screen
+   (src/motion/assistant.ts). Anyone already looking at the section or the
+   form keeps it whole, with the status line in the panel. Loading keeps
+   the full size, the same as on, so turning on moves nothing. */
+:is([data-asst-state='off'], [data-asst-state='unreachable']) :is(.start-body, .asst-side, .asst-compose) {
+  display: none;
+}
+:is([data-asst-state='off'], [data-asst-state='unreachable']) .start-head {
+  margin-bottom: var(--s-5);
+}
+html.js :is([data-asst-state='off'], [data-asst-state='unreachable']) .asst-stage {
+  height: auto;
+  min-height: 0;
+  border-bottom: none;
+}
+:is([data-asst-state='off'], [data-asst-state='unreachable']) .asst-status {
+  position: static;
+  justify-items: start;
+  text-align: left;
 }
 
 .asst-log {
@@ -343,8 +373,13 @@ html[data-motion='reduced'] [data-assistant] [data-typing] i {
 [data-asst] .btn:disabled:hover::before {
   opacity: 0;
 }
+/* The message box too, while it waits: dashed and see-through, its text
+   in the caption grey, so it doesn't pass for the live field in the form. */
 [data-asst] .asst-input:disabled {
+  color: var(--fg-3);
+  background: transparent;
   border-color: var(--rule-2);
+  border-style: dashed;
   cursor: not-allowed;
 }
 [data-asst] .btn[aria-disabled='true'] {

@@ -30,7 +30,7 @@ export const content: SectionPage = {
     eyebrow: 'SEO & AI Search · Website audit',
     headline: ['A website audit,', '{em}priced by quote.{/em}'],
     lead: 'We read your whole site the way people, search crawlers and AI answer engines do. You get a written report with the fixes in order of impact, and a call to walk through it. Ask, and Daniel replies with a price after a look at the site.',
-    primary: { label: 'Ask for a quote', href: '/start/?topic=audit' },
+    primary: { label: 'Ask for a quote', href: '/start/?topic=audit#form' },
     secondary: { label: 'Talk to Daniel', href: '#contact' },
     specs: [
       { label: 'Reads', value: 'Every kind of page on your site, from the outside' },
@@ -54,11 +54,11 @@ export const content: SectionPage = {
         },
         {
           title: 'What crawlers follow',
-          body: 'Status codes, redirects, canonical tags, {k}robots.txt{/k}, noindex and the sitemap. Whether search and AI crawlers may reach each page, and whether they’re told to skip ones you want found.',
+          body: 'Status codes, redirects, {k}canonical tags{/k}, robots.txt, {k}noindex{/k} and the sitemap. Whether search and AI crawlers may reach each page, and whether they’re told to skip ones you want found.',
         },
         {
           title: 'What machines parse',
-          body: 'Structured data, share tags and {k}llms.txt{/k}. Whether the JSON-LD parses, describes real things and matches what the page says.',
+          body: 'Structured data, share tags and {k}llms.txt{/k}. Whether the {k}JSON-LD{/k} parses, describes real things and matches what the page says.',
         },
       ],
       links: [{ label: 'Try the free scan on one page', href: '/scan/' }],
@@ -86,7 +86,7 @@ export const content: SectionPage = {
         },
         {
           title: 'AI crawler access',
-          body: 'What your robots.txt tells each AI crawler, page by page. Which ones fetch pages for AI answers and which collect training data, so you can choose on purpose.',
+          body: 'What your {k}robots.txt{/k} tells each AI crawler, page by page. Which ones fetch pages for AI answers and which collect training data, so you can choose on purpose.',
         },
         {
           title: 'llms.txt',
@@ -139,7 +139,7 @@ export const content: SectionPage = {
         'If you go ahead, you get the written report and then the call.',
       ],
       links: [
-        { label: 'Ask for an audit quote', href: '/start/?topic=audit' },
+        { label: 'Ask for an audit quote', href: '/start/?topic=audit#form' },
         { label: 'Run the free scan first', href: '/scan/' },
       ],
     },

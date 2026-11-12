@@ -59,16 +59,26 @@
  *     plan, and it can hold a daily count, which a sliding window can't
  *   - for the whole site, ASSISTANT_DAILY_LIMIT requests a day (default
  *     300; 0 switches the assistant off without a deploy)
- *   Counts live in Netlify Blobs (store "assistant-limits") as one empty
- *   record per request under day/visitor/time. The store is opened with
- *   strong consistency, so every count reads the store itself, never an
- *   edge cache that can be up to a minute behind (the default, eventual
- *   consistency, would let a burst inside that minute pass every cap).
+ *   - per function instance, LIMITS.inflight requests at once, counted
+ *     in memory (see admit())
+ *   Each limit is a set of numbered slots in Netlify Blobs (store
+ *   "assistant-limits"), and a request goes ahead only once it holds one
+ *   slot of each: day/m/minute/visitor/0000..0005 for the clock minute,
+ *   day/v/visitor/0000..0039 for the day, day/site/0000..0299 for the
+ *   site. A slot is taken with an onlyIfNew write, which Blobs makes
+ *   atomic, so two requests can never hold the same slot and the limits
+ *   hold however many requests arrive at once. (Counting the day's
+ *   records and then adding one can't promise that: requests arriving
+ *   together all count before any of them writes, and all get through.)
+ *   The minute is the clock minute, a fixed window. The store is opened
+ *   with strong consistency, so a listing of free slots reads the store
+ *   itself, never an edge cache that can be up to a minute behind.
  *   The visitor part is a salted SHA-256 of the IP address and the date,
  *   never the address: the salt is ASSISTANT_SALT, or the API key when
- *   that's unset, so the hash can't be reversed by trying every address. Records from earlier days
- *   are deleted the next time the function runs. If the store can't be
- *   read, the request is refused (503), not waved through.
+ *   that's unset, so the hash can't be reversed by trying every address.
+ *   Every key starts with the day, and earlier days' keys are deleted the
+ *   next time the function runs. If the store can't be read or written,
+ *   the request is refused (503), not waved through.
  *
  * max_tokens. Chat: 2,000. A reply is asked to stay under about 120 words
  * (roughly 170 tokens); thinking is always on for this model and counts
@@ -110,7 +120,7 @@
  */
 import Anthropic from '@anthropic-ai/sdk';
 import { getStore } from '@netlify/blobs';
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -131,6 +141,9 @@ export const LIMITS = {
   perMinute: 6,
   perDay: 40,
   daily: 300,
+  /** Requests one function instance works on at once (admission to the
+   *  last byte). A backstop, not the limit: see admit(). */
+  inflight: 4,
   /** Per attempt, until the API's response starts (the SDK retries once).
    *  Both requests stream, so this never runs into generation time. */
   timeoutMs: 25_000,
@@ -383,26 +396,78 @@ export function visitorHash(ip, day, salt) {
   return createHash('sha256').update(`${salt}|${day}|${ip}`).digest('hex').slice(0, 32);
 }
 
+/** Free slots tried before the listing is read again. */
+const TRIES = 3;
+
 /**
- * Count, then record. Returns null to go ahead, or an error code. Append
- * only (one new key per request), so concurrent requests can't overwrite
- * each other's counts; at worst a burst lands a request or two past a
- * limit, which bounds cost just the same.
+ * Take one free slot of `prefix`/0000..(n-1) with an onlyIfNew write and
+ * return its key, or null when all n are taken. The listing says which
+ * slots look free; the write is what decides, since another request may
+ * have taken a slot since. Free slots are tried in random order, so
+ * requests arriving together mostly try different ones, and the listing is
+ * read again after TRIES misses, so a request that loses races doesn't
+ * walk every slot one write at a time. Each miss is a slot that's now
+ * taken, so the free set only shrinks; the round cap is only there in case
+ * slots handed back keep reopening, and a request that runs out of rounds
+ * is refused like one that found no slot (fail closed).
+ */
+async function claim(store, prefix, n) {
+  const keys = Array.from({ length: n }, (_, i) => `${prefix}/${String(i).padStart(4, '0')}`);
+  for (let round = 0; round <= Math.ceil(n / TRIES) + 1; round++) {
+    const { blobs } = await store.list({ prefix: `${prefix}/` });
+    const taken = new Set(blobs.map((b) => b.key));
+    const free = keys.filter((k) => !taken.has(k));
+    if (!free.length) return null;
+    for (let i = 0; i < TRIES && free.length; i++) {
+      const [key] = free.splice(Math.floor(Math.random() * free.length), 1);
+      if ((await store.set(key, '1', { onlyIfNew: true })).modified) return key;
+    }
+  }
+  return null;
+}
+
+/**
+ * Take a slot of each limit (LIMITS above), smallest first: this visitor's
+ * minute, this visitor's day, then the site's day. Returns null to go
+ * ahead, or an error code, having given back whatever it took. A request
+ * that's refused holds nothing, so it costs no one else a slot; one that
+ * goes ahead keeps its slots for the day, whatever the API then does.
+ *
+ * The caller also counts requests in flight on this instance and refuses
+ * past LIMITS.inflight. That's a backstop for a runtime that runs requests
+ * side by side in one instance. On Netlify, functions run on AWS Lambda,
+ * where an instance takes one request at a time, so the slots are what
+ * hold the limits there.
  */
 export async function admit(store, { hash, now, daily, perDay, perMinute }) {
   if (daily <= 0) return 'daily_limit';
   const day = dayOf(now);
-  const { blobs } = await store.list({ prefix: `${day}/` });
-  if (blobs.length >= daily) return 'daily_limit';
-  const mine = blobs.filter((b) => b.key.startsWith(`${day}/${hash}/`));
-  if (mine.length >= perDay) return 'rate_limited';
-  const recent = mine.filter((b) => Number(b.key.split('/')[2]?.split('-')[0]) > now - 60_000);
-  if (recent.length >= perMinute) return 'rate_limited';
-  await store.set(`${day}/${hash}/${now}-${randomUUID().slice(0, 8)}`, '1');
+  const minute = Math.floor(now / 60_000);
+  const held = [];
+  /* A failed delete only leaves a slot taken until the day is swept:
+     fail closed. */
+  const giveBack = () => Promise.all(held.map((k) => store.delete(k).catch((err) => logError('limits', err))));
+  try {
+    for (const [prefix, n, code] of [
+      [`${day}/m/${minute}/${hash}`, perMinute, 'rate_limited'],
+      [`${day}/v/${hash}`, perDay, 'rate_limited'],
+      [`${day}/site`, daily, 'daily_limit'],
+    ]) {
+      const key = await claim(store, prefix, n);
+      if (!key) {
+        await giveBack();
+        return code;
+      }
+      held.push(key);
+    }
+  } catch (err) {
+    await giveBack();
+    throw err;
+  }
   return null;
 }
 
-/** Delete every record from a day before today. */
+/** Delete every slot from a day before today. */
 export async function sweep(store, now) {
   const today = dayOf(now);
   const { directories = [] } = await store.list({ directories: true });
@@ -480,9 +545,19 @@ function deadline(ms) {
  * The chat reply as NDJSON. The first event is awaited before the
  * Response exists, so an error that happens before any output (a bad key,
  * a rate limit, an overload) still gets a real status and JSON body.
+ * `onEnd` runs once, when the API call is over: finished, failed, given
+ * up by the visitor, or stopped at the deadline (even if nobody is
+ * reading the body by then).
  */
-async function streamChat(client, params, { docs, left, ms }) {
+async function streamChat(client, params, { docs, left, ms, onEnd = () => {} }) {
   const due = deadline(ms);
+  let ended = false;
+  const end = () => {
+    if (ended) return;
+    ended = true;
+    onEnd();
+  };
+  due.signal.addEventListener('abort', end, { once: true });
   const stream = client.beta.messages.stream(params, { signal: due.signal });
   const it = stream[Symbol.asyncIterator]();
   let first;
@@ -490,6 +565,7 @@ async function streamChat(client, params, { docs, left, ms }) {
     first = await it.next();
   } catch (err) {
     due.clear();
+    end();
     logError('chat', err);
     const { status, code } = classify(err);
     return fail(code, status);
@@ -554,6 +630,7 @@ async function streamChat(client, params, { docs, left, ms }) {
           if (r.done) {
             finished = true;
             due.clear();
+            end();
             if (due.passed) {
               controller.enqueue(line(late()));
               controller.close();
@@ -583,6 +660,7 @@ async function streamChat(client, params, { docs, left, ms }) {
       } catch (err) {
         finished = true;
         due.clear();
+        end();
         if (due.passed) {
           controller.enqueue(line(late()));
         } else {
@@ -595,6 +673,7 @@ async function streamChat(client, params, { docs, left, ms }) {
     cancel() {
       /* The visitor left: stop generating, stop paying for it. */
       due.clear();
+      end();
       if (!finished) stream.abort?.();
     },
   });
@@ -650,17 +729,21 @@ function defaultClient(apiKey) {
  *   store()         a Blobs store (list, set, delete)
  *   corpus()        the documents, or null if the text isn't bundled
  *   env(name)       configuration
- *   now()           the clock (the rate-limit records and the day)
+ *   now()           the clock (the rate-limit slots and the day)
  *   deadlineMs      the time budget (LIMITS.deadlineMs), shortened in tests
+ *   inflight        requests at once on this instance (LIMITS.inflight)
  */
 export function createHandler(deps = {}) {
   const env = deps.env ?? readEnv;
   const makeClient = deps.client ?? defaultClient;
-  /* Strong: a count must read the store, not a cached list (LIMITS). */
+  /* Strong: a listing of free slots must read the store, not a cache (LIMITS). */
   const openStore = deps.store ?? (() => getStore({ name: 'assistant-limits', consistency: 'strong' }));
   const corpus = deps.corpus ?? loadCorpus;
   const now = deps.now ?? Date.now;
   const budget = deps.deadlineMs ?? LIMITS.deadlineMs;
+  /* Requests this instance is working on (admit()). */
+  const maxInflight = deps.inflight ?? LIMITS.inflight;
+  let inflight = 0;
   let swept = '';
 
   return async (req, context = {}) => {
@@ -671,7 +754,7 @@ export function createHandler(deps = {}) {
     const docs = key ? corpus() : null;
     const enabled = Boolean(key && docs?.length);
 
-    /* Once a day per warm instance: clear earlier days' records. */
+    /* Once a day per warm instance: clear earlier days' slots. */
     const housekeeping = () => {
       const today = dayOf(now());
       if (!enabled || swept === today) return;
@@ -714,7 +797,17 @@ export function createHandler(deps = {}) {
     const v = validate(parsed);
     if (v.error) return fail(v.error, STATUS[v.error] ?? 400);
 
-    /* Limits, after validation so a malformed request costs no quota. */
+    /* Limits, after validation so a malformed request costs no quota.
+       This instance's own cap first: it costs nothing to check, and a
+       request it refuses takes no slot. */
+    if (inflight >= maxInflight) return fail('busy', 503);
+    inflight++;
+    let held = true;
+    const release = () => {
+      if (!held) return;
+      held = false;
+      inflight--;
+    };
     const ip = context.ip || req.headers.get('x-nf-client-connection-ip') || 'unknown';
     const t = now();
     const daily = Number.parseInt(env('ASSISTANT_DAILY_LIMIT') ?? '', 10);
@@ -728,19 +821,36 @@ export function createHandler(deps = {}) {
         perMinute: LIMITS.perMinute,
       });
     } catch (err) {
+      release();
       logError('limits', err);
       return fail('busy', 503);
     }
-    if (verdict) return fail(verdict, STATUS[verdict] ?? 429);
+    if (verdict) {
+      release();
+      return fail(verdict, STATUS[verdict] ?? 429);
+    }
     housekeeping();
 
-    const client = makeClient(key);
-    if (v.mode === 'draft') return draft(client, draftParams(v.messages), { ms: remaining() });
-    return streamChat(client, chatParams(docs, v.messages), {
-      docs,
-      left: LIMITS.turns - v.turns,
-      ms: remaining(),
-    });
+    try {
+      const client = makeClient(key);
+      if (v.mode === 'draft') {
+        try {
+          return await draft(client, draftParams(v.messages), { ms: remaining() });
+        } finally {
+          release();
+        }
+      }
+      return await streamChat(client, chatParams(docs, v.messages), {
+        docs,
+        left: LIMITS.turns - v.turns,
+        ms: remaining(),
+        onEnd: release,
+      });
+    } catch (err) {
+      /* Nothing above should throw; if it does, don't keep the count. */
+      release();
+      throw err;
+    }
   };
 }
 

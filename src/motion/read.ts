@@ -13,9 +13,14 @@
  * Markup contract: [data-read-toggle] (the nav bar and the phone menu,
  * src/sections/nav.ts), with buttons [data-read-set="plain|technical"],
  * and one polite live region [data-read-say] carrying the words to say
- * (data-say-plain, data-say-technical), so this module imports no copy.
- * boot.ts loads it with lazyOn() when the switch nears the viewport; the
- * ⌘K palette imports setRead() to switch from there.
+ * (data-say-plain, data-say-technical, data-say-same), so this module
+ * imports no copy. boot.ts loads it with lazyOn() when the switch nears
+ * the viewport; the ⌘K palette imports setRead() to switch from there.
+ *
+ * A page with no alternatives in its main reads the same either way. It
+ * shows no switch (chrome.css hides it with :has(); here it's hidden for
+ * browsers without :has()), and a switch from the palette still takes
+ * effect for the next page and says this one doesn't change.
  *
  * Switching shows or hides words above where the reader is looking, so
  * the first line under the nav bar is held where it was. The browser's own
@@ -36,6 +41,11 @@ let wired = false;
 /** The reading the page is showing. */
 export function getRead(): Reading {
   return root.dataset.read === 'technical' ? 'technical' : 'plain';
+}
+
+/** Whether this page has Plain and Technical alternatives to switch. */
+function switches(): boolean {
+  return document.querySelector('main [data-for]') !== null;
 }
 
 /** aria-pressed on every switch on the page follows the attribute. */
@@ -89,7 +99,9 @@ export function setRead(r: Reading): void {
     }
     root.style.overflowAnchor = '';
     const say = document.querySelector<HTMLElement>('[data-read-say]');
-    const words = say?.getAttribute(`data-say-${r}`);
+    const said = say?.getAttribute(`data-say-${r}`);
+    const same = switches() ? null : say?.getAttribute('data-say-same');
+    const words = said && same ? `${said} ${same}` : said;
     if (say && words) {
       say.textContent = '';
       window.setTimeout(() => (say.textContent = words), 60);
@@ -102,6 +114,7 @@ export function setRead(r: Reading): void {
 export function initRead(): void {
   if (wired) return;
   wired = true;
+  if (!switches()) document.querySelectorAll<HTMLElement>('[data-read-toggle]').forEach((t) => (t.hidden = true));
   document.querySelectorAll<HTMLElement>('[data-read-toggle] [data-read-set]').forEach((b) =>
     b.addEventListener('click', () => setRead(b.dataset.readSet === 'technical' ? 'technical' : 'plain')),
   );

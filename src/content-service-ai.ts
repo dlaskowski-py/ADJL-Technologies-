@@ -27,7 +27,7 @@ export const content: SectionPage = {
   hero: {
     eyebrow: 'AI Engineering',
     headline: ['AI agents and automation', 'that {em}show their work.{/em}'],
-    lead: 'We build AI systems that do one job inside a business that already runs. Agents that call your tools. Retrieval that cites its sources. Extraction from records nobody structured, and drafting that stops at a review gate. Each one ships with an evaluation set, so you can tell whether it’s still right next month.',
+    lead: 'We build AI systems that do one job inside a business that already runs. Agents that call your tools. {k}Retrieval{/k} that cites its sources. Extraction from records nobody structured, and drafting that stops at a review gate. Each one ships with an {k}evaluation set{/k}, so you can tell whether it’s still right next month.',
     primary: { label: 'Watch a run stop', href: '#replay' },
     secondary: { label: 'Talk to Daniel', href: '#contact' },
     specs: [
@@ -53,7 +53,7 @@ export const content: SectionPage = {
         },
         {
           title: 'Extraction',
-          body: 'Fields pulled out of invoices, contracts, filings and emails nobody structured. Each field is checked against a schema. Anything missing goes to a person instead of getting filled in with a guess.',
+          body: 'Fields pulled out of invoices, contracts, filings and emails nobody structured. Each field is checked against a {k}schema{/k}. Anything missing goes to a person instead of getting filled in with a guess.',
         },
         {
           title: 'Routing and drafting',
@@ -65,7 +65,7 @@ export const content: SectionPage = {
         },
         {
           title: 'Handover',
-          body: 'The code, the prompts, the evaluation set and a runbook go into your repository. Swap the model out in a year and the scaffolding is what you keep.',
+          body: 'The code, the prompts, the evaluation set and a {k}runbook{/k} go into your {k}repository{/k}. Swap the model out in a year and the scaffolding is what you keep.',
         },
       ],
     },
@@ -76,7 +76,7 @@ export const content: SectionPage = {
       eyebrow: 'Try to break it',
       headline: ['Retrieval you can', '{em}argue with.{/em}'],
       body: [
-        'The same retrieval pattern as the home page, with the controls exposed. Move the confidence floor and watch the gate change its mind. Then try a question this site can’t answer.',
+        'The same retrieval pattern as the home page, with the controls exposed. Move the {k}confidence floor{/k} and watch the gate change its mind. Then try a question this site can’t answer.',
       ],
       instrument: 'ask-full',
     },
@@ -94,7 +94,7 @@ export const content: SectionPage = {
       eyebrow: 'Review gates',
       headline: ['Where a person', '{em}stays in the loop.{/em}'],
       body: [
-        'We put a review gate wherever a wrong answer costs real money. We keep them few, because a person who approves everything soon stops reading. Choosing where they go is part of the scope we write.',
+        'We put a {k}review gate{/k} wherever a wrong answer costs real money. We keep them few, because a person who approves everything soon stops reading. Choosing where they go is part of the scope we write.',
       ],
     },
     {
