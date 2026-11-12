@@ -94,7 +94,7 @@ const squash = (s: string) => s.replace(/\s+/g, ' ').trim();
  *  what's left, as a screen reader or a crawler's text model has it. */
 const unread = (from: El | null, heading: El): boolean => {
   for (let e = from; e; e = e.parent) {
-    if (e.attrs['aria-hidden'] === 'true' || 'data-chrome' in e.attrs) return true;
+    if (e.attrs['aria-hidden'] === 'true' || 'data-chrome' in e.attrs || e.attrs['data-for'] === 'plain') return true;
     if (e === heading) break;
   }
   return false;

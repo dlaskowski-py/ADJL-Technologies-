@@ -73,7 +73,7 @@ export const content: SectionPage = {
         },
         {
           title: 'Machine-readable surfaces',
-          body: 'A sitemap with real dates, a robots file that says what you mean, and {k}llms.txt{/k}, a proposed plain-text summary some AI tools read. We’re clear that it’s a proposal and not a standard.',
+          body: 'A sitemap with real dates, a robots file that says what you mean, and llms.txt, a proposed plain-text summary some AI tools read. We’re clear that it’s a proposal and not a standard.',
         },
       ],
     },

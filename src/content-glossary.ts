@@ -37,7 +37,6 @@ export const glossary: Record<string, string> = {
   'llms.txt': 'a plain-text file written for AI tools to read',
   'marching squares': 'a standard way to draw contour lines from a grid',
   'market data': 'live prices and trades from the exchanges',
-  mcp: 'a standard way for AI assistants to use outside tools',
   monitoring: 'software that keeps watch on running systems',
   normalized: 'reshaped to one consistent format',
   'operating statement': 'a property’s income and expenses, line by line',

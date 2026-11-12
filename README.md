@@ -36,6 +36,7 @@ is wrong. The shapes every module follows are in `src/content-types.ts`.
 | `src/content-case-ai.ts` | `/work/ai-implementation/` |
 | `src/content-case-mobile-app.ts` | `/work/mobile-app/` |
 | `src/content-case-loep.ts` | `/work/loep/` |
+| `src/content-glossary.ts` | every page: the reading switch's plain definition of each `{k}` term, and the switch's own labels |
 | `src/content-case-private-site.ts` | `/work/private-site/` |
 | `src/content-case-this-site.ts` | `/work/this-site/` |
 | `src/content-case-research.ts` | `/work/agentic-research/` |
@@ -68,7 +69,7 @@ Conventions in the content files:
 - `{em}word{/em}` sets that phrase in copper. **Exactly one per headline**,
   on the word that carries the meaning. `check-markers` checks the content
   exports for this before any renderer runs.
-- `{k}word{/k}` marks a technical term in **body copy only**, never a headline.
+- `{k}word{/k}` marks a technical term in **body copy only**, never a headline, and needs a plain definition in `src/content-glossary.ts` (the reading switch shows it in Plain; check-markers fails the build without one).
 - Apostrophes are `’`. Titles use ` | ` as the separator, never a dash.
 
 ## Running it
@@ -140,12 +141,12 @@ this deploy's own output saying so.
 | `check-claims` | Fabricated claims and hype, in the pages, their structured data and JSON, and every machine-readable file. See below |
 | `check-contact` | The contact address missing, unlinked, or half-migrated |
 | `check-motion` | A motion module whose markup contract appears on no page: dead JavaScript, the same argument `check-css` makes about dead rules. A module whose markup is still being written can sit on its explicit `PENDING` list, which the guard's own summary line names in the build report |
-| `check-markers` | An authoring marker (`{em}`, `{k}`) reaching production as literal text, or a headline without exactly one `{em}` |
+| `check-markers` | An authoring marker (`{em}`, `{k}`) reaching production as literal text, a headline without exactly one `{em}`, or a `{k}` term with no plain definition |
 | `check-usage` | A British spelling, the old plural name, or a meta description that's missing, repeated or over 160 characters |
 | `check-voice` | The copy drifting back into the AI-essay register. See below |
 | `check-seo` | A missing canonical, a second h1, a relative share image, a dash in a title, a missing markdown twin, or structured data that doesn't hold together: a `data-ld` pin or an `@id` reference that resolves to nothing |
 | `check-provenance` | An instrument with no provenance chip, a chip prerendered as Live (Live is set only after a real measurement in the browser), or a hatched "not shown" area with no label |
-| `check-budget` | A page over its byte budget (HTML 40 kB gz, first-load JS 24 kB, shared CSS 24 kB, page-only CSS 10 kB, each lazy chunk 10 kB, search index 26 kB, everything reachable from home 70 kB), a resource from another origin, anything in `dist/media/`, or a shipped file nothing references |
+| `check-budget` | A page over its byte budget (HTML 40 kB gz, first-load JS 24 kB, shared CSS 24 kB, page-only CSS 10 kB, each lazy chunk 10 kB, search index 40 kB, everything reachable from home 70 kB), a resource from another origin, anything in `dist/media/`, or a shipped file nothing references |
 
 `check-voice` is the unusual one. Every other guard tests a fact; this one
 tests a habit, and it exists because the habit was invisible from the

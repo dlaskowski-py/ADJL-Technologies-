@@ -272,6 +272,12 @@ for (const page of PAGES) {
       if (!Array.isArray(post.about) || post.about.length !== page.note.about.length) {
         fail(`${route} BlogPosting about doesn't list the ${page.note.about.length} @ids in pages.mjs`);
       }
+      /* The visible date comes from src/content-notes.ts and the structured
+         data from pages.mjs: two files, so they're held together here. */
+      const shown = html.match(/class="[^"]*\bnt-byline\b[^"]*"[\s\S]*?<time[^>]*\bdatetime="([^"]+)"/)?.[1];
+      const meta = head.metas.find((m) => m.property === 'article:published_time')?.content;
+      if (shown !== post.datePublished) fail(`${route} shows the date ${shown} but its BlogPosting says ${post.datePublished}`);
+      if (meta !== post.datePublished) fail(`${route} article:published_time is ${meta} but its BlogPosting says ${post.datePublished}`);
     }
   }
 

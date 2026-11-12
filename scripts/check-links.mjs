@@ -113,6 +113,7 @@ for (const page of PAGES) {
    static site that can change meaning without the site changing at all. */
 const ALLOWED_HOSTS = new Map([
   ['adjlcapital.com', 'the affiliated investment firm, referenced on /legal/terms/'],
+  ['github.com', "this site's public source, linked from /changelog/ and the notes"],
 ]);
 
 /* Paths on an allowed host this site must never route a reader into. ADJL

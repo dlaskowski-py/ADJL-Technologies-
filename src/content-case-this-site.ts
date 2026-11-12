@@ -116,7 +116,7 @@ export const content: SectionPage = {
       eyebrow: 'Prerendering',
       headline: ['Readable before', '{em}any script runs.{/em}'],
       body: [
-        'Every page is rendered to complete HTML at build time by plain string functions. Scripts only add motion and measurement. Turn JavaScript off and nothing goes missing. The meter below compares the words in the raw HTML with the words your browser rendered.',
+        'Every page is rendered to complete HTML at build time by plain string functions. Scripts add motion and measurement, and run the two tools that call a server: the scanner and the scoping assistant. Turn JavaScript off and every word is still there. The meter below compares the words in the raw HTML with the words your browser rendered.',
       ],
       instrument: 'machine-parity',
     },

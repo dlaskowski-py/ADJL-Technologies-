@@ -52,13 +52,15 @@ const bm = await loadTs('src/lib/bm25.ts');
 const C = await loadTs('src/content.ts');
 
 /** Index budget, gzipped (spec §9). */
-/* 26 kB. The index holds every indexable passage on the site, so it grows
-   with the copy: 22 at first, 24 when the landing page added plain-language
-   passages, 26 with a sixteenth page (/work/loep/, about 1.7 kB). It's
-   fetched only when a visitor first touches Ask, never on page load, which
-   is why its cap can follow the content. A new page is a reason to raise
-   it; longer copy on an old one isn't. */
-const INDEX_BUDGET = 26 * 1024;
+/* 40 kB. The index holds every indexable passage on the site, so it grows
+   with the copy: 22 at first, 24 with the landing page, 26 with Loep, and
+   40 with the eleven pages of the second round (the scanner, the start
+   page, the agents page, the audit, the research case, three notes and
+   the changelog), which took it from 16 pages to 27. It's fetched only
+   when a visitor first touches Ask, never on page load, which is why its
+   cap can follow the content. A new page is a reason to raise it; longer
+   copy on an old one isn't. */
+const INDEX_BUDGET = 40 * 1024;
 /** A passage needs this many words to be worth quoting. Shorter <li> and
  *  <dd> are labels ("Week one", "Home"), not answers. */
 const MIN_WORDS = 4;
@@ -86,7 +88,7 @@ const strip = (html) => html.replace(PRE, '<!--ask:pre-->');
  *  label names a thing; it doesn't answer anything), and the home page's
  *  "You say / We write / You get" strip: its request is a made-up example,
  *  and Ask quoting it would present it as something a customer said. */
-const LABELS = /(^|\s)(eyebrow|label|specs|lp-build)(\s|$)/;
+const LABELS = /(^|\s)(eyebrow|label|specs|lp-build|ag-tool)(\s|$)/;
 const skip = (el) =>
   isExcluded(el.name, el.attrs) ||
   LABELS.test(el.attrs.class ?? '') ||

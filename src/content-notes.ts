@@ -49,7 +49,7 @@ export type Note = {
 
 /** The fixed words around every note. {n} is a number of minutes. */
 /** The day the first three notes went live. Set at deploy (see above). */
-const FIRST_THREE = '2026-11-11';
+const FIRST_THREE = '2026-11-12';
 
 export const labels = {
   author: 'Daniel Laskowski',

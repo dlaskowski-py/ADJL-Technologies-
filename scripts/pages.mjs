@@ -293,7 +293,7 @@ export const PAGES = [
     crumb: 'What AI crawlers read',
     parent: '/notes/',
     lattice: true,
-    note: { published: '2026-11-11', about: ['/services/seo/#service', '/work/this-site/#article'] },
+    note: { published: '2026-11-12', about: ['/services/seo/#service', '/work/this-site/#article'] },
     priority: '0.6',
   },
   {
@@ -305,7 +305,7 @@ export const PAGES = [
     crumb: 'A build that refuses to overclaim',
     parent: '/notes/',
     lattice: true,
-    note: { published: '2026-11-11', about: ['/#website', '/work/this-site/#article'] },
+    note: { published: '2026-11-12', about: ['/#website', '/work/this-site/#article'] },
     priority: '0.6',
   },
   {
@@ -317,7 +317,7 @@ export const PAGES = [
     crumb: 'Research that can’t fool itself',
     parent: '/notes/',
     lattice: true,
-    note: { published: '2026-11-11', about: ['/services/ai-engineering/#service', '/work/agentic-research/#article'] },
+    note: { published: '2026-11-12', about: ['/services/ai-engineering/#service', '/work/agentic-research/#article'] },
     priority: '0.6',
   },
 

@@ -24,6 +24,8 @@
  *   data-ask-pre         the precomputed Ask answers, which quote passages
  *                        that are already counted where they live
  *   data-source-sheet    Source view's sheets
+ *   data-for="plain"     the reading switch's plain alternative (its
+ *                        technical twin is read instead)
  *
  * check-voice ALSO skips pre, code, samp and kbd: a line of code has no
  * sentence in it. Everywhere else they count, because a reader still reads
@@ -69,6 +71,9 @@ export function exclusionReason(tag: string, attrs: AttrSource, opts: ExcludeOpt
   const hidden = get(attrs, 'aria-hidden');
   if (hidden !== null && hidden.trim().toLowerCase() === 'true') return 'aria-hidden';
   for (const a of SKIP_ATTRS) if (get(attrs, a) !== null) return a;
+  /* The reading switch: paired copy is prerendered twice. Every reader
+     takes the technical one, so nothing is counted or quoted twice. */
+  if (get(attrs, 'data-for') === 'plain') return 'data-for="plain"';
   return null;
 }
 
